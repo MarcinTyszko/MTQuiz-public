@@ -70,11 +70,28 @@ def zapisz_stan(katalog: Path, **pola) -> None:
     zapisz_atomowo(katalog / PLIK_STANU, json.dumps(pola, ensure_ascii=False, indent=1))
 
 
-def sygnal_zycia(katalog_transkrypcji: Path, urzadzenie: str, model: str) -> None:
+def tryb_uruchomienia() -> str:
+    """Rozpoznaje, czy proces działa jako usługa systemd, czy uruchomiono go ręcznie."""
+    return "usluga" if os.environ.get("INVOCATION_ID") else "reczny"
+
+
+def sygnal_zycia(katalog_transkrypcji: Path, urzadzenie: str, model: str, zadanie: str | None = None) -> None:
+    """Zapisuje znak życia odczytywany przez aplikację.
+
+    Wywoływany również w trakcie długiej transkrypcji — inaczej aplikacja uznałaby
+    pracujący proces za nieczynny.
+    """
     zapisz_atomowo(
         katalog_transkrypcji / PLIK_SYGNALU,
         json.dumps(
-            {"sygnal": _teraz(), "urzadzenie": urzadzenie, "model": model, "pid": os.getpid()},
+            {
+                "sygnal": _teraz(),
+                "urzadzenie": urzadzenie,
+                "model": model,
+                "tryb": tryb_uruchomienia(),
+                "zadanie": zadanie,
+                "pid": os.getpid(),
+            },
             ensure_ascii=False,
         ),
     )
@@ -166,7 +183,7 @@ class Transkryptor:
         )
 
 
-def wykonaj(katalog: Path, transkryptor: Transkryptor) -> None:
+def wykonaj(katalog: Path, transkryptor: Transkryptor, katalog_transkrypcji: Path) -> None:
     zadanie = json.loads((katalog / PLIK_ZADANIA).read_text(encoding="utf-8"))
     audio = katalog / zadanie["plik"]
     tytul = zadanie.get("tytul") or audio.name
@@ -185,6 +202,7 @@ def wykonaj(katalog: Path, transkryptor: Transkryptor) -> None:
 
     rozpoczeto = _teraz()
     zapisz_stan(katalog, status="running", postep=0, komunikat="Wczytywanie modelu…", rozpoczeto=rozpoczeto)
+    sygnal_zycia(katalog_transkrypcji, transkryptor.urzadzenie, transkryptor.nazwa_modelu, tytul)
     _log(f"#{zadanie['id']} „{tytul}” — start ({audio.stat().st_size / 1024 / 1024:.1f} MB).")
 
     segmenty_wynik: list[dict] = []
@@ -228,6 +246,9 @@ def wykonaj(katalog: Path, transkryptor: Transkryptor) -> None:
                     rozpoczeto=rozpoczeto,
                     dlugosc=dlugosc,
                 )
+                # Znak życia także w trakcie pracy — transkrypcja bywa dłuższa
+                # niż dopuszczalna przerwa między sygnałami.
+                sygnal_zycia(katalog_transkrypcji, transkryptor.urzadzenie, transkryptor.nazwa_modelu, tytul)
 
     zapisz_atomowo(
         katalog / PLIK_SEGMENTOW,
@@ -302,7 +323,7 @@ def main() -> int:
             if _zatrzymaj:
                 break
             try:
-                wykonaj(katalog, transkryptor)
+                wykonaj(katalog, transkryptor, katalog_transkrypcji)
             except Exception as exc:  # noqa: BLE001 - błąd jednego zadania nie może zabić procesu
                 _log(f"Błąd zadania {katalog.name}: {exc}")
                 traceback.print_exc()

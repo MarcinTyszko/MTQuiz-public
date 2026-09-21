@@ -10,7 +10,7 @@
     Wgraj nagranie wykładu, podcastu albo ścieżkę dźwiękową z filmu, a otrzymasz zapis tekstowy
     ze znacznikami czasu. Gotową transkrypcję pobierzesz jako TXT, Markdown lub PDF, albo przekażesz
     prosto do <a href="/generator-promptu" class="link">generatora promptu</a>, żeby model zrobił
-    z niej fiszki i pytania.
+    z niej fiszki i pytania. Transkrypcja rusza sama, zaraz po wysłaniu nagrania.
   </p>
 
   <!-- Stan procesu transkrybującego ----------------------------------- -->
@@ -25,12 +25,32 @@
       </p>
       <button type="button" class="btn-ghost btn-sm" @click="sprawdzWorkera()">Sprawdź ponownie</button>
     </div>
-    <template x-if="!worker.dostepny">
+    <template x-if="!worker.dostepny && worker.tryb === 'brak'">
       <div class="mt-2 text-xs">
-        <p>Liczenie transkrypcji odbywa się poza kontenerem, na maszynie z kartą graficzną. Uruchom w terminalu:</p>
-        <pre class="mt-1.5 overflow-x-auto rounded-lg bg-ink-900 px-3 py-2 text-[11px] text-ink-100 dark:bg-ink-950"><code>./scripts/transkrypcja-worker.sh</code></pre>
-        <p class="mt-1.5">Nagrania wysłane teraz poczekają w kolejce i ruszą, gdy proces wystartuje.</p>
+        <p>
+          Transkrypcję liczy usługa działająca poza kontenerem, tam gdzie jest karta graficzna.
+          Zainstaluj ją jednorazowo — od tej pory wystartuje sama przy każdym uruchomieniu maszyny:
+        </p>
+        <pre class="mt-1.5 overflow-x-auto rounded-lg bg-ink-900 px-3 py-2 text-[11px] text-ink-100 dark:bg-ink-950"><code>./scripts/zainstaluj-usluge.sh</code></pre>
+        <p class="mt-1.5">Nagrania wysłane teraz poczekają w kolejce i ruszą, gdy usługa wystartuje.</p>
       </div>
+    </template>
+
+    <template x-if="!worker.dostepny && worker.tryb !== 'brak'">
+      <div class="mt-2 text-xs">
+        <p>Usługa jest zainstalowana, ale nie odpowiada. Sprawdź jej stan i dziennik:</p>
+        <pre class="mt-1.5 overflow-x-auto rounded-lg bg-ink-900 px-3 py-2 text-[11px] text-ink-100 dark:bg-ink-950"><code>systemctl --user status mtquiz-transkrypcja
+journalctl --user -u mtquiz-transkrypcja -n 50</code></pre>
+        <p class="mt-1.5">Ponowne uruchomienie: <code class="rounded bg-ink-200 px-1 dark:bg-ink-800">systemctl --user restart mtquiz-transkrypcja</code></p>
+      </div>
+    </template>
+
+    <template x-if="worker.dostepny && worker.tryb === 'reczny'">
+      <p class="mt-2 text-xs">
+        Proces uruchomiono ręcznie i zakończy się wraz z zamknięciem terminala.
+        Aby startował sam, wykonaj jednorazowo
+        <code class="rounded bg-ink-200 px-1 dark:bg-ink-800">./scripts/zainstaluj-usluge.sh</code>.
+      </p>
     </template>
   </div>
 

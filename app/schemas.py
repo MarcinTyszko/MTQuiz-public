@@ -404,4 +404,8 @@ class WorkerStatus(BaseModel):
     sygnal: str | None = None
     urzadzenie: str | None = None
     model: str | None = None
+    # "usluga" — proces pod nadzorem systemd, "reczny" — uruchomiony z terminala,
+    # "brak" — nigdy nie wystartował.
+    tryb: str = "brak"
+    zadanie: str | None = None
     opis: str = ""

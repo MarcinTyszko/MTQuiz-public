@@ -209,7 +209,12 @@ def stan_procesu() -> dict[str, Any]:
     """Zwraca informację, czy proces transkrybujący daje znaki życia."""
     sciezka = settings.transcripts_dir / PLIK_SYGNALU
     if not sciezka.exists():
-        return {"dostepny": False, "sygnal": None, "opis": "Proces transkrybujący nie był jeszcze uruchamiany."}
+        return {
+            "dostepny": False,
+            "sygnal": None,
+            "tryb": "brak",
+            "opis": "Usługa transkrypcji nie została jeszcze zainstalowana.",
+        }
 
     try:
         dane = json.loads(sciezka.read_text(encoding="utf-8"))
@@ -222,16 +227,40 @@ def stan_procesu() -> dict[str, Any]:
 
     wiek = (datetime.now(timezone.utc) - sygnal).total_seconds()
     dostepny = wiek <= settings.worker_heartbeat_timeout
+    tryb = dane.get("tryb") or "reczny"
+    urzadzenie = dane.get("urzadzenie") or "nieznane urządzenie"
+
+    if dostepny:
+        zadanie = dane.get("zadanie")
+        if zadanie:
+            opis = f"Transkrypcja w toku: {zadanie}"
+        elif urzadzenie == "oczekiwanie":
+            # Model wczytuje się dopiero przy pierwszym nagraniu, więc urządzenie
+            # nie jest jeszcze znane — nie ma o czym informować użytkownika.
+            opis = (
+                "Usługa transkrypcji działa i czeka na nagrania."
+                if tryb == "usluga"
+                else "Proces transkrypcji działa, uruchomiony ręcznie."
+            )
+        elif tryb == "usluga":
+            opis = f"Usługa transkrypcji działa i czeka na nagrania ({urzadzenie})."
+        else:
+            opis = f"Proces transkrypcji działa ({urzadzenie}), uruchomiony ręcznie."
+    else:
+        opis = (
+            f"Usługa transkrypcji nie odpowiada od {int(wiek)} s."
+            if tryb == "usluga"
+            else f"Ostatni sygnał {int(wiek)} s temu — proces transkrypcji nie działa."
+        )
+
     return {
         "dostepny": dostepny,
         "sygnal": sygnal.isoformat(),
         "urzadzenie": dane.get("urzadzenie"),
         "model": dane.get("model"),
-        "opis": (
-            f"Proces działa ({dane.get('urzadzenie', 'nieznane urządzenie')})."
-            if dostepny
-            else f"Ostatni sygnał {int(wiek)} s temu — proces prawdopodobnie nie działa."
-        ),
+        "tryb": tryb,
+        "zadanie": dane.get("zadanie"),
+        "opis": opis,
     }
 
 

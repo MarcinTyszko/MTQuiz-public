@@ -12,7 +12,7 @@
   <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white">
   <img alt="Docker" src="https://img.shields.io/badge/Docker-compose-2496ED?logo=docker&logoColor=white">
   <img alt="Licencja MIT" src="https://img.shields.io/badge/licencja-MIT-green">
-  <img alt="Testy" src="https://img.shields.io/badge/testy-153%20pytest-brightgreen">
+  <img alt="Testy" src="https://img.shields.io/badge/testy-158%20pytest-brightgreen">
 </p>
 
 ---
@@ -256,19 +256,40 @@ Aplikacja przyjmuje nagranie i pokazuje wynik, ale sama go nie liczy. Transkrypc
 osobny proces, uruchamiany tam, gdzie dostępna jest karta graficzna — dzięki temu obraz
 Dockera pozostaje lekki i nie wymaga przekazywania GPU do kontenera.
 
-### Uruchomienie procesu transkrybującego
+### Instalacja usługi
+
+Jednorazowo, bez uprawnień administratora:
 
 ```bash
-./scripts/transkrypcja-worker.sh            # nasłuchuje w pętli
-./scripts/transkrypcja-worker.sh --raz      # przetwarza kolejkę i kończy
-./scripts/transkrypcja-worker.sh --cpu      # wymusza procesor
+./scripts/zainstaluj-usluge.sh
 ```
 
-Skrypt sam szuka interpretera z pakietem `faster-whisper` — kolejno w zmiennej
-`PYTHON_TRANSKRYPCJI`, w `./.venv-transkrypcja`, w `./.venv`, a na końcu w systemie.
-Ustawia też ścieżki bibliotek CUDA, zanim uruchomi Pythona.
+Skrypt zakłada usługę systemd użytkownika `mtquiz-transkrypcja`, uruchamia ją od razu
+i włącza automatyczny start przy każdym uruchomieniu maszyny. Usługa wstaje też sama
+po awarii (`Restart=always`). Od tej chwili transkrypcja rusza zaraz po wysłaniu nagrania
+— nic nie trzeba włączać ręcznie.
 
-Jednorazowe przygotowanie środowiska:
+Skrypt próbuje również włączyć tryb *linger*, dzięki któremu usługa działa także wtedy,
+gdy nikt nie jest zalogowany graficznie. Jeżeli się nie uda, wypisze polecenie do wykonania
+z uprawnieniami administratora.
+
+Obsługa usługi:
+
+```bash
+systemctl --user status mtquiz-transkrypcja     # stan
+systemctl --user restart mtquiz-transkrypcja    # ponowne uruchomienie
+journalctl --user -u mtquiz-transkrypcja -f     # podgląd dziennika na żywo
+./scripts/zainstaluj-usluge.sh --usun           # odinstalowanie
+```
+
+Stan usługi widać też na stronie **Transkrypcja AI** — zielony pasek oznacza, że nasłuchuje,
+i pokazuje nazwę aktualnie przetwarzanego nagrania.
+
+### Przygotowanie środowiska
+
+Usługa potrzebuje interpretera Pythona z pakietem `faster-whisper`. Launcher szuka go kolejno
+w zmiennej `PYTHON_TRANSKRYPCJI`, w `./.venv-transkrypcja`, w `./.venv`, a na końcu w systemie;
+ustawia też ścieżki bibliotek CUDA, zanim uruchomi Pythona.
 
 ```bash
 python3 -m venv --without-pip .venv-transkrypcja
@@ -279,6 +300,27 @@ pip --python ./.venv-transkrypcja/bin/python install nvidia-cublas-cu12 nvidia-c
 
 Pierwsze uruchomienie pobiera model Whispera (`large-v3`, około 3 GB) do
 `~/.cache/huggingface`. Kolejne starty trwają kilka sekund.
+
+### Uruchomienie bez usługi
+
+Na czas diagnozy albo na maszynie bez systemd proces można odpalić wprost:
+
+```bash
+./scripts/transkrypcja-worker.sh            # nasłuchuje w pętli
+./scripts/transkrypcja-worker.sh --raz      # przetwarza kolejkę i kończy
+./scripts/transkrypcja-worker.sh --cpu      # wymusza procesor
+```
+
+Aplikacja rozpoznaje oba tryby: przy uruchomieniu ręcznym uprzedza, że proces zakończy się
+wraz z zamknięciem terminala.
+
+Na serwerze bez karty graficznej dopisz `--cpu` do `ExecStart` w pliku
+`~/.config/systemd/user/mtquiz-transkrypcja.service`, a przy dłuższych nagraniach rozważ
+mniejszy model (`--model medium`) — transkrypcja na procesorze jest kilkanaście razy wolniejsza.
+
+Jeżeli na maszynie działa `nvidia-container-toolkit`, proces może zamiast tego działać
+w kontenerze z dostępem do karty (`docker run --gpus all …`). Na tej instancji toolkit nie jest
+zainstalowany, dlatego domyślną i sprawdzoną ścieżką jest usługa systemd.
 
 ### Jak to działa
 
@@ -517,7 +559,8 @@ Każdy test pracuje na własnej, tymczasowej bazie.
 │   └── data/               # przykładowy pakiet JSON
 ├── scripts/
 │   ├── worker_transkrypcji.py     # proces transkrybujący (poza kontenerem, na GPU)
-│   └── transkrypcja-worker.sh     # launcher wykrywający środowisko i biblioteki CUDA
+│   ├── transkrypcja-worker.sh     # launcher wykrywający środowisko i biblioteki CUDA
+│   └── zainstaluj-usluge.sh       # instalacja usługi systemd (automatyczny start)
 ├── frontend/               # źródła Tailwind CSS i skrypt kopiujący zależności
 ├── tests/                  # testy pytest
 ├── data/                   # wolumen danych (baza, kopie zapasowe) — poza repozytorium
@@ -582,6 +625,18 @@ docker compose exec mtquiz python -m app.cli reset-admina
 
 Następnie zaloguj się jako `admin` / `admin` — aplikacja od razu poprosi o ustawienie własnego
 hasła. Listę wszystkich kont pokaże `python -m app.cli konta`.
+
+**Nagrania stoją w kolejce i nic się nie dzieje.**
+Usługa transkrypcji nie działa. Sprawdź jej stan i dziennik:
+
+```bash
+systemctl --user status mtquiz-transkrypcja
+journalctl --user -u mtquiz-transkrypcja -n 50
+```
+
+Jeżeli usługa nie istnieje, zainstaluj ją: `./scripts/zainstaluj-usluge.sh`.
+Najczęstsza przyczyna błędu przy starcie to brak bibliotek CUDA — launcher wypisuje wtedy
+„Biblioteki CUDA: brak", a model wczytuje się na procesorze.
 
 **Kontener zatrzymuje się z komunikatem „Brak prawa zapisu do katalogu danych”.**
 Proces w kontenerze ma inne UID niż właściciel katalogu `./data`. Ustaw w pliku `.env`:

@@ -349,3 +349,71 @@ def test_usuniecie_konta_kasuje_transkrypcje(client, app_module):
 def test_transkrypcje_wymagaja_zalogowania(client):
     assert client.get("/api/transkrypcje").status_code == 401
     assert client.get("/api/transkrypcje/worker").status_code == 401
+
+
+# --------------------------------------------------------------------------- #
+# Rozpoznawanie trybu pracy procesu
+# --------------------------------------------------------------------------- #
+def _zapisz_sygnal(app_module, **pola):
+    from app.config import settings
+
+    dane = {"sygnal": datetime.now(timezone.utc).isoformat(), "model": "large-v3", **pola}
+    (settings.transcripts_dir / "_worker.json").write_text(json.dumps(dane), encoding="utf-8")
+
+
+def test_brak_sygnalu_sugeruje_instalacje_uslugi(client, app_module):
+    register(client)
+    stan = client.get("/api/transkrypcje/worker").json()
+
+    assert stan["dostepny"] is False
+    assert stan["tryb"] == "brak"
+    assert "nie została jeszcze zainstalowana" in stan["opis"]
+
+
+def test_usluga_w_spoczynku(client, app_module):
+    register(client)
+    _zapisz_sygnal(app_module, urzadzenie="cuda", tryb="usluga")
+
+    stan = client.get("/api/transkrypcje/worker").json()
+    assert stan["dostepny"] is True
+    assert stan["tryb"] == "usluga"
+    assert "czeka na nagrania" in stan["opis"]
+    assert "cuda" in stan["opis"]
+
+
+def test_proces_uruchomiony_recznie_jest_rozpoznawany(client, app_module):
+    """Praca z terminala kończy się wraz z sesją — interfejs ma o tym uprzedzić."""
+    register(client)
+    _zapisz_sygnal(app_module, urzadzenie="cuda", tryb="reczny")
+
+    stan = client.get("/api/transkrypcje/worker").json()
+    assert stan["dostepny"] is True
+    assert stan["tryb"] == "reczny"
+    assert "ręcznie" in stan["opis"]
+
+
+def test_sygnal_w_trakcie_pracy_pokazuje_zadanie(client, app_module):
+    register(client)
+    _zapisz_sygnal(app_module, urzadzenie="cuda", tryb="usluga", zadanie="Wykład 3")
+
+    stan = client.get("/api/transkrypcje/worker").json()
+    assert stan["dostepny"] is True
+    assert stan["zadanie"] == "Wykład 3"
+    assert "Wykład 3" in stan["opis"]
+
+
+def test_milczaca_usluga_jest_odrozniana_od_niezainstalowanej(client, app_module):
+    from datetime import timedelta
+
+    register(client)
+    _zapisz_sygnal(
+        app_module,
+        urzadzenie="cuda",
+        tryb="usluga",
+        sygnal=(datetime.now(timezone.utc) - timedelta(seconds=600)).isoformat(),
+    )
+
+    stan = client.get("/api/transkrypcje/worker").json()
+    assert stan["dostepny"] is False
+    assert stan["tryb"] == "usluga"
+    assert "nie odpowiada" in stan["opis"]

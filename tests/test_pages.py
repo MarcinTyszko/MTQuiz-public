@@ -186,7 +186,9 @@ def test_strona_transkrypcji_renderuje_sie(client):
     assert response.status_code == 200
     assert "Transkrypcja AI" in response.text
     assert 'x-data="listaTranskrypcji()"' in response.text
-    assert "transkrypcja-worker.sh" in response.text
+    # Strona ma prowadzić do instalacji usługi, a nie kazać uruchamiać nic ręcznie.
+    assert "zainstaluj-usluge.sh" in response.text
+    assert "systemctl --user restart mtquiz-transkrypcja" in response.text
 
 
 def test_strona_wyniku_transkrypcji(client):
