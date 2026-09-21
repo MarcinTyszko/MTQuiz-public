@@ -1,0 +1,376 @@
+{
+  "schema": "medfiszki/study-set",
+  "version": 1,
+  "title": "Mianownictwo kierunków, płaszczyzn i ruchów",
+  "description": "Materiał testowy: 38 podstawowych terminów opisujących położenie, płaszczyzny ciała, ruchy w stawach oraz okolice brzucha. Fundament, bez którego nie da się czytać opisów badań ani atlasów anatomicznych.",
+  "subject": "Anatomia",
+  "tags": [
+    "Terminologia anatomiczna",
+    "Mianownictwo",
+    "Łacina medyczna",
+    "Trójjęzyczny"
+  ],
+  "visibility": "public",
+  "cards": [
+    {
+      "front": "Anterior (ventralis)",
+      "back": "polski: przedni (brzuszny)\nangielski: anterior (ventral)",
+      "hint": "Kierunki",
+      "note": "U człowieka w pozycji anatomicznej „przedni” i „brzuszny” są równoznaczne."
+    },
+    {
+      "front": "Posterior (dorsalis)",
+      "back": "polski: tylny (grzbietowy)\nangielski: posterior (dorsal)",
+      "hint": "Kierunki",
+      "note": "Przeciwieństwo anterior."
+    },
+    {
+      "front": "Superior (cranialis)",
+      "back": "polski: górny (czaszkowy)\nangielski: superior (cranial)",
+      "hint": "Kierunki",
+      "note": "Bliżej głowy."
+    },
+    {
+      "front": "Inferior (caudalis)",
+      "back": "polski: dolny (ogonowy)\nangielski: inferior (caudal)",
+      "hint": "Kierunki",
+      "note": "Bliżej stóp."
+    },
+    {
+      "front": "Medialis",
+      "back": "polski: przyśrodkowy\nangielski: medial",
+      "hint": "Kierunki",
+      "note": "Bliżej płaszczyzny pośrodkowej ciała."
+    },
+    {
+      "front": "Lateralis",
+      "back": "polski: boczny\nangielski: lateral",
+      "hint": "Kierunki",
+      "note": "Dalej od płaszczyzny pośrodkowej."
+    },
+    {
+      "front": "Medianus",
+      "back": "polski: pośrodkowy\nangielski: median",
+      "hint": "Kierunki",
+      "note": "Leżący dokładnie w linii środkowej."
+    },
+    {
+      "front": "Intermedius",
+      "back": "polski: pośredni\nangielski: intermediate",
+      "hint": "Kierunki",
+      "note": "Położony między dwiema strukturami."
+    },
+    {
+      "front": "Proximalis",
+      "back": "polski: bliższy\nangielski: proximal",
+      "hint": "Kierunki",
+      "note": "Bliżej przyczepu kończyny do tułowia."
+    },
+    {
+      "front": "Distalis",
+      "back": "polski: dalszy\nangielski: distal",
+      "hint": "Kierunki",
+      "note": "Dalej od tułowia; np. paliczek dalszy."
+    },
+    {
+      "front": "Superficialis",
+      "back": "polski: powierzchowny\nangielski: superficial",
+      "hint": "Kierunki",
+      "note": "Bliżej powierzchni ciała."
+    },
+    {
+      "front": "Profundus",
+      "back": "polski: głęboki\nangielski: deep",
+      "hint": "Kierunki",
+      "note": "Dalej od powierzchni ciała."
+    },
+    {
+      "front": "Internus",
+      "back": "polski: wewnętrzny\nangielski: internal",
+      "hint": "Kierunki",
+      "note": "Np. tętnica szyjna wewnętrzna — arteria carotis interna."
+    },
+    {
+      "front": "Externus",
+      "back": "polski: zewnętrzny\nangielski: external",
+      "hint": "Kierunki",
+      "note": "Np. tętnica szyjna zewnętrzna — arteria carotis externa."
+    },
+    {
+      "front": "Dexter",
+      "back": "polski: prawy\nangielski: right",
+      "hint": "Kierunki",
+      "note": "Zawsze z punktu widzenia badanego, nie badającego."
+    },
+    {
+      "front": "Sinister",
+      "back": "polski: lewy\nangielski: left",
+      "hint": "Kierunki",
+      "note": "Stąd „sinistralny” w opisach badań obrazowych."
+    },
+    {
+      "front": "Palmaris (volaris)",
+      "back": "polski: dłoniowy\nangielski: palmar (volar)",
+      "hint": "Kierunki — kończyna górna",
+      "note": "Powierzchnia dłoniowa ręki."
+    },
+    {
+      "front": "Dorsalis manus",
+      "back": "polski: grzbietowy ręki\nangielski: dorsal (of the hand)",
+      "hint": "Kierunki — kończyna górna",
+      "note": "Powierzchnia grzbietowa ręki."
+    },
+    {
+      "front": "Plantaris",
+      "back": "polski: podeszwowy\nangielski: plantar",
+      "hint": "Kierunki — kończyna dolna",
+      "note": "Powierzchnia podeszwowa stopy; odruch podeszwowy Babińskiego."
+    },
+    {
+      "front": "Radialis",
+      "back": "polski: promieniowy\nangielski: radial",
+      "hint": "Kierunki — kończyna górna",
+      "note": "Strona kciuka; tętno na tętnicy promieniowej."
+    },
+    {
+      "front": "Ulnaris",
+      "back": "polski: łokciowy\nangielski: ulnar",
+      "hint": "Kierunki — kończyna górna",
+      "note": "Strona palca małego."
+    },
+    {
+      "front": "Tibialis",
+      "back": "polski: piszczelowy\nangielski: tibial",
+      "hint": "Kierunki — kończyna dolna",
+      "note": "Strona przyśrodkowa podudzia."
+    },
+    {
+      "front": "Fibularis (peroneus)",
+      "back": "polski: strzałkowy\nangielski: fibular (peroneal)",
+      "hint": "Kierunki — kończyna dolna",
+      "note": "Strona boczna podudzia."
+    },
+    {
+      "front": "Planum sagittale",
+      "back": "polski: płaszczyzna strzałkowa\nangielski: sagittal plane",
+      "hint": "Płaszczyzny",
+      "note": "Dzieli ciało na część prawą i lewą."
+    },
+    {
+      "front": "Planum frontale (coronale)",
+      "back": "polski: płaszczyzna czołowa (wieńcowa)\nangielski: frontal (coronal) plane",
+      "hint": "Płaszczyzny",
+      "note": "Dzieli ciało na część przednią i tylną."
+    },
+    {
+      "front": "Planum transversale (horizontale)",
+      "back": "polski: płaszczyzna poprzeczna (pozioma)\nangielski: transverse (axial) plane",
+      "hint": "Płaszczyzny",
+      "note": "Podstawowa płaszczyzna obrazów tomografii komputerowej."
+    },
+    {
+      "front": "Flexio",
+      "back": "polski: zgięcie\nangielski: flexion",
+      "hint": "Ruchy",
+      "note": "Zmniejszenie kąta między segmentami."
+    },
+    {
+      "front": "Extensio",
+      "back": "polski: wyprost\nangielski: extension",
+      "hint": "Ruchy",
+      "note": "Zwiększenie kąta między segmentami."
+    },
+    {
+      "front": "Abductio",
+      "back": "polski: odwodzenie\nangielski: abduction",
+      "hint": "Ruchy",
+      "note": "Oddalanie od płaszczyzny pośrodkowej."
+    },
+    {
+      "front": "Adductio",
+      "back": "polski: przywodzenie\nangielski: adduction",
+      "hint": "Ruchy",
+      "note": "Przybliżanie do płaszczyzny pośrodkowej."
+    },
+    {
+      "front": "Rotatio interna et externa",
+      "back": "polski: rotacja wewnętrzna i zewnętrzna\nangielski: internal and external rotation",
+      "hint": "Ruchy",
+      "note": "Obrót wokół osi długiej kończyny."
+    },
+    {
+      "front": "Pronatio",
+      "back": "polski: nawracanie\nangielski: pronation",
+      "hint": "Ruchy",
+      "note": "Obrót przedramienia grzbietem dłoni ku górze."
+    },
+    {
+      "front": "Supinatio",
+      "back": "polski: odwracanie\nangielski: supination",
+      "hint": "Ruchy",
+      "note": "Obrót przedramienia dłonią ku górze — „zupa w dłoni”."
+    },
+    {
+      "front": "Circumductio",
+      "back": "polski: obwodzenie\nangielski: circumduction",
+      "hint": "Ruchy",
+      "note": "Ruch okrężny łączący zgięcie, odwodzenie, wyprost i przywodzenie."
+    },
+    {
+      "front": "Regio epigastrica",
+      "back": "polski: nadbrzusze\nangielski: epigastric region",
+      "hint": "Okolice brzucha",
+      "note": "Jedna z dziewięciu okolic brzucha."
+    },
+    {
+      "front": "Regio umbilicalis",
+      "back": "polski: okolica pępkowa\nangielski: umbilical region",
+      "hint": "Okolice brzucha",
+      "note": "Środkowa okolica brzucha."
+    },
+    {
+      "front": "Regio hypogastrica (pubica)",
+      "back": "polski: podbrzusze\nangielski: hypogastric (pubic) region",
+      "hint": "Okolice brzucha",
+      "note": "Dolna środkowa okolica brzucha."
+    },
+    {
+      "front": "Fossa iliaca dextra",
+      "back": "polski: prawy dół biodrowy\nangielski: right iliac fossa",
+      "hint": "Okolice brzucha",
+      "note": "Typowa lokalizacja bólu w zapaleniu wyrostka robaczkowego."
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "W pozycji anatomicznej struktura położona bliżej płaszczyzny pośrodkowej ciała jest określana jako:",
+      "explanation": "Medialis (ang. medial) oznacza położenie przyśrodkowe, czyli bliżej płaszczyzny pośrodkowej. Przeciwieństwem jest lateralis — boczny.",
+      "options": [
+        {
+          "text": "Medialis — przyśrodkowy",
+          "is_correct": true,
+          "feedback": "Przeciwieństwo: lateralis — boczny."
+        },
+        {
+          "text": "Lateralis — boczny",
+          "is_correct": false,
+          "feedback": "To położenie dalej od płaszczyzny pośrodkowej."
+        },
+        {
+          "text": "Proximalis — bliższy",
+          "is_correct": false,
+          "feedback": "Dotyczy odległości od przyczepu kończyny, nie linii środkowej."
+        },
+        {
+          "text": "Superficialis — powierzchowny",
+          "is_correct": false,
+          "feedback": "Dotyczy głębokości położenia."
+        }
+      ]
+    },
+    {
+      "prompt": "Która płaszczyzna dzieli ciało na część przednią i tylną?",
+      "explanation": "Planum frontale, nazywana też wieńcową (ang. frontal lub coronal plane), dzieli ciało na część przednią i tylną. Płaszczyzna strzałkowa dzieli na prawą i lewą, a poprzeczna na górną i dolną.",
+      "options": [
+        {
+          "text": "Planum frontale (coronale)",
+          "is_correct": true,
+          "feedback": "Ang. frontal lub coronal plane."
+        },
+        {
+          "text": "Planum sagittale",
+          "is_correct": false,
+          "feedback": "Dzieli ciało na część prawą i lewą."
+        },
+        {
+          "text": "Planum transversale",
+          "is_correct": false,
+          "feedback": "Dzieli ciało na część górną i dolną."
+        },
+        {
+          "text": "Planum medianum",
+          "is_correct": false,
+          "feedback": "To szczególny przypadek płaszczyzny strzałkowej w linii środkowej."
+        }
+      ]
+    },
+    {
+      "prompt": "Ruch przedramienia, po którym dłoń jest zwrócona ku górze, to:",
+      "explanation": "Supinatio (ang. supination) to odwracanie — dłoń zwrócona ku górze. Pronatio to nawracanie, z grzbietem dłoni ku górze. Pomocna mnemotechnika: w odwróconej dłoni utrzymasz zupę.",
+      "options": [
+        {
+          "text": "Supinatio — odwracanie",
+          "is_correct": true,
+          "feedback": "Ang. supination."
+        },
+        {
+          "text": "Pronatio — nawracanie",
+          "is_correct": false,
+          "feedback": "Wtedy ku górze zwrócony jest grzbiet dłoni."
+        },
+        {
+          "text": "Abductio — odwodzenie",
+          "is_correct": false,
+          "feedback": "To oddalanie kończyny od linii środkowej."
+        },
+        {
+          "text": "Circumductio — obwodzenie",
+          "is_correct": false,
+          "feedback": "To ruch okrężny w stawie kulistym."
+        }
+      ]
+    },
+    {
+      "prompt": "Które pary terminów są względem siebie przeciwstawne? Zaznacz wszystkie prawidłowe.",
+      "explanation": "Terminologia anatomiczna opiera się na parach przeciwstawnych, co ułatwia zapamiętywanie: anterior-posterior, proximalis-distalis, superficialis-profundus.",
+      "options": [
+        {
+          "text": "Anterior i posterior",
+          "is_correct": true,
+          "feedback": "Przedni i tylny."
+        },
+        {
+          "text": "Proximalis i distalis",
+          "is_correct": true,
+          "feedback": "Bliższy i dalszy."
+        },
+        {
+          "text": "Superficialis i profundus",
+          "is_correct": true,
+          "feedback": "Powierzchowny i głęboki."
+        },
+        {
+          "text": "Medialis i medianus",
+          "is_correct": false,
+          "feedback": "Przyśrodkowy i pośrodkowy nie są przeciwstawne — oba opisują bliskość linii środkowej."
+        }
+      ]
+    },
+    {
+      "prompt": "W opisie badania obrazowego zapisano zmianę „w prawym dole biodrowym”. Który termin łaciński temu odpowiada i o jakim rozpoznaniu należy pomyśleć w pierwszej kolejności przy ostrym bólu w tej okolicy?",
+      "explanation": "Fossa iliaca dextra to prawy dół biodrowy (ang. right iliac fossa). Ostry ból w tej okolicy z objawami otrzewnowymi nakazuje podejrzewać zapalenie wyrostka robaczkowego.",
+      "options": [
+        {
+          "text": "Fossa iliaca dextra — zapalenie wyrostka robaczkowego",
+          "is_correct": true,
+          "feedback": "Punkt McBurneya leży w tej okolicy."
+        },
+        {
+          "text": "Regio epigastrica — zapalenie trzustki",
+          "is_correct": false,
+          "feedback": "Nadbrzusze to inna okolica."
+        },
+        {
+          "text": "Regio hypogastrica — zapalenie pęcherza moczowego",
+          "is_correct": false,
+          "feedback": "Podbrzusze leży w linii pośrodkowej poniżej pępka."
+        },
+        {
+          "text": "Fossa iliaca sinistra — zapalenie uchyłków",
+          "is_correct": false,
+          "feedback": "To lewy dół biodrowy; „dextra” oznacza prawy."
+        }
+      ]
+    }
+  ]
+}

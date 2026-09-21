@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block title %}Quiz: {{ set_title }} — {{ app_name }}{% endblock %}
+{% block head_scripts %}<script defer src="{{ static_url('js/quiz.js') }}"></script>{% endblock %}
+{% block main_class %}mx-auto flex w-full max-w-3xl flex-1 flex-col px-4 pb-28 pt-4 sm:px-6 lg:pb-8{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<script type="application/json" id="dane-zestawu">{{ study_set | tojson_safe }}</script>
+
+<div x-data="quizRunner()" x-init="init()" x-cloak class="flex flex-1 flex-col">
+
+  <!-- Ekran konfiguracji ------------------------------------------------ -->
+  <section x-show="stage === 'setup'" class="flex flex-1 flex-col justify-center">
+    <a :href="`/zestawy/${set.id}`" class="text-xs text-ink-500 hover:underline dark:text-ink-400">← Wróć do zestawu</a>
+    <h1 class="mt-1 text-2xl font-bold tracking-tight text-ink-900 dark:text-white" x-text="set.title"></h1>
+    <p class="mt-1 text-sm text-ink-600 dark:text-ink-300">
+      Dostępnych pytań: <span class="font-semibold" x-text="set.questions.length"></span>. Ustaw parametry sesji.
+    </p>
+
+    <div class="card mt-6 space-y-5 p-5">
+      <div>
+        <label class="label" for="count">Liczba pytań</label>
+        <select id="count" class="input" x-model.number="config.count">
+          <template x-for="option in countOptions" :key="option">
+            <option :value="option" x-text="option === set.questions.length ? `Wszystkie (${option})` : option"></option>
+          </template>
+        </select>
+      </div>
+
+      <fieldset>
+        <legend class="label">Tryb sprawdzania</legend>
+        <div class="grid gap-2 sm:grid-cols-2">
+          <label class="flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors"
+                 :class="config.mode === 'instant' ? 'border-brand-500 bg-brand-50 dark:bg-brand-950/40' : 'border-ink-200 dark:border-ink-700'">
+            <input type="radio" value="instant" x-model="config.mode" class="mt-0.5 h-4 w-4 text-brand-600 focus:ring-brand-500">
+            <span>
+              <span class="block text-sm font-medium text-ink-900 dark:text-white">Nauka</span>
+              <span class="block text-xs text-ink-500 dark:text-ink-400">Odpowiedź sprawdzana natychmiast, z wyjaśnieniem</span>
+            </span>
+          </label>
+          <label class="flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors"
+                 :class="config.mode === 'exam' ? 'border-brand-500 bg-brand-50 dark:bg-brand-950/40' : 'border-ink-200 dark:border-ink-700'">
+            <input type="radio" value="exam" x-model="config.mode" class="mt-0.5 h-4 w-4 text-brand-600 focus:ring-brand-500">
+            <span>
+              <span class="block text-sm font-medium text-ink-900 dark:text-white">Egzamin</span>
+              <span class="block text-xs text-ink-500 dark:text-ink-400">Wynik i omówienie dopiero na końcu</span>
+            </span>
+          </label>
+        </div>
+      </fieldset>
+
+      <div class="space-y-3">
+        <label class="flex cursor-pointer items-center gap-2 text-sm text-ink-700 dark:text-ink-300">
+          <input type="checkbox" class="h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500" x-model="config.shuffleQuestions">
+          Losowa kolejność pytań
+        </label>
+        <label class="flex cursor-pointer items-center gap-2 text-sm text-ink-700 dark:text-ink-300">
+          <input type="checkbox" class="h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500" x-model="config.shuffleOptions">
+          Losowa kolejność wariantów odpowiedzi
+        </label>
+        <label class="flex cursor-pointer items-center gap-2 text-sm text-ink-700 dark:text-ink-300">
+          <input type="checkbox" class="h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500" x-model="config.timed">
+          Limit czasu
+        </label>
+        <div x-show="config.timed" x-cloak class="pl-6">
+          <label class="label" for="minutes">Minuty na całą sesję</label>
+          <input id="minutes" type="number" min="1" max="240" class="input w-32" x-model.number="config.minutes">
+        </div>
+      </div>
+
+      <button type="button" class="btn-primary w-full py-3 text-base" @click="start()">Rozpocznij quiz</button>
+    </div>
+  </section>
+
+  <!-- Ekran pytania ----------------------------------------------------- -->
+  <section x-show="stage === 'run'" x-cloak class="flex flex-1 flex-col">
+    <div class="flex items-center justify-between gap-3">
+      <span class="text-sm font-medium text-ink-700 dark:text-ink-200">
+        Pytanie <span class="tabular-nums" x-text="index + 1"></span> / <span class="tabular-nums" x-text="questions.length"></span>
+      </span>
+      <div class="flex items-center gap-3">
+        <span x-show="config.timed" class="rounded-lg px-2 py-1 text-sm font-semibold tabular-nums"
+              :class="remaining <= 60 ? 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300' : 'bg-ink-100 text-ink-700 dark:bg-ink-800 dark:text-ink-200'"
+              x-text="remainingLabel"></span>
+        <button type="button" class="btn-ghost btn-sm" @click="abort()">Przerwij</button>
+      </div>
+    </div>
+
+    <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-ink-200 dark:bg-ink-800">
+      <div class="h-full rounded-full bg-brand-600 transition-all duration-300" :style="`width: ${((index) / questions.length) * 100}%`"></div>
+    </div>
+
+    <div class="card mt-5 p-5 sm:p-6">
+      <p class="whitespace-pre-line text-lg font-semibold leading-snug text-ink-900 dark:text-white"
+         x-text="currentQuestion ? currentQuestion.prompt : ''"></p>
+      <p class="mt-2 text-xs font-medium uppercase tracking-wide text-brand-600 dark:text-brand-400"
+         x-show="currentQuestion && currentQuestion.multiple">Zaznacz wszystkie poprawne odpowiedzi</p>
+
+      <div class="mt-5 space-y-2.5">
+        <template x-for="(option, oIndex) in (currentQuestion ? currentQuestion.options : [])" :key="option.id">
+          <button type="button" class="flex w-full items-start gap-3 rounded-xl border px-4 py-3 text-left transition-colors"
+                  :class="optionClass(option)" @click="choose(option)" :disabled="revealed">
+            <span class="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-lg border text-xs font-bold"
+                  :class="badgeClass(option)" x-text="'ABCDEFGHIJ'[oIndex]"></span>
+            <span class="min-w-0 flex-1">
+              <span class="block text-sm text-ink-900 dark:text-ink-50" x-text="option.text"></span>
+              <span class="mt-1 block text-xs text-ink-600 dark:text-ink-300"
+                    x-show="revealed && option.feedback" x-text="option.feedback"></span>
+            </span>
+          </button>
+        </template>
+      </div>
+
+      <div x-show="revealed" x-cloak class="mt-5 rounded-xl px-4 py-3 text-sm"
+           :class="lastCorrect
+             ? 'bg-emerald-50 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-100'
+             : 'bg-rose-50 text-rose-900 dark:bg-rose-950/60 dark:text-rose-100'">
+        <p class="font-semibold" x-text="lastCorrect ? 'Odpowiedź poprawna' : 'Odpowiedź niepoprawna'"></p>
+        <p class="mt-1" x-show="currentQuestion && currentQuestion.explanation"
+           x-text="currentQuestion ? currentQuestion.explanation : ''"></p>
+      </div>
+    </div>
+
+    <div class="mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">
+      <button type="button" class="btn-primary sm:w-48" @click="advance()" :disabled="!canAdvance"
+              x-text="advanceLabel"></button>
+    </div>
+  </section>
+
+  <!-- Wyniki ------------------------------------------------------------ -->
+  <section x-show="stage === 'result'" x-cloak class="flex flex-1 flex-col">
+    <div class="card p-6 text-center sm:p-8">
+      <p class="text-sm font-medium uppercase tracking-wide text-ink-500 dark:text-ink-400">Wynik końcowy</p>
+      <p class="mt-3 text-5xl font-bold tabular-nums"
+         :class="percentage >= 75 ? 'text-emerald-600 dark:text-emerald-400' : percentage >= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400'"
+         x-text="`${percentage}%`"></p>
+      <p class="mt-2 text-sm text-ink-600 dark:text-ink-300">
+        <span class="font-semibold tabular-nums" x-text="score"></span> z
+        <span class="font-semibold tabular-nums" x-text="questions.length"></span> poprawnych odpowiedzi ·
+        czas <span class="tabular-nums" x-text="elapsedLabel"></span>
+      </p>
+
+      <div class="mt-6 flex flex-col gap-2 sm:flex-row">
+        <button type="button" class="btn-primary flex-1" @click="retry(false)">Powtórz quiz</button>
+        <button type="button" class="btn-secondary flex-1" @click="retry(true)" :disabled="!wrongQuestions.length">
+          Popraw błędne (<span x-text="wrongQuestions.length"></span>)
+        </button>
+      </div>
+      <a :href="`/zestawy/${set.id}`" class="btn-ghost mt-2 w-full">Wróć do zestawu</a>
+    </div>
+
+    <h2 class="section-title mt-8">Szczegółowe omówienie</h2>
+    <div class="mt-3 space-y-3">
+      <template x-for="(entry, qIndex) in breakdown" :key="entry.question.id">
+        <article class="card p-4">
+          <div class="flex items-start gap-3">
+            <span class="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-xs font-bold"
+                  :class="entry.correct ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300'"
+                  x-text="qIndex + 1"></span>
+            <div class="min-w-0 flex-1">
+              <p class="whitespace-pre-line font-medium text-ink-900 dark:text-white" x-text="entry.question.prompt"></p>
+              <ul class="mt-3 space-y-1.5">
+                <template x-for="(option, oIndex) in entry.question.options" :key="option.id">
+                  <li class="flex items-start gap-2 rounded-lg px-2.5 py-1.5 text-sm"
+                      :class="resultOptionClass(entry, option)">
+                    <span class="font-semibold" x-text="'ABCDEFGHIJ'[oIndex] + '.'"></span>
+                    <span class="min-w-0 flex-1" x-text="option.text"></span>
+                    <span class="shrink-0 text-[11px] font-semibold uppercase" x-show="option.is_correct">poprawna</span>
+                    <span class="shrink-0 text-[11px] font-semibold uppercase"
+                          x-show="entry.selected.includes(option.id) && !option.is_correct">Twój wybór</span>
+                  </li>
+                </template>
+              </ul>
+              <p class="mt-3 rounded-lg bg-ink-100 px-3 py-2 text-xs text-ink-700 dark:bg-ink-800 dark:text-ink-200"
+                 x-show="entry.question.explanation">
+                <span class="font-semibold">Wyjaśnienie:</span> <span x-text="entry.question.explanation"></span>
+              </p>
+            </div>
+          </div>
+        </article>
+      </template>
+    </div>
+  </section>
+
+  <!-- Pasek mobilny ----------------------------------------------------- -->
+  <div class="fixed inset-x-0 bottom-0 z-40 border-t border-ink-200 bg-white/95 px-4 py-2.5 backdrop-blur safe-bottom sm:hidden dark:border-ink-800 dark:bg-ink-950/95"
+       x-show="stage === 'run'">
+    <button type="button" class="btn-primary w-full" @click="advance()" :disabled="!canAdvance" x-text="advanceLabel"></button>
+  </div>
+</div>
+{% endblock %}

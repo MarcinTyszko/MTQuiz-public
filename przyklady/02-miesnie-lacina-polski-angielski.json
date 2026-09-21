@@ -1,0 +1,340 @@
+{
+  "schema": "medfiszki/study-set",
+  "version": 1,
+  "title": "Mięśnie — nazewnictwo łacińskie, polskie i angielskie",
+  "description": "Materiał testowy: 32 mięśnie szkieletowe od głowy po stopę. Awers podaje nazwę łacińską, rewers odpowiedniki polski i angielski, a notatka najważniejszy fakt czynnościowy lub kliniczny.",
+  "subject": "Anatomia",
+  "tags": [
+    "Miologia",
+    "Terminologia anatomiczna",
+    "Łacina medyczna",
+    "Trójjęzyczny"
+  ],
+  "visibility": "public",
+  "cards": [
+    {
+      "front": "Musculus orbicularis oculi",
+      "back": "polski: mięsień okrężny oka\nangielski: orbicularis oculi",
+      "hint": "Mimiczne — twarz",
+      "note": "Unerwiony przez nerw twarzowy (VII); zamyka szparę powiek."
+    },
+    {
+      "front": "Musculus orbicularis oris",
+      "back": "polski: mięsień okrężny ust\nangielski: orbicularis oris",
+      "hint": "Mimiczne — twarz",
+      "note": "Zwiera i wysuwa wargi; również nerw VII."
+    },
+    {
+      "front": "Musculus masseter",
+      "back": "polski: mięsień żwacz\nangielski: masseter",
+      "hint": "Żucia",
+      "note": "Najsilniejszy mięsień żucia; unerwienie z nerwu żuchwowego (V3)."
+    },
+    {
+      "front": "Musculus temporalis",
+      "back": "polski: mięsień skroniowy\nangielski: temporalis",
+      "hint": "Żucia",
+      "note": "Unosi i cofa żuchwę; wyczuwalny przy zaciskaniu zębów."
+    },
+    {
+      "front": "Musculus sternocleidomastoideus",
+      "back": "polski: mięsień mostkowo-obojczykowo-sutkowy\nangielski: sternocleidomastoid",
+      "hint": "Szyja",
+      "note": "Unerwiony przez nerw dodatkowy (XI); skręca głowę w stronę przeciwną."
+    },
+    {
+      "front": "Musculus trapezius",
+      "back": "polski: mięsień czworoboczny\nangielski: trapezius",
+      "hint": "Grzbiet — powierzchowne",
+      "note": "Również nerw XI; unosi bark i stabilizuje łopatkę."
+    },
+    {
+      "front": "Musculus latissimus dorsi",
+      "back": "polski: mięsień najszerszy grzbietu\nangielski: latissimus dorsi",
+      "hint": "Grzbiet — powierzchowne",
+      "note": "Przywodzi i obraca ramię do wewnątrz; nerw piersiowo-grzbietowy."
+    },
+    {
+      "front": "Musculus rhomboideus major",
+      "back": "polski: mięsień równoległoboczny większy\nangielski: rhomboid major",
+      "hint": "Grzbiet — głębokie",
+      "note": "Przyciąga łopatkę do kręgosłupa."
+    },
+    {
+      "front": "Musculus deltoideus",
+      "back": "polski: mięsień naramienny\nangielski: deltoid",
+      "hint": "Obręcz barkowa",
+      "note": "Odwodzi ramię; unerwiony przez nerw pachowy."
+    },
+    {
+      "front": "Musculus supraspinatus",
+      "back": "polski: mięsień nadgrzebieniowy\nangielski: supraspinatus",
+      "hint": "Stożek rotatorów",
+      "note": "Rozpoczyna odwodzenie ramienia; najczęściej uszkadzane ścięgno stożka."
+    },
+    {
+      "front": "Musculus infraspinatus",
+      "back": "polski: mięsień podgrzebieniowy\nangielski: infraspinatus",
+      "hint": "Stożek rotatorów",
+      "note": "Obraca ramię na zewnątrz."
+    },
+    {
+      "front": "Musculus pectoralis major",
+      "back": "polski: mięsień piersiowy większy\nangielski: pectoralis major",
+      "hint": "Klatka piersiowa",
+      "note": "Przywodzi i obraca ramię do wewnątrz."
+    },
+    {
+      "front": "Musculus serratus anterior",
+      "back": "polski: mięsień zębaty przedni\nangielski: serratus anterior",
+      "hint": "Klatka piersiowa",
+      "note": "Porażenie nerwu piersiowego długiego daje łopatkę skrzydlatą."
+    },
+    {
+      "front": "Diaphragma",
+      "back": "polski: przepona\nangielski: diaphragm",
+      "hint": "Klatka piersiowa",
+      "note": "Główny mięsień wdechowy; unerwiona przez nerw przeponowy (C3-C5)."
+    },
+    {
+      "front": "Musculi intercostales externi",
+      "back": "polski: mięśnie międzyżebrowe zewnętrzne\nangielski: external intercostals",
+      "hint": "Klatka piersiowa",
+      "note": "Unoszą żebra podczas wdechu."
+    },
+    {
+      "front": "Musculus biceps brachii",
+      "back": "polski: mięsień dwugłowy ramienia\nangielski: biceps brachii",
+      "hint": "Ramię",
+      "note": "Zgina przedramię i odwraca je; nerw mięśniowo-skórny."
+    },
+    {
+      "front": "Musculus triceps brachii",
+      "back": "polski: mięsień trójgłowy ramienia\nangielski: triceps brachii",
+      "hint": "Ramię",
+      "note": "Prostuje przedramię; nerw promieniowy."
+    },
+    {
+      "front": "Musculus brachioradialis",
+      "back": "polski: mięsień ramienno-promieniowy\nangielski: brachioradialis",
+      "hint": "Przedramię",
+      "note": "Zgina przedramię w pozycji pośredniej; nerw promieniowy."
+    },
+    {
+      "front": "Musculus flexor carpi radialis",
+      "back": "polski: mięsień zginacz promieniowy nadgarstka\nangielski: flexor carpi radialis",
+      "hint": "Przedramię",
+      "note": "Zgina i odwodzi promieniowo rękę; nerw pośrodkowy."
+    },
+    {
+      "front": "Musculus rectus abdominis",
+      "back": "polski: mięsień prosty brzucha\nangielski: rectus abdominis",
+      "hint": "Brzuch",
+      "note": "Kresa biała dzieli go w linii pośrodkowej."
+    },
+    {
+      "front": "Musculus obliquus externus abdominis",
+      "back": "polski: mięsień skośny zewnętrzny brzucha\nangielski: external oblique",
+      "hint": "Brzuch",
+      "note": "Jego rozcięgno tworzy więzadło pachwinowe."
+    },
+    {
+      "front": "Musculus transversus abdominis",
+      "back": "polski: mięsień poprzeczny brzucha\nangielski: transversus abdominis",
+      "hint": "Brzuch",
+      "note": "Najgłębszy z mięśni bocznych brzucha; stabilizuje tułów."
+    },
+    {
+      "front": "Musculus psoas major",
+      "back": "polski: mięsień biodrowo-lędźwiowy (część lędźwiowa)\nangielski: psoas major",
+      "hint": "Miednica",
+      "note": "Główny zginacz stawu biodrowego; objaw mięśnia biodrowo-lędźwiowego w zapaleniu wyrostka."
+    },
+    {
+      "front": "Musculus gluteus maximus",
+      "back": "polski: mięsień pośladkowy wielki\nangielski: gluteus maximus",
+      "hint": "Pośladek",
+      "note": "Prostuje staw biodrowy; unerwiony przez nerw pośladkowy dolny."
+    },
+    {
+      "front": "Musculus gluteus medius",
+      "back": "polski: mięsień pośladkowy średni\nangielski: gluteus medius",
+      "hint": "Pośladek",
+      "note": "Jego niewydolność daje objaw Trendelenburga."
+    },
+    {
+      "front": "Musculus quadriceps femoris",
+      "back": "polski: mięsień czworogłowy uda\nangielski: quadriceps femoris",
+      "hint": "Udo — przedział przedni",
+      "note": "Prostuje kolano; nerw udowy. Odruch kolanowy L2-L4."
+    },
+    {
+      "front": "Musculus sartorius",
+      "back": "polski: mięsień krawiecki\nangielski: sartorius",
+      "hint": "Udo — przedział przedni",
+      "note": "Najdłuższy mięsień ciała; zgina, odwodzi i obraca udo na zewnątrz."
+    },
+    {
+      "front": "Musculus biceps femoris",
+      "back": "polski: mięsień dwugłowy uda\nangielski: biceps femoris",
+      "hint": "Udo — przedział tylny",
+      "note": "Należy do grupy kulszowo-goleniowej; zgina kolano."
+    },
+    {
+      "front": "Musculus adductor magnus",
+      "back": "polski: mięsień przywodziciel wielki\nangielski: adductor magnus",
+      "hint": "Udo — przedział przyśrodkowy",
+      "note": "Rozwór ścięgnisty przepuszcza tętnicę udową do dołu podkolanowego."
+    },
+    {
+      "front": "Musculus gastrocnemius",
+      "back": "polski: mięsień brzuchaty łydki\nangielski: gastrocnemius",
+      "hint": "Podudzie — przedział tylny",
+      "note": "Wraz z płaszczkowatym tworzy mięsień trójgłowy łydki."
+    },
+    {
+      "front": "Musculus soleus",
+      "back": "polski: mięsień płaszczkowaty\nangielski: soleus",
+      "hint": "Podudzie — przedział tylny",
+      "note": "Pompa mięśniowa wspomagająca powrót żylny."
+    },
+    {
+      "front": "Musculus tibialis anterior",
+      "back": "polski: mięsień piszczelowy przedni\nangielski: tibialis anterior",
+      "hint": "Podudzie — przedział przedni",
+      "note": "Zgina grzbietowo stopę; porażenie nerwu strzałkowego daje opadanie stopy."
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "Jak brzmi polska nazwa mięśnia określanego po łacinie jako „musculus sartorius”?",
+      "explanation": "Musculus sartorius to mięsień krawiecki (ang. sartorius) — najdłuższy mięsień ciała, nazwany od pozycji przyjmowanej dawniej przez krawców przy pracy.",
+      "options": [
+        {
+          "text": "Mięsień krawiecki",
+          "is_correct": true,
+          "feedback": "Od łacińskiego sartor — krawiec."
+        },
+        {
+          "text": "Mięsień smukły",
+          "is_correct": false,
+          "feedback": "Mięsień smukły to musculus gracilis."
+        },
+        {
+          "text": "Mięsień grzebieniowy",
+          "is_correct": false,
+          "feedback": "Mięsień grzebieniowy to musculus pectineus."
+        },
+        {
+          "text": "Mięsień półścięgnisty",
+          "is_correct": false,
+          "feedback": "To musculus semitendinosus."
+        }
+      ]
+    },
+    {
+      "prompt": "Angielski termin „rotator cuff” odpowiada polskiemu pojęciu stożka rotatorów. Który mięsień NIE należy do tej grupy?",
+      "explanation": "Stożek rotatorów tworzą cztery mięśnie: nadgrzebieniowy, podgrzebieniowy, obły mniejszy i podłopatkowy. Mięsień naramienny (deltoideus) leży powierzchownie i do stożka nie należy.",
+      "options": [
+        {
+          "text": "Musculus deltoideus — mięsień naramienny",
+          "is_correct": true,
+          "feedback": "Leży powierzchownie nad stożkiem; odwodzi ramię powyżej 15 stopni."
+        },
+        {
+          "text": "Musculus supraspinatus — mięsień nadgrzebieniowy",
+          "is_correct": false,
+          "feedback": "Należy do stożka; rozpoczyna odwodzenie."
+        },
+        {
+          "text": "Musculus infraspinatus — mięsień podgrzebieniowy",
+          "is_correct": false,
+          "feedback": "Należy do stożka; rotacja zewnętrzna."
+        },
+        {
+          "text": "Musculus subscapularis — mięsień podłopatkowy",
+          "is_correct": false,
+          "feedback": "Należy do stożka; rotacja wewnętrzna."
+        }
+      ]
+    },
+    {
+      "prompt": "Pacjent nie może unieść ramienia powyżej poziomu, a przy próbie pchnięcia ściany odstaje mu łopatka. Który mięsień jest porażony?",
+      "explanation": "Łopatka skrzydlata (scapula alata) wynika z porażenia mięśnia zębatego przedniego (musculus serratus anterior) wskutek uszkodzenia nerwu piersiowego długiego.",
+      "options": [
+        {
+          "text": "Musculus serratus anterior — mięsień zębaty przedni",
+          "is_correct": true,
+          "feedback": "Nerw piersiowy długi, korzenie C5-C7."
+        },
+        {
+          "text": "Musculus trapezius — mięsień czworoboczny",
+          "is_correct": false,
+          "feedback": "Jego porażenie daje opadanie barku, ale odstawanie łopatki jest inne."
+        },
+        {
+          "text": "Musculus rhomboideus major — mięsień równoległoboczny większy",
+          "is_correct": false,
+          "feedback": "Przyciąga łopatkę do kręgosłupa; nerw grzbietowy łopatki."
+        },
+        {
+          "text": "Musculus latissimus dorsi — mięsień najszerszy grzbietu",
+          "is_correct": false,
+          "feedback": "Przywodzi ramię; nie stabilizuje łopatki przy pchnięciu."
+        }
+      ]
+    },
+    {
+      "prompt": "Które przyporządkowania nazw łacińskich do polskich są prawidłowe? Zaznacz wszystkie prawidłowe.",
+      "explanation": "Terminologia Anatomica konsekwentnie opisuje położenie i kształt mięśnia. Znajomość rdzenia łacińskiego pozwala odgadnąć znaczenie nazwy angielskiej, która najczęściej jest jej kalką.",
+      "options": [
+        {
+          "text": "Musculus gastrocnemius — mięsień brzuchaty łydki",
+          "is_correct": true,
+          "feedback": "Ang. gastrocnemius; od greckiego gaster — brzuch i kneme — goleń."
+        },
+        {
+          "text": "Musculus soleus — mięsień płaszczkowaty",
+          "is_correct": true,
+          "feedback": "Ang. soleus; nazwa od ryby płaszczki (solea)."
+        },
+        {
+          "text": "Diaphragma — przepona",
+          "is_correct": true,
+          "feedback": "Ang. diaphragm; główny mięsień wdechowy."
+        },
+        {
+          "text": "Musculus masseter — mięsień skroniowy",
+          "is_correct": false,
+          "feedback": "Masseter to żwacz; mięsień skroniowy to musculus temporalis."
+        }
+      ]
+    },
+    {
+      "prompt": "Opadanie stopy (ang. foot drop) wynika z osłabienia którego mięśnia i uszkodzenia którego nerwu?",
+      "explanation": "Mięsień piszczelowy przedni (musculus tibialis anterior) zgina stopę grzbietowo i jest unerwiony przez nerw strzałkowy głęboki. Uszkodzenie nerwu strzałkowego wspólnego na wysokości głowy strzałki daje opadanie stopy i chód koguci.",
+      "options": [
+        {
+          "text": "Musculus tibialis anterior, nerw strzałkowy",
+          "is_correct": true,
+          "feedback": "Typowe miejsce ucisku to głowa kości strzałkowej."
+        },
+        {
+          "text": "Musculus gastrocnemius, nerw piszczelowy",
+          "is_correct": false,
+          "feedback": "Ten mięsień zgina stopę podeszwowo, nie grzbietowo."
+        },
+        {
+          "text": "Musculus quadriceps femoris, nerw udowy",
+          "is_correct": false,
+          "feedback": "Dotyczy prostowania kolana."
+        },
+        {
+          "text": "Musculus soleus, nerw kulszowy",
+          "is_correct": false,
+          "feedback": "Mięsień płaszczkowaty odpowiada za zgięcie podeszwowe."
+        }
+      ]
+    }
+  ]
+}

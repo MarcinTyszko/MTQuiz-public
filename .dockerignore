@@ -1,0 +1,14 @@
+.git
+.venv
+venv
+__pycache__
+**/__pycache__
+.pytest_cache
+node_modules
+frontend/node_modules
+data
+tests
+*.md
+!AI_SCHEMA.md
+!README.md
+.env

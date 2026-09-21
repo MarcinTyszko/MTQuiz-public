@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Fiszki: {{ set_title }} — {{ app_name }}{% endblock %}
+{% block head_scripts %}<script defer src="{{ static_url('js/flashcards.js') }}"></script>{% endblock %}
+{% block main_class %}mx-auto flex w-full max-w-4xl flex-1 flex-col px-4 pb-32 pt-4 sm:px-6 lg:pb-8{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<script type="application/json" id="dane-zestawu">{{ study_set | tojson_safe }}</script>
+
+<div x-data="flashcardRunner()" x-init="init()" x-cloak class="flex flex-1 flex-col">
+
+  <!-- Nagłówek -->
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div class="min-w-0">
+      <a :href="`/zestawy/${set.id}`" class="text-xs text-ink-500 hover:underline dark:text-ink-400">← Wróć do zestawu</a>
+      <h1 class="truncate text-lg font-semibold text-ink-900 dark:text-white" x-text="set.title"></h1>
+    </div>
+    <div class="flex items-center gap-2">
+      <button type="button" class="btn-ghost btn-sm" @click="toggleShuffle()" :class="shuffled && 'text-brand-600 dark:text-brand-400'">
+        <span x-text="shuffled ? 'Kolejność losowa' : 'Kolejność oryginalna'"></span>
+      </button>
+      <button type="button" class="btn-ghost btn-sm" @click="onlyStarred = !onlyStarred; rebuild()"
+              :class="onlyStarred && 'text-amber-600 dark:text-amber-400'" :disabled="!starredCount && !onlyStarred">
+        Tylko trudne (<span x-text="starredCount"></span>)
+      </button>
+    </div>
+  </div>
+
+  <!-- Pasek postępu -->
+  <div class="mt-3">
+    <div class="flex items-center justify-between text-xs text-ink-500 dark:text-ink-400">
+      <span>Fiszka <span class="tabular-nums" x-text="index + 1"></span> z <span class="tabular-nums" x-text="queue.length"></span></span>
+      <span class="tabular-nums">Umiem: <span x-text="known.length"></span> · Do powtórki: <span x-text="review.length"></span></span>
+    </div>
+    <div class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-ink-200 dark:bg-ink-800">
+      <div class="h-full rounded-full bg-brand-600 transition-all duration-300" :style="`width: ${progress}%`"></div>
+    </div>
+  </div>
+
+  <!-- Karta -->
+  <div class="mt-5 flex flex-1 flex-col" x-show="!finished">
+    <div class="flip-scene relative h-[22rem] w-full sm:h-[26rem]" x-ref="scene">
+      <div class="flip-card cursor-pointer" :class="flipped && 'is-flipped'" @click="flip()"
+           role="button" tabindex="0" :aria-label="flipped ? 'Pokaż awers' : 'Pokaż rewers'"
+           @keydown.enter.prevent="flip()">
+        <!-- Awers -->
+        <div class="flip-face card justify-center">
+          <span class="absolute left-5 top-4 text-[11px] font-semibold uppercase tracking-wide text-ink-400">Awers</span>
+          <button type="button" class="absolute right-4 top-3 rounded-lg p-2 text-ink-400 transition-colors hover:bg-ink-100 hover:text-amber-500 dark:hover:bg-ink-800"
+                  :class="current && current.starred && 'text-amber-500'" @click.stop="toggleStar()"
+                  :aria-label="current && current.starred ? 'Usuń oznaczenie trudnej' : 'Oznacz jako trudną'">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" :fill="current && current.starred ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <path d="m12 3.6 2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.8l5.9-.9Z" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <p class="my-auto whitespace-pre-line text-center text-xl font-semibold leading-snug text-ink-900 sm:text-2xl dark:text-white"
+             x-text="current ? current.front : ''"></p>
+          <div class="mt-auto space-y-2">
+            <button type="button" class="w-full rounded-xl bg-amber-50 px-3 py-2 text-left text-xs text-amber-900 dark:bg-amber-950/50 dark:text-amber-100"
+                    x-show="current && current.hint" @click.stop="hintVisible = !hintVisible">
+              <span x-show="!hintVisible">Pokaż wskazówkę</span>
+              <span x-show="hintVisible" x-text="current ? current.hint : ''"></span>
+            </button>
+            <p class="text-center text-xs text-ink-400">Kliknij kartę lub naciśnij spację, aby odwrócić</p>
+          </div>
+        </div>
+
+        <!-- Rewers -->
+        <div class="flip-face flip-face-back card bg-brand-50 dark:bg-ink-900">
+          <span class="absolute left-5 top-4 text-[11px] font-semibold uppercase tracking-wide text-brand-500 dark:text-brand-400">Rewers</span>
+          <p class="my-auto whitespace-pre-line text-center text-base leading-relaxed text-ink-800 sm:text-lg dark:text-ink-100"
+             x-text="current ? current.back : ''"></p>
+          <p class="mt-auto rounded-xl bg-white/70 px-3 py-2 text-xs text-ink-600 dark:bg-ink-950/60 dark:text-ink-300"
+             x-show="current && current.note" x-text="current ? current.note : ''"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sterowanie -->
+    <div class="mt-5 hidden items-center justify-center gap-2 sm:flex">
+      <button type="button" class="btn-secondary" @click="previous()" :disabled="index === 0">← Poprzednia</button>
+      <button type="button" class="btn-secondary" @click="flip()">Odwróć (spacja)</button>
+      <button type="button" class="btn-secondary" @click="next()">Następna →</button>
+    </div>
+
+    <div class="mt-3 grid grid-cols-2 gap-2">
+      <button type="button" class="btn-secondary border-rose-300 py-3 text-rose-700 hover:bg-rose-50 dark:border-rose-800 dark:text-rose-300 dark:hover:bg-rose-950/40"
+              @click="mark('review')">Do powtórki</button>
+      <button type="button" class="btn-secondary border-emerald-300 py-3 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
+              @click="mark('known')">Umiem</button>
+    </div>
+    <p class="mt-2 hidden text-center text-xs text-ink-400 sm:block">
+      Skróty: spacja — odwróć, ← → — nawigacja, S — oznacz trudną, 1 — do powtórki, 2 — umiem
+    </p>
+  </div>
+
+  <!-- Podsumowanie -->
+  <div x-show="finished" x-cloak class="mt-6 flex flex-1 flex-col items-center justify-center">
+    <div class="card w-full max-w-lg p-8 text-center">
+      <p class="text-sm font-medium uppercase tracking-wide text-ink-500 dark:text-ink-400">Sesja zakończona</p>
+      <p class="mt-3 text-5xl font-bold tabular-nums text-brand-600 dark:text-brand-400" x-text="`${known.length}/${queue.length}`"></p>
+      <p class="mt-1 text-sm text-ink-600 dark:text-ink-300">
+        fiszek oznaczonych jako opanowane · czas nauki <span class="tabular-nums" x-text="elapsedLabel"></span>
+      </p>
+      <div class="mt-6 flex flex-col gap-2 sm:flex-row">
+        <button type="button" class="btn-primary flex-1" @click="restart(false)">Powtórz cały zestaw</button>
+        <button type="button" class="btn-secondary flex-1" @click="restart(true)" :disabled="!review.length">
+          Powtórz trudne (<span x-text="review.length"></span>)
+        </button>
+      </div>
+      <a :href="`/zestawy/${set.id}`" class="btn-ghost mt-2 w-full">Wróć do zestawu</a>
+    </div>
+  </div>
+
+  <!-- Pasek mobilny -->
+  <div class="fixed inset-x-0 bottom-0 z-40 border-t border-ink-200 bg-white/95 px-4 py-2.5 backdrop-blur safe-bottom sm:hidden dark:border-ink-800 dark:bg-ink-950/95"
+       x-show="!finished">
+    <div class="flex items-center gap-2">
+      <button type="button" class="btn-secondary !px-4" @click="previous()" :disabled="index === 0" aria-label="Poprzednia fiszka">←</button>
+      <button type="button" class="btn-primary flex-1" @click="flip()">Odwróć</button>
+      <button type="button" class="btn-secondary !px-4" @click="next()" aria-label="Następna fiszka">→</button>
+    </div>
+  </div>
+</div>
+{% endblock %}

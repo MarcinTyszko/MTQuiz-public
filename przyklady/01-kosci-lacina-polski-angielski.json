@@ -1,0 +1,402 @@
+{
+  "schema": "medfiszki/study-set",
+  "version": 1,
+  "title": "Kości — nazewnictwo łacińskie, polskie i angielskie",
+  "description": "Materiał testowy: 38 kości szkieletu człowieka. Awers podaje nazwę łacińską (Terminologia Anatomica), rewers odpowiedniki polski i angielski. Wskazówka wskazuje okolicę ciała, notatka zawiera fakt kliniczny.",
+  "subject": "Anatomia",
+  "tags": [
+    "Osteologia",
+    "Terminologia anatomiczna",
+    "Łacina medyczna",
+    "Trójjęzyczny"
+  ],
+  "visibility": "public",
+  "cards": [
+    {
+      "front": "Os frontale",
+      "back": "polski: kość czołowa\nangielski: frontal bone",
+      "hint": "Czaszka — mózgoczaszka",
+      "note": "Tworzy sklepienie oczodołu i zawiera zatokę czołową."
+    },
+    {
+      "front": "Os parietale",
+      "back": "polski: kość ciemieniowa\nangielski: parietal bone",
+      "hint": "Czaszka — mózgoczaszka",
+      "note": "Parzysta; łączy się z kością przeciwną szwem strzałkowym."
+    },
+    {
+      "front": "Os occipitale",
+      "back": "polski: kość potyliczna\nangielski: occipital bone",
+      "hint": "Czaszka — mózgoczaszka",
+      "note": "Zawiera otwór wielki (foramen magnum)."
+    },
+    {
+      "front": "Os temporale",
+      "back": "polski: kość skroniowa\nangielski: temporal bone",
+      "hint": "Czaszka — mózgoczaszka",
+      "note": "Mieści narząd słuchu i równowagi w części skalistej."
+    },
+    {
+      "front": "Os sphenoidale",
+      "back": "polski: kość klinowa\nangielski: sphenoid bone",
+      "hint": "Czaszka — mózgoczaszka",
+      "note": "Siodło tureckie tej kości mieści przysadkę mózgową."
+    },
+    {
+      "front": "Os ethmoidale",
+      "back": "polski: kość sitowa\nangielski: ethmoid bone",
+      "hint": "Czaszka — mózgoczaszka",
+      "note": "Blaszka sitowa przepuszcza włókna nerwu węchowego."
+    },
+    {
+      "front": "Maxilla",
+      "back": "polski: szczęka\nangielski: maxilla",
+      "hint": "Czaszka — twarzoczaszka",
+      "note": "Parzysta; zawiera zatokę szczękową."
+    },
+    {
+      "front": "Mandibula",
+      "back": "polski: żuchwa\nangielski: mandible",
+      "hint": "Czaszka — twarzoczaszka",
+      "note": "Jedyna ruchoma kość czaszki; staw skroniowo-żuchwowy."
+    },
+    {
+      "front": "Os zygomaticum",
+      "back": "polski: kość jarzmowa\nangielski: zygomatic bone",
+      "hint": "Czaszka — twarzoczaszka",
+      "note": "Tworzy wypukłość policzka i boczną ścianę oczodołu."
+    },
+    {
+      "front": "Os nasale",
+      "back": "polski: kość nosowa\nangielski: nasal bone",
+      "hint": "Czaszka — twarzoczaszka",
+      "note": "Najczęściej łamana kość twarzoczaszki."
+    },
+    {
+      "front": "Vomer",
+      "back": "polski: lemiesz\nangielski: vomer",
+      "hint": "Czaszka — twarzoczaszka",
+      "note": "Tworzy tylno-dolną część przegrody nosa."
+    },
+    {
+      "front": "Os hyoideum",
+      "back": "polski: kość gnykowa\nangielski: hyoid bone",
+      "hint": "Szyja",
+      "note": "Jedyna kość niepołączona stawowo z inną kością."
+    },
+    {
+      "front": "Vertebrae cervicales",
+      "back": "polski: kręgi szyjne\nangielski: cervical vertebrae",
+      "hint": "Kręgosłup",
+      "note": "Siedem kręgów; jedyne z otworem wyrostka poprzecznego."
+    },
+    {
+      "front": "Atlas",
+      "back": "polski: kręg szczytowy\nangielski: atlas (C1)",
+      "hint": "Kręgosłup",
+      "note": "Pozbawiony trzonu; dźwiga czaszkę."
+    },
+    {
+      "front": "Axis",
+      "back": "polski: kręg obrotowy\nangielski: axis (C2)",
+      "hint": "Kręgosłup",
+      "note": "Ząb (dens) stanowi oś obrotu głowy."
+    },
+    {
+      "front": "Vertebrae thoracicae",
+      "back": "polski: kręgi piersiowe\nangielski: thoracic vertebrae",
+      "hint": "Kręgosłup",
+      "note": "Dwanaście kręgów; łączą się z żebrami dołkami żebrowymi."
+    },
+    {
+      "front": "Vertebrae lumbales",
+      "back": "polski: kręgi lędźwiowe\nangielski: lumbar vertebrae",
+      "hint": "Kręgosłup",
+      "note": "Pięć kręgów o masywnych trzonach."
+    },
+    {
+      "front": "Os sacrum",
+      "back": "polski: kość krzyżowa\nangielski: sacrum",
+      "hint": "Kręgosłup",
+      "note": "Powstaje ze zrośnięcia pięciu kręgów krzyżowych."
+    },
+    {
+      "front": "Os coccygis",
+      "back": "polski: kość guziczna\nangielski: coccyx",
+      "hint": "Kręgosłup",
+      "note": "Szczątkowa, zrośnięta z 3-5 kręgów guzicznych."
+    },
+    {
+      "front": "Sternum",
+      "back": "polski: mostek\nangielski: sternum",
+      "hint": "Klatka piersiowa",
+      "note": "Kąt mostka (Ludwiga) wyznacza poziom II żebra."
+    },
+    {
+      "front": "Costae",
+      "back": "polski: żebra\nangielski: ribs",
+      "hint": "Klatka piersiowa",
+      "note": "Dwanaście par; żebra XI i XII są wolne."
+    },
+    {
+      "front": "Clavicula",
+      "back": "polski: obojczyk\nangielski: clavicle",
+      "hint": "Obręcz kończyny górnej",
+      "note": "Najczęściej łamana kość długa; złamanie w 1/3 środkowej."
+    },
+    {
+      "front": "Scapula",
+      "back": "polski: łopatka\nangielski: scapula",
+      "hint": "Obręcz kończyny górnej",
+      "note": "Wyrostek barkowy i kruczy są punktami orientacyjnymi."
+    },
+    {
+      "front": "Humerus",
+      "back": "polski: kość ramienna\nangielski: humerus",
+      "hint": "Kończyna górna",
+      "note": "Bruzda nerwu promieniowego biegnie po jej tylnej powierzchni."
+    },
+    {
+      "front": "Radius",
+      "back": "polski: kość promieniowa\nangielski: radius",
+      "hint": "Kończyna górna",
+      "note": "Leży po stronie kciuka; złamanie Collesa dotyczy jej nasady dalszej."
+    },
+    {
+      "front": "Ulna",
+      "back": "polski: kość łokciowa\nangielski: ulna",
+      "hint": "Kończyna górna",
+      "note": "Leży po stronie palca małego; wyrostek łokciowy tworzy łokieć."
+    },
+    {
+      "front": "Ossa carpi",
+      "back": "polski: kości nadgarstka\nangielski: carpal bones",
+      "hint": "Kończyna górna",
+      "note": "Osiem kości w dwóch szeregach; najczęściej łamana jest łódeczkowata."
+    },
+    {
+      "front": "Ossa metacarpi",
+      "back": "polski: kości śródręcza\nangielski: metacarpal bones",
+      "hint": "Kończyna górna",
+      "note": "Pięć kości numerowanych od kciuka."
+    },
+    {
+      "front": "Phalanges",
+      "back": "polski: paliczki\nangielski: phalanges",
+      "hint": "Kończyna górna i dolna",
+      "note": "Kciuk i paluch mają po dwa paliczki, pozostałe palce po trzy."
+    },
+    {
+      "front": "Os ilium",
+      "back": "polski: kość biodrowa\nangielski: ilium",
+      "hint": "Miednica",
+      "note": "Kolec biodrowy przedni górny jest punktem orientacyjnym badania."
+    },
+    {
+      "front": "Os ischii",
+      "back": "polski: kość kulszowa\nangielski: ischium",
+      "hint": "Miednica",
+      "note": "Guz kulszowy dźwiga ciężar ciała w pozycji siedzącej."
+    },
+    {
+      "front": "Os pubis",
+      "back": "polski: kość łonowa\nangielski: pubis",
+      "hint": "Miednica",
+      "note": "Spojenie łonowe to staw chrzęstny w linii pośrodkowej."
+    },
+    {
+      "front": "Femur",
+      "back": "polski: kość udowa\nangielski: femur",
+      "hint": "Kończyna dolna",
+      "note": "Najdłuższa kość ciała; złamanie szyjki typowe u osób starszych."
+    },
+    {
+      "front": "Patella",
+      "back": "polski: rzepka\nangielski: patella",
+      "hint": "Kończyna dolna",
+      "note": "Największa kość trzeszczkowa; leży w ścięgnie mięśnia czworogłowego."
+    },
+    {
+      "front": "Tibia",
+      "back": "polski: kość piszczelowa\nangielski: tibia",
+      "hint": "Kończyna dolna",
+      "note": "Przenosi ciężar ciała; jej przednia krawędź leży podskórnie."
+    },
+    {
+      "front": "Fibula",
+      "back": "polski: kość strzałkowa\nangielski: fibula",
+      "hint": "Kończyna dolna",
+      "note": "Nie przenosi ciężaru; kostka boczna to jej nasada dalsza."
+    },
+    {
+      "front": "Talus",
+      "back": "polski: kość skokowa\nangielski: talus",
+      "hint": "Kończyna dolna",
+      "note": "Jedyna kość stępu łącząca się z kośćmi goleni."
+    },
+    {
+      "front": "Calcaneus",
+      "back": "polski: kość piętowa\nangielski: calcaneus",
+      "hint": "Kończyna dolna",
+      "note": "Największa kość stępu; przyczep ścięgna Achillesa."
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "Jak brzmi polska nazwa kości określanej po łacinie jako „os sphenoidale”?",
+      "explanation": "Kość klinowa (os sphenoidale, ang. sphenoid bone) leży w podstawie czaszki, a jej siodło tureckie mieści przysadkę mózgową.",
+      "options": [
+        {
+          "text": "Kość klinowa",
+          "is_correct": true,
+          "feedback": "Poprawnie — sphenoidale od greckiego sphen, czyli klin."
+        },
+        {
+          "text": "Kość sitowa",
+          "is_correct": false,
+          "feedback": "Kość sitowa to os ethmoidale."
+        },
+        {
+          "text": "Kość skroniowa",
+          "is_correct": false,
+          "feedback": "Kość skroniowa to os temporale."
+        },
+        {
+          "text": "Kość jarzmowa",
+          "is_correct": false,
+          "feedback": "Kość jarzmowa to os zygomaticum."
+        }
+      ]
+    },
+    {
+      "prompt": "Która para nazw łacińskiej i angielskiej odnosi się do tej samej kości co polskie określenie „kość łokciowa”?",
+      "explanation": "Kość łokciowa to po łacinie ulna, a po angielsku również ulna. Kość promieniowa to radius, leżąca po stronie kciuka.",
+      "options": [
+        {
+          "text": "Ulna / ulna",
+          "is_correct": true,
+          "feedback": "Nazwy łacińska i angielska są w tym przypadku identyczne."
+        },
+        {
+          "text": "Radius / radius",
+          "is_correct": false,
+          "feedback": "To kość promieniowa, po stronie kciuka."
+        },
+        {
+          "text": "Humerus / humerus",
+          "is_correct": false,
+          "feedback": "To kość ramienna."
+        },
+        {
+          "text": "Fibula / fibula",
+          "is_correct": false,
+          "feedback": "To kość strzałkowa w kończynie dolnej."
+        }
+      ]
+    },
+    {
+      "prompt": "Angielski termin „collarbone” bywa używany zamiennie z nazwą anatomiczną „clavicle”. Jakiej kości dotyczy?",
+      "explanation": "Clavicula to obojczyk — kość łącząca mostek z wyrostkiem barkowym łopatki, najczęściej łamana kość długa u dorosłych.",
+      "options": [
+        {
+          "text": "Obojczyka",
+          "is_correct": true,
+          "feedback": "Poprawnie — clavicula, ang. clavicle lub collarbone."
+        },
+        {
+          "text": "Łopatki",
+          "is_correct": false,
+          "feedback": "Łopatka to scapula, ang. shoulder blade."
+        },
+        {
+          "text": "Mostka",
+          "is_correct": false,
+          "feedback": "Mostek to sternum, ang. breastbone."
+        },
+        {
+          "text": "Żebra",
+          "is_correct": false,
+          "feedback": "Żebro to costa, ang. rib."
+        }
+      ]
+    },
+    {
+      "prompt": "Które stwierdzenia o nazewnictwie kręgosłupa są prawidłowe? Zaznacz wszystkie prawidłowe.",
+      "explanation": "Atlas (C1) dźwiga czaszkę i nie ma trzonu, axis (C2) ma ząb stanowiący oś obrotu głowy, a os sacrum powstaje ze zrośnięcia pięciu kręgów krzyżowych.",
+      "options": [
+        {
+          "text": "Atlas to polski kręg szczytowy",
+          "is_correct": true,
+          "feedback": "Nazwa nawiązuje do tytana dźwigającego sklepienie nieba."
+        },
+        {
+          "text": "Axis to polski kręg obrotowy",
+          "is_correct": true,
+          "feedback": "Ząb kręgu obrotowego stanowi oś obrotu głowy."
+        },
+        {
+          "text": "Os sacrum to polska kość krzyżowa",
+          "is_correct": true,
+          "feedback": "Ang. sacrum — powstaje ze zrośnięcia pięciu kręgów."
+        },
+        {
+          "text": "Os coccygis to polska kość biodrowa",
+          "is_correct": false,
+          "feedback": "Os coccygis to kość guziczna; kość biodrowa to os ilium."
+        }
+      ]
+    },
+    {
+      "prompt": "Pacjent po upadku na wyprostowaną rękę ma bolesność w „tabakierce anatomicznej”. Złamania której kości należy podejrzewać w pierwszej kolejności?",
+      "explanation": "Bolesność w tabakierce anatomicznej jest klasycznym objawem złamania kości łódeczkowatej (os scaphoideum, ang. scaphoid) — najczęściej łamanej kości nadgarstka.",
+      "options": [
+        {
+          "text": "Os scaphoideum — kość łódeczkowata",
+          "is_correct": true,
+          "feedback": "Ryzyko martwicy niedokrwiennej bieguna bliższego."
+        },
+        {
+          "text": "Os lunatum — kość księżycowata",
+          "is_correct": false,
+          "feedback": "Częściej ulega zwichnięciu niż złamaniu w tym mechanizmie."
+        },
+        {
+          "text": "Os pisiforme — kość grochowata",
+          "is_correct": false,
+          "feedback": "Kość trzeszczkowa w ścięgnie zginacza łokciowego nadgarstka."
+        },
+        {
+          "text": "Os capitatum — kość główkowata",
+          "is_correct": false,
+          "feedback": "Największa kość nadgarstka, rzadko izolowanie łamana."
+        }
+      ]
+    },
+    {
+      "prompt": "Która kość jest jedyną kością szkieletu niepołączoną stawowo z żadną inną kością?",
+      "explanation": "Kość gnykowa (os hyoideum, ang. hyoid bone) jest zawieszona na więzadłach i mięśniach szyi, bez połączenia stawowego z innymi kośćmi.",
+      "options": [
+        {
+          "text": "Os hyoideum — kość gnykowa",
+          "is_correct": true,
+          "feedback": "Zawieszona między mięśniami nad- i podgnykowymi."
+        },
+        {
+          "text": "Patella — rzepka",
+          "is_correct": false,
+          "feedback": "Tworzy staw rzepkowo-udowy z kością udową."
+        },
+        {
+          "text": "Vomer — lemiesz",
+          "is_correct": false,
+          "feedback": "Łączy się z kością sitową i kośćmi podniebienia."
+        },
+        {
+          "text": "Os coccygis — kość guziczna",
+          "is_correct": false,
+          "feedback": "Łączy się z kością krzyżową."
+        }
+      ]
+    }
+  ]
+}

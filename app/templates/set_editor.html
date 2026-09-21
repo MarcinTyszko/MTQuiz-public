@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+{% block title %}{% if mode == 'edit' %}Edycja zestawu{% else %}Nowy zestaw{% endif %} — {{ app_name }}{% endblock %}
+{% block head_scripts %}<script defer src="{{ static_url('js/editor.js') }}"></script>{% endblock %}
+{% block main_class %}mx-auto w-full max-w-5xl flex-1 px-4 pb-28 pt-6 sm:px-6 lg:pb-10 lg:pt-8{% endblock %}
+
+{% block content %}
+<div x-data="setEditor({{ {'mode': mode, 'data': set_data} | tojson_attr }})" x-init="init()" x-cloak>
+
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-ink-900 dark:text-white"
+          x-text="mode === 'edit' ? 'Edycja zestawu' : 'Nowy zestaw'"></h1>
+      <p class="mt-1 text-sm text-ink-600 dark:text-ink-300">
+        Uzupełnij metadane, a następnie dodaj fiszki i pytania quizowe.
+      </p>
+    </div>
+    <div class="hidden gap-2 lg:flex">
+      <a :href="mode === 'edit' ? `/zestawy/${setId}` : '/pulpit'" class="btn-ghost">Anuluj</a>
+      <button type="button" class="btn-primary" @click="save()" :disabled="busy">
+        <span x-show="!busy">Zapisz zestaw</span><span x-show="busy" x-cloak>Zapisywanie…</span>
+      </button>
+    </div>
+  </div>
+
+  <div x-show="importBanner" x-cloak class="mt-4 rounded-xl border border-brand-300 bg-brand-50 px-4 py-3 text-sm text-brand-900 dark:border-brand-800 dark:bg-brand-950 dark:text-brand-100">
+    Wczytano dane z importu JSON. Sprawdź treść, popraw literówki i zapisz zestaw.
+  </div>
+
+  <div x-show="errors.length" x-cloak class="mt-4 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-900 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-100">
+    <p class="font-semibold">Popraw poniższe pola, aby zapisać zestaw:</p>
+    <ul class="mt-1.5 list-inside list-disc space-y-0.5">
+      <template x-for="(message, index) in errors" :key="index"><li x-text="message"></li></template>
+    </ul>
+  </div>
+
+  <!-- Metadane --------------------------------------------------------- -->
+  <section class="card mt-6 space-y-4 p-5">
+    <h2 class="section-title">Informacje o zestawie</h2>
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div class="sm:col-span-2">
+        <label class="label" for="set-title">Tytuł <span class="text-rose-500">*</span></label>
+        <input id="set-title" class="input" x-model="meta.title" maxlength="200" placeholder="np. Farmakologia — leki przeciwpadaczkowe">
+      </div>
+      <div>
+        <label class="label" for="set-subject">Przedmiot</label>
+        <input id="set-subject" class="input" x-model="meta.subject" maxlength="120" placeholder="np. Farmakologia" list="subject-suggestions">
+        <datalist id="subject-suggestions">
+          <option value="Anatomia"></option><option value="Fizjologia"></option><option value="Biochemia"></option>
+          <option value="Farmakologia"></option><option value="Patofizjologia"></option><option value="Mikrobiologia"></option>
+          <option value="Histologia"></option><option value="Interna"></option><option value="Chirurgia"></option>
+        </datalist>
+      </div>
+      <div>
+        <label class="label" for="set-visibility">Widoczność</label>
+        <select id="set-visibility" class="input" x-model="meta.visibility">
+          <option value="private">Prywatny — widoczny tylko dla mnie</option>
+          <option value="public">Publiczny — widoczny w bazie publicznej</option>
+        </select>
+      </div>
+      <div class="sm:col-span-2">
+        <label class="label" for="set-description">Opis</label>
+        <textarea id="set-description" class="input" rows="3" x-model="meta.description" maxlength="5000"
+                  placeholder="Czego dotyczy zestaw, z jakiego źródła pochodzi, na co zwrócić uwagę…"></textarea>
+      </div>
+      <div class="sm:col-span-2">
+        <label class="label" for="set-tags">Tagi</label>
+        <div class="flex flex-wrap gap-1.5" x-show="meta.tags.length">
+          <template x-for="tag in meta.tags" :key="tag">
+            <span class="badge-brand">
+              <span x-text="tag"></span>
+              <button type="button" class="ml-0.5 text-brand-500 hover:text-brand-800 dark:hover:text-brand-200"
+                      @click="removeTag(tag)" :aria-label="`Usuń tag ${tag}`">×</button>
+            </span>
+          </template>
+        </div>
+        <input id="set-tags" class="input mt-2" x-model="tagDraft" @keydown.enter.prevent="addTag()" @keydown.,.prevent="addTag()"
+               placeholder="Wpisz tag i naciśnij Enter (np. Neuroanatomia)">
+        <p class="hint">Maksymalnie 20 tagów. Ułatwiają wyszukiwanie w bazie publicznej.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Zakładki treści --------------------------------------------------- -->
+  <div class="mt-8 flex flex-wrap items-center justify-between gap-3 border-b border-ink-200 dark:border-ink-800">
+    <div class="flex gap-1" role="tablist">
+      <button type="button" role="tab" class="border-b-2 px-4 py-2.5 text-sm font-medium transition-colors"
+              :class="tab === 'cards' ? 'border-brand-600 text-brand-700 dark:text-brand-400' : 'border-transparent text-ink-500 hover:text-ink-800 dark:hover:text-ink-200'"
+              @click="tab = 'cards'">Fiszki (<span x-text="cards.length"></span>)</button>
+      <button type="button" role="tab" class="border-b-2 px-4 py-2.5 text-sm font-medium transition-colors"
+              :class="tab === 'questions' ? 'border-brand-600 text-brand-700 dark:text-brand-400' : 'border-transparent text-ink-500 hover:text-ink-800 dark:hover:text-ink-200'"
+              @click="tab = 'questions'">Pytania quizowe (<span x-text="questions.length"></span>)</button>
+    </div>
+    <button type="button" class="btn-ghost btn-sm" @click="collapsed = !collapsed"
+            x-text="collapsed ? 'Rozwiń wszystkie' : 'Zwiń wszystkie'"></button>
+  </div>
+
+  <!-- Fiszki ----------------------------------------------------------- -->
+  <section x-show="tab === 'cards'" class="mt-4 space-y-3">
+    <template x-for="(card, index) in cards" :key="card._key">
+      <article class="card p-4">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs font-semibold uppercase tracking-wide text-ink-400">Fiszka <span x-text="index + 1"></span></span>
+          <div class="flex gap-1">
+            <button type="button" class="btn-ghost btn-sm !px-2" @click="move(cards, index, -1)" :disabled="index === 0" aria-label="Przenieś wyżej">↑</button>
+            <button type="button" class="btn-ghost btn-sm !px-2" @click="move(cards, index, 1)" :disabled="index === cards.length - 1" aria-label="Przenieś niżej">↓</button>
+            <button type="button" class="btn-ghost btn-sm !px-2" @click="duplicateCard(index)" aria-label="Duplikuj fiszkę">⧉</button>
+            <button type="button" class="btn-ghost btn-sm !px-2 text-rose-600 dark:text-rose-400" @click="cards.splice(index, 1)" aria-label="Usuń fiszkę">✕</button>
+          </div>
+        </div>
+        <div class="mt-3 grid gap-3 sm:grid-cols-2">
+          <div>
+            <label class="label">Awers — pojęcie / pytanie <span class="text-rose-500">*</span></label>
+            <textarea class="input" rows="3" x-model="card.front" placeholder="np. Nerw czaszkowy VII — funkcje"></textarea>
+          </div>
+          <div>
+            <label class="label">Rewers — definicja / kontekst kliniczny <span class="text-rose-500">*</span></label>
+            <textarea class="input" rows="3" x-model="card.back" placeholder="Pełna odpowiedź, którą chcesz pamiętać"></textarea>
+          </div>
+        </div>
+        <div class="mt-3 grid gap-3 sm:grid-cols-2" x-show="!collapsed">
+          <div>
+            <label class="label">Wskazówka <span class="font-normal text-ink-400">(opcjonalnie)</span></label>
+            <input class="input" x-model="card.hint" placeholder="Podpowiedź wyświetlana na życzenie">
+          </div>
+          <div>
+            <label class="label">Notatka <span class="font-normal text-ink-400">(opcjonalnie)</span></label>
+            <input class="input" x-model="card.note" placeholder="Kontekst egzaminacyjny, źródło, mnemotechnika">
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <div x-show="!cards.length" class="card px-6 py-10 text-center">
+      <p class="text-sm text-ink-600 dark:text-ink-300">Brak fiszek. Dodaj pierwszą lub zaimportuj gotowy pakiet JSON.</p>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      <button type="button" class="btn-secondary" @click="addCard()">+ Dodaj fiszkę</button>
+      <a href="/zestawy/import" class="btn-ghost">Import z JSON</a>
+    </div>
+  </section>
+
+  <!-- Pytania ---------------------------------------------------------- -->
+  <section x-show="tab === 'questions'" x-cloak class="mt-4 space-y-3">
+    <template x-for="(question, qIndex) in questions" :key="question._key">
+      <article class="card p-4">
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs font-semibold uppercase tracking-wide text-ink-400">Pytanie <span x-text="qIndex + 1"></span></span>
+          <div class="flex gap-1">
+            <button type="button" class="btn-ghost btn-sm !px-2" @click="move(questions, qIndex, -1)" :disabled="qIndex === 0" aria-label="Przenieś wyżej">↑</button>
+            <button type="button" class="btn-ghost btn-sm !px-2" @click="move(questions, qIndex, 1)" :disabled="qIndex === questions.length - 1" aria-label="Przenieś niżej">↓</button>
+            <button type="button" class="btn-ghost btn-sm !px-2 text-rose-600 dark:text-rose-400" @click="questions.splice(qIndex, 1)" aria-label="Usuń pytanie">✕</button>
+          </div>
+        </div>
+
+        <div class="mt-3">
+          <label class="label">Treść pytania <span class="text-rose-500">*</span></label>
+          <textarea class="input" rows="2" x-model="question.prompt" placeholder="np. Który nerw unerwia mięsień skośny górny?"></textarea>
+        </div>
+
+        <fieldset class="mt-4">
+          <legend class="label">Warianty odpowiedzi — zaznacz poprawne <span class="text-rose-500">*</span></legend>
+          <div class="space-y-2">
+            <template x-for="(option, oIndex) in question.options" :key="option._key">
+              <div class="rounded-xl border p-2.5 transition-colors"
+                   :class="option.is_correct ? 'border-emerald-400 bg-emerald-50 dark:border-emerald-700 dark:bg-emerald-950/40' : 'border-ink-200 dark:border-ink-700'">
+                <div class="flex items-start gap-2">
+                  <label class="mt-2.5 flex shrink-0 cursor-pointer items-center gap-1.5">
+                    <input type="checkbox" class="h-4 w-4 rounded border-ink-300 text-emerald-600 focus:ring-emerald-500" x-model="option.is_correct">
+                    <span class="w-4 text-sm font-semibold text-ink-500" x-text="'ABCDEFGHIJ'[oIndex]"></span>
+                  </label>
+                  <div class="min-w-0 flex-1 space-y-2">
+                    <input class="input" x-model="option.text" :placeholder="`Treść wariantu ${'ABCDEFGHIJ'[oIndex]}`">
+                    <input class="input !min-h-[2.25rem] py-1.5 text-xs" x-show="!collapsed" x-model="option.feedback"
+                           placeholder="Komentarz do tego wariantu (opcjonalnie)">
+                  </div>
+                  <button type="button" class="btn-ghost btn-sm !px-2 text-rose-600 dark:text-rose-400"
+                          @click="question.options.splice(oIndex, 1)" :disabled="question.options.length <= 2" aria-label="Usuń wariant">✕</button>
+                </div>
+              </div>
+            </template>
+          </div>
+          <button type="button" class="btn-ghost btn-sm mt-2" @click="addOption(question)" :disabled="question.options.length >= 10">+ Dodaj wariant</button>
+        </fieldset>
+
+        <div class="mt-4">
+          <label class="label">Wyjaśnienie odpowiedzi</label>
+          <textarea class="input" rows="2" x-model="question.explanation"
+                    placeholder="Dlaczego ta odpowiedź jest poprawna — wyświetlane po udzieleniu odpowiedzi."></textarea>
+        </div>
+      </article>
+    </template>
+
+    <div x-show="!questions.length" class="card px-6 py-10 text-center">
+      <p class="text-sm text-ink-600 dark:text-ink-300">Brak pytań quizowych. Dodaj pierwsze pytanie testowe.</p>
+    </div>
+
+    <button type="button" class="btn-secondary" @click="addQuestion()">+ Dodaj pytanie</button>
+  </section>
+
+  <!-- Pasek akcji na urządzeniach mobilnych ---------------------------- -->
+  <div class="fixed inset-x-0 bottom-0 z-40 border-t border-ink-200 bg-white/95 px-4 py-3 backdrop-blur safe-bottom lg:hidden dark:border-ink-800 dark:bg-ink-950/95">
+    <div class="mx-auto flex max-w-5xl gap-2">
+      <a :href="mode === 'edit' ? `/zestawy/${setId}` : '/pulpit'" class="btn-secondary flex-1">Anuluj</a>
+      <button type="button" class="btn-primary flex-[2]" @click="save()" :disabled="busy">
+        <span x-show="!busy">Zapisz zestaw</span><span x-show="busy" x-cloak>Zapisywanie…</span>
+      </button>
+    </div>
+  </div>
+</div>
+{% endblock %}

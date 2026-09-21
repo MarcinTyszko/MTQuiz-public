@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import stat_tile %}
+{% block title %}Moje konto — {{ app_name }}{% endblock %}
+{% block main_class %}mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 lg:py-10{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-bold tracking-tight text-ink-900 dark:text-white">Moje konto</h1>
+
+<section class="card mt-6 divide-y divide-ink-100 dark:divide-ink-800">
+  <dl class="grid gap-4 p-5 sm:grid-cols-2">
+    <div><dt class="text-xs uppercase tracking-wide text-ink-500 dark:text-ink-400">Nazwa użytkownika</dt><dd class="mt-1 font-medium text-ink-900 dark:text-white">{{ user.username }}</dd></div>
+    <div><dt class="text-xs uppercase tracking-wide text-ink-500 dark:text-ink-400">Adres e-mail</dt><dd class="mt-1 font-medium text-ink-900 dark:text-white">{{ user.email or '—' }}</dd></div>
+    <div><dt class="text-xs uppercase tracking-wide text-ink-500 dark:text-ink-400">Rola</dt><dd class="mt-1"><span class="{{ 'badge-brand' if user.is_admin else 'badge-neutral' }}">{{ 'Administrator' if user.is_admin else 'Użytkownik' }}</span></dd></div>
+    <div><dt class="text-xs uppercase tracking-wide text-ink-500 dark:text-ink-400">Konto utworzono</dt><dd class="mt-1 font-medium text-ink-900 dark:text-white">{{ user.created_at | dt }}</dd></div>
+    <div><dt class="text-xs uppercase tracking-wide text-ink-500 dark:text-ink-400">Ostatnie logowanie</dt><dd class="mt-1 font-medium text-ink-900 dark:text-white">{{ user.last_login_at | dt }}</dd></div>
+  </dl>
+  <div class="flex flex-wrap gap-2 p-5">
+    <a href="/zmiana-hasla" class="btn-secondary">Zmień hasło</a>
+    <button type="button" data-logout class="btn-ghost text-rose-600 dark:text-rose-400">Wyloguj się</button>
+  </div>
+</section>
+
+<section class="mt-8">
+  <h2 class="section-title">Statystyki nauki</h2>
+  <div class="mt-3 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+    {{ stat_tile('Zestawy', stats.sets_owned) }}
+    {{ stat_tile('Fiszki', stats.cards_total) }}
+    {{ stat_tile('Pytania', stats.questions_total) }}
+    {{ stat_tile('Ulubione', stats.favorites) }}
+  </div>
+</section>
+
+<section class="mt-8">
+  <h2 class="section-title">Wygląd</h2>
+  <div class="card mt-3 flex items-center justify-between gap-4 p-5">
+    <div>
+      <p class="font-medium text-ink-900 dark:text-white">Motyw interfejsu</p>
+      <p class="text-sm text-ink-600 dark:text-ink-300">Wybór zapisuje się w tej przeglądarce; domyślnie stosowane jest ustawienie systemowe.</p>
+    </div>
+    <button type="button" data-theme-toggle class="btn-secondary shrink-0">Przełącz motyw</button>
+  </div>
+</section>
+{% endblock %}

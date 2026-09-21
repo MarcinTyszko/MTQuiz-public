@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Błąd {{ status_code }} — {{ app_name }}{% endblock %}
+{% block content %}
+<div class="mx-auto flex max-w-lg flex-col items-center gap-4 py-16 text-center">
+  <p class="text-6xl font-bold tabular-nums text-brand-600 dark:text-brand-400">{{ status_code }}</p>
+  <h1 class="text-xl font-semibold text-ink-900 dark:text-white">
+    {% if status_code == 404 %}Nie znaleziono strony
+    {% elif status_code == 403 %}Brak dostępu
+    {% else %}Coś poszło nie tak{% endif %}
+  </h1>
+  <p class="text-sm text-ink-600 dark:text-ink-300">{{ detail }}</p>
+  <div class="flex flex-wrap justify-center gap-2 pt-2">
+    <a href="/" class="btn-primary">Strona główna</a>
+    <a href="/baza-publiczna" class="btn-secondary">Baza publiczna</a>
+  </div>
+</div>
+{% endblock %}

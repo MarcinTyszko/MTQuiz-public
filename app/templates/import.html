@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block title %}Import pakietu JSON — {{ app_name }}{% endblock %}
+{% block head_scripts %}<script defer src="{{ static_url('js/importer.js') }}"></script>{% endblock %}
+{% block main_class %}mx-auto w-full max-w-4xl flex-1 px-4 py-6 sm:px-6 lg:py-10{% endblock %}
+
+{% block content %}
+<div x-data="jsonImporter()" x-cloak>
+  <h1 class="text-2xl font-bold tracking-tight text-ink-900 dark:text-white">Import pakietu JSON</h1>
+  <p class="mt-1 max-w-2xl text-sm text-ink-600 dark:text-ink-300">
+    Wgraj plik wygenerowany przez model językowy na podstawie Twoich notatek lub wklej treść JSON.
+    Parser toleruje różne warianty nazw pól, wskaże pominięte elementy i pozwoli poprawić wszystko
+    w edytorze przed zapisem.
+  </p>
+
+  <!-- Źródło danych ---------------------------------------------------- -->
+  <section class="card mt-6 p-5">
+    <div class="flex gap-1 border-b border-ink-200 pb-3 dark:border-ink-800" role="tablist">
+      <button type="button" role="tab" class="rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
+              :class="source === 'file' ? 'bg-brand-600 text-white' : 'text-ink-600 hover:bg-ink-100 dark:text-ink-300 dark:hover:bg-ink-800'"
+              @click="source = 'file'">Plik .json</button>
+      <button type="button" role="tab" class="rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
+              :class="source === 'text' ? 'bg-brand-600 text-white' : 'text-ink-600 hover:bg-ink-100 dark:text-ink-300 dark:hover:bg-ink-800'"
+              @click="source = 'text'">Wklej treść</button>
+    </div>
+
+    <div x-show="source === 'file'" class="mt-4">
+      <label class="flex cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 border-dashed px-6 py-10 text-center transition-colors"
+             :class="dragging ? 'border-brand-500 bg-brand-50 dark:bg-brand-950/40' : 'border-ink-300 hover:border-brand-400 dark:border-ink-700'"
+             @dragover.prevent="dragging = true" @dragleave.prevent="dragging = false" @drop.prevent="onDrop($event)">
+        <svg class="h-8 w-8 text-ink-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+          <path d="M12 16V4m0 0L8 8m4-4 4 4M4 16v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V16" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span class="text-sm font-medium text-ink-800 dark:text-ink-100">Przeciągnij plik lub kliknij, aby wybrać</span>
+        <span class="text-xs text-ink-500 dark:text-ink-400" x-text="fileName || 'Obsługiwany format: .json (UTF-8)'"></span>
+        <input type="file" accept=".json,application/json,text/plain" class="sr-only" @change="onFile($event)">
+      </label>
+    </div>
+
+    <div x-show="source === 'text'" class="mt-4">
+      <label class="label" for="json-text">Treść JSON</label>
+      <textarea id="json-text" class="input scrollbar-thin font-mono text-xs" rows="14" x-model="rawText"
+                placeholder='{ "title": "Neuroanatomia", "cards": [ { "front": "...", "back": "..." } ] }'></textarea>
+      <p class="hint">Bloki ```json są usuwane automatycznie — możesz wkleić całą odpowiedź modelu.</p>
+    </div>
+
+    <div class="mt-4 flex flex-wrap gap-2">
+      <button type="button" class="btn-primary" @click="validate()" :disabled="busy || (!rawText.trim() && !file)">
+        <span x-show="!busy">Sprawdź pakiet</span><span x-show="busy" x-cloak>Analizowanie…</span>
+      </button>
+      <button type="button" class="btn-ghost" @click="reset()" x-show="preview || rawText || file">Wyczyść</button>
+    </div>
+  </section>
+
+  <!-- Wynik walidacji -------------------------------------------------- -->
+  <template x-if="preview">
+    <section class="mt-6 space-y-4">
+      <div class="rounded-xl border px-4 py-3 text-sm"
+           :class="preview.ok
+             ? 'border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-100'
+             : 'border-rose-300 bg-rose-50 text-rose-900 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-100'">
+        <p class="font-semibold" x-text="preview.ok ? 'Pakiet jest poprawny' : 'Pakietu nie można zaimportować'"></p>
+        <p class="mt-1" x-show="preview.ok">
+          Rozpoznano <span class="font-semibold" x-text="preview.stats.cards"></span>
+          <span x-text="window.MedFiszki.plural(preview.stats.cards, 'fiszkę', 'fiszki', 'fiszek')"></span>
+          oraz <span class="font-semibold" x-text="preview.stats.questions"></span>
+          <span x-text="window.MedFiszki.plural(preview.stats.questions, 'pytanie', 'pytania', 'pytań')"></span>.
+        </p>
+      </div>
+
+      <template x-if="issues('error').length">
+        <div class="rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-900 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-100">
+          <p class="font-semibold">Błędy krytyczne</p>
+          <ul class="mt-1.5 space-y-1">
+            <template x-for="(issue, index) in issues('error')" :key="index">
+              <li><code class="rounded bg-rose-100 px-1 text-xs dark:bg-rose-900" x-text="issue.path"></code> <span x-text="issue.message"></span></li>
+            </template>
+          </ul>
+        </div>
+      </template>
+
+      <template x-if="issues('warning').length">
+        <details class="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
+          <summary class="cursor-pointer font-semibold">
+            Uwagi i pominięte elementy (<span x-text="issues('warning').length"></span>)
+          </summary>
+          <ul class="mt-2 space-y-1">
+            <template x-for="(issue, index) in issues('warning')" :key="index">
+              <li><code class="rounded bg-amber-100 px-1 text-xs dark:bg-amber-900" x-text="issue.path"></code> <span x-text="issue.message"></span></li>
+            </template>
+          </ul>
+        </details>
+      </template>
+
+      <template x-if="preview.ok && preview.payload">
+        <div class="card p-5">
+          <h2 class="section-title" x-text="preview.payload.title"></h2>
+          <p class="mt-1 text-sm text-ink-600 dark:text-ink-300" x-text="preview.payload.description"></p>
+          <div class="mt-3 flex flex-wrap gap-1.5">
+            <template x-if="preview.payload.subject"><span class="badge-brand" x-text="preview.payload.subject"></span></template>
+            <template x-for="tag in preview.payload.tags" :key="tag"><span class="badge-neutral" x-text="tag"></span></template>
+          </div>
+
+          <div class="mt-5 space-y-2">
+            <template x-for="(card, index) in preview.payload.cards.slice(0, 5)" :key="index">
+              <div class="rounded-xl border border-ink-200 p-3 text-sm dark:border-ink-700">
+                <p class="font-medium text-ink-900 dark:text-white" x-text="card.front"></p>
+                <p class="mt-1 text-ink-600 dark:text-ink-300" x-text="card.back"></p>
+              </div>
+            </template>
+            <p class="text-xs text-ink-500 dark:text-ink-400" x-show="preview.payload.cards.length > 5">
+              …oraz <span x-text="preview.payload.cards.length - 5"></span> kolejnych fiszek.
+            </p>
+          </div>
+
+          <div class="mt-4 space-y-2" x-show="preview.payload.questions.length">
+            <template x-for="(question, index) in preview.payload.questions.slice(0, 3)" :key="index">
+              <div class="rounded-xl border border-ink-200 p-3 text-sm dark:border-ink-700">
+                <p class="font-medium text-ink-900 dark:text-white" x-text="question.prompt"></p>
+                <ul class="mt-1.5 space-y-0.5">
+                  <template x-for="(option, oIndex) in question.options" :key="oIndex">
+                    <li :class="option.is_correct ? 'text-emerald-700 dark:text-emerald-400 font-medium' : 'text-ink-600 dark:text-ink-300'">
+                      <span x-text="'ABCDEFGHIJ'[oIndex] + '. '"></span><span x-text="option.text"></span>
+                    </li>
+                  </template>
+                </ul>
+              </div>
+            </template>
+            <p class="text-xs text-ink-500 dark:text-ink-400" x-show="preview.payload.questions.length > 3">
+              …oraz <span x-text="preview.payload.questions.length - 3"></span> kolejnych pytań.
+            </p>
+          </div>
+
+          <div class="mt-6 flex flex-col gap-2 sm:flex-row">
+            <button type="button" class="btn-primary flex-1" @click="openInEditor()">Otwórz w edytorze i popraw</button>
+            <button type="button" class="btn-secondary flex-1" @click="commit()" :disabled="busy">Zapisz od razu jako prywatny</button>
+          </div>
+        </div>
+      </template>
+    </section>
+  </template>
+
+  <!-- Ściągawka -------------------------------------------------------- -->
+  <section class="card mt-8 p-5">
+    <h2 class="section-title">Jak przygotować pakiet w Claude CLI</h2>
+    <p class="mt-1 text-sm text-ink-600 dark:text-ink-300">
+      Pełna specyfikacja znajduje się w pliku <code class="rounded bg-ink-200 px-1 dark:bg-ink-800">AI_SCHEMA.md</code>
+      w katalogu projektu. Poniżej skrócony schemat oraz gotowy prompt systemowy.
+    </p>
+
+    <pre class="mt-4 overflow-x-auto rounded-xl bg-ink-900 p-4 text-xs leading-relaxed text-ink-100 dark:bg-ink-950"><code>{
+  "title": "Neuroanatomia — nerwy czaszkowe",
+  "description": "Opis zestawu",
+  "subject": "Anatomia",
+  "tags": ["Neuroanatomia", "Nerwy czaszkowe"],
+  "visibility": "private",
+  "cards": [
+    { "front": "Pojęcie", "back": "Definicja", "hint": "opcjonalnie", "note": "opcjonalnie" }
+  ],
+  "questions": [
+    {
+      "prompt": "Treść pytania",
+      "explanation": "Uzasadnienie",
+      "options": [
+        { "text": "Wariant A", "is_correct": true,  "feedback": "opcjonalnie" },
+        { "text": "Wariant B", "is_correct": false, "feedback": "opcjonalnie" }
+      ]
+    }
+  ]
+}</code></pre>
+
+    <div class="mt-4">
+      <button type="button" class="btn-secondary btn-sm" @click="copyPrompt()">Skopiuj prompt systemowy</button>
+      <p class="hint">Wklej go w sesji Claude CLI razem ze ścieżką do pliku PDF z notatkami.</p>
+    </div>
+  </section>
+</div>
+{% endblock %}

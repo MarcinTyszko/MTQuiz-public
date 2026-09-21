@@ -1,0 +1,50 @@
+Jasne, przygotowałem pakiet nauki na podstawie Twoich notatek. Oto wynik:
+
+```json
+{
+  "tytul": "Test odporności parsera — nazwy anatomiczne",
+  "opis": "Plik celowo zapisany w nietypowym formacie: polskie nazwy pól, bloki markdown, przecinki wiszące, warianty odpowiedzi wskazane literą oraz indeksem. Służy do sprawdzenia, czy silnik importu poprawnie normalizuje dane i czytelnie raportuje elementy pominięte.",
+  "przedmiot": "Anatomia",
+  "tagi": "Terminologia anatomiczna, Test importu, Łacina medyczna",
+  "fiszki": [
+    { "przod": "Cranium", "tyl": "polski: czaszka\nangielski: skull", "wskazowka": "Szkielet osiowy" },
+    { "przod": "Thorax", "tyl": "polski: klatka piersiowa\nangielski: thorax / chest" },
+    { "term": "Abdomen", "definition": "polski: brzuch\nangielski: abdomen" },
+    { "front": "Pelvis", "back": "polski: miednica\nangielski: pelvis", "note": "Miednica większa i mniejsza." },
+    ["Collum", "polski: szyja\nangielski: neck"],
+    "Dorsum — polski: grzbiet, angielski: back",
+    { "przod": "Ta fiszka nie ma rewersu" },
+    { "tyl": "A ta nie ma awersu" },
+  ],
+  "pytania": [
+    {
+      "pytanie": "Jak brzmi polska nazwa struktury określanej po łacinie jako „cranium”?",
+      "odpowiedzi": ["A) Czaszka", "B) Żuchwa", "C) Kręgosłup", "D) Mostek"],
+      "poprawna": "A",
+      "wyjasnienie": "Cranium to czaszka (ang. skull). Żuchwa to mandibula."
+    },
+    {
+      "pytanie": "Który termin łaciński oznacza miednicę?",
+      "odpowiedzi": ["Abdomen", "Thorax", "Pelvis"],
+      "poprawna": 3,
+      "wyjasnienie": "Pelvis to miednica. Wskazanie podano numeracją liczoną od jedynki — parser wykrywa to i koryguje automatycznie, zgłaszając ostrzeżenie."
+    },
+    {
+      "pytanie": "Które z wymienionych określeń odnoszą się do tułowia? Zaznacz wszystkie prawidłowe.",
+      "odpowiedzi": {
+        "A": "Thorax",
+        "B": "Abdomen",
+        "C": "Cranium",
+        "D": "Pelvis"
+      },
+      "poprawne": ["A", "B", "D"],
+      "wyjasnienie": "Cranium to czaszka, należąca do głowy, a nie do tułowia."
+    },
+    {
+      "pytanie": "Pytanie bez podanych wariantów odpowiedzi"
+    },
+  ]
+}
+```
+
+Daj znać, jeśli chcesz, żebym rozbudował którąś część materiału.

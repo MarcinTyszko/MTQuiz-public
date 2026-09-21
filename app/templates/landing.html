@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import set_card %}
+{% block title %}{{ app_name }} — {{ app_tagline }}{% endblock %}
+
+{% block content %}
+<section class="grid items-center gap-10 py-8 lg:grid-cols-2 lg:py-16">
+  <div class="animate-fade-in">
+    <span class="badge-brand">Samohostowana platforma nauki</span>
+    <h1 class="mt-4 text-3xl font-bold tracking-tight text-ink-900 sm:text-4xl lg:text-5xl dark:text-white">
+      Fiszki i quizy dla materiału, który naprawdę trzeba umieć
+    </h1>
+    <p class="mt-4 max-w-xl text-base text-ink-600 dark:text-ink-300">
+      {{ app_name }} to narzędzie zbudowane pod wymagającą naukę akademicką — anatomię, farmakologię,
+      patofizjologię. Twórz zestawy ręcznie albo importuj gotowe pakiety JSON przygotowane przez model
+      językowy na podstawie własnych notatek i skryptów PDF.
+    </p>
+    <div class="mt-6 flex flex-wrap gap-3">
+      <a href="/logowanie" class="btn-primary">Zaloguj się</a>
+      {% if allow_registration %}<a href="/rejestracja" class="btn-secondary">Załóż konto</a>{% endif %}
+      <a href="/baza-publiczna" class="btn-ghost">Przeglądaj bazę publiczną</a>
+    </div>
+    <dl class="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div><dt class="text-xs uppercase tracking-wide text-ink-500 dark:text-ink-400">Tryb fiszek</dt><dd class="text-sm font-medium text-ink-800 dark:text-ink-100">Obrót 3D, gesty, losowanie</dd></div>
+      <div><dt class="text-xs uppercase tracking-wide text-ink-500 dark:text-ink-400">Tryb quizu</dt><dd class="text-sm font-medium text-ink-800 dark:text-ink-100">Egzamin lub nauka</dd></div>
+      <div><dt class="text-xs uppercase tracking-wide text-ink-500 dark:text-ink-400">Import AI</dt><dd class="text-sm font-medium text-ink-800 dark:text-ink-100">Walidacja i edytor</dd></div>
+      <div><dt class="text-xs uppercase tracking-wide text-ink-500 dark:text-ink-400">Dane</dt><dd class="text-sm font-medium text-ink-800 dark:text-ink-100">Twój serwer, Twoja baza</dd></div>
+    </dl>
+  </div>
+
+  <div class="relative">
+    <div class="card overflow-hidden p-0">
+      <div class="border-b border-ink-200 bg-ink-100/60 px-5 py-3 text-xs font-medium text-ink-600 dark:border-ink-800 dark:bg-ink-950/60 dark:text-ink-300">
+        Podgląd fiszki — Neuroanatomia
+      </div>
+      <div class="space-y-4 p-6">
+        <p class="text-xs uppercase tracking-wide text-ink-500 dark:text-ink-400">Awers</p>
+        <p class="text-lg font-semibold text-ink-900 dark:text-white">Nerw czaszkowy IV — unerwiany mięsień i cecha wyjątkowa</p>
+        <hr class="border-ink-200 dark:border-ink-800">
+        <p class="text-xs uppercase tracking-wide text-ink-500 dark:text-ink-400">Rewers</p>
+        <p class="text-sm leading-relaxed text-ink-700 dark:text-ink-200">
+          Nerw bloczkowy unerwia wyłącznie mięsień skośny górny. Jako jedyny nerw czaszkowy opuszcza pień
+          mózgu po stronie grzbietowej i krzyżuje się przed wyjściem.
+        </p>
+        <div class="rounded-xl bg-amber-50 p-3 text-xs text-amber-900 dark:bg-amber-950/60 dark:text-amber-100">
+          Wskazówka: najdłuższy śródczaszkowy przebieg i najcieńszy nerw czaszkowy.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if featured %}
+<section class="py-8">
+  <div class="flex items-end justify-between gap-4">
+    <h2 class="section-title">Najnowsze zestawy publiczne</h2>
+    <a href="/baza-publiczna" class="link text-sm">Zobacz wszystkie</a>
+  </div>
+  <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {% for item in featured %}
+      <div class="relative">{{ set_card(item) }}</div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}

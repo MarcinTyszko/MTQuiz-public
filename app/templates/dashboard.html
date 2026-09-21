@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import set_card, stat_tile, empty_state %}
+{% block title %}Moje zestawy — {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+  <div>
+    <h1 class="text-2xl font-bold tracking-tight text-ink-900 dark:text-white">Cześć, {{ user.label }}</h1>
+    <p class="mt-1 text-sm text-ink-600 dark:text-ink-300">Twoja biblioteka nauki i ostatnia aktywność.</p>
+  </div>
+  <div class="flex flex-wrap gap-2">
+    <a href="/zestawy/nowy" class="btn-primary">Nowy zestaw</a>
+    <a href="/zestawy/import" class="btn-secondary">Import z JSON</a>
+  </div>
+</div>
+
+<section class="mt-6 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+  {{ stat_tile('Moje zestawy', stats.sets_owned) }}
+  {{ stat_tile('Fiszki', stats.cards_total, stats.starred_cards ~ ' oznaczonych jako trudne') }}
+  {{ stat_tile('Pytania quizowe', stats.questions_total) }}
+  {{ stat_tile('Skuteczność 30 dni', stats.average_accuracy ~ '%', stats.sessions_last_30_days ~ ' ' ~ plural_pl(stats.sessions_last_30_days, 'sesja', 'sesje', 'sesji')) }}
+</section>
+
+{% if recent %}
+<section class="mt-8">
+  <h2 class="section-title">Ostatnia aktywność</h2>
+  <div class="card mt-3 divide-y divide-ink-100 overflow-hidden dark:divide-ink-800">
+    {% for item in recent %}
+    <a href="/zestawy/{{ item.set_id }}" class="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 text-sm transition-colors hover:bg-ink-50 dark:hover:bg-ink-800/60">
+      <span class="badge-neutral shrink-0">{{ 'Quiz' if item.mode.value == 'quiz' else 'Fiszki' }}</span>
+      <span class="min-w-0 flex-1 truncate font-medium text-ink-800 dark:text-ink-100">{{ recent_titles.get(item.set_id, 'Zestaw usunięty') }}</span>
+      {% if item.total %}
+      <span class="tabular-nums {% if item.accuracy >= 75 %}text-emerald-600 dark:text-emerald-400{% elif item.accuracy >= 50 %}text-amber-600 dark:text-amber-400{% else %}text-rose-600 dark:text-rose-400{% endif %}">
+        {{ item.score }}/{{ item.total }} · {{ item.accuracy }}%
+      </span>
+      {% endif %}
+      <span class="text-xs text-ink-500 dark:text-ink-400">{{ item.created_at | relative }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section class="mt-8">
+  <div class="flex items-center justify-between gap-4">
+    <h2 class="section-title">Moje zestawy ({{ owned | length }})</h2>
+  </div>
+  {% if owned %}
+  <div class="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {% for item in owned %}<div class="relative">{{ set_card(item, show_author=false) }}</div>{% endfor %}
+  </div>
+  {% else %}
+  <div class="mt-3">
+    {{ empty_state('Nie masz jeszcze żadnego zestawu',
+                   'Zbuduj pierwszą teczkę nauki ręcznie w edytorze albo wgraj pakiet JSON wygenerowany przez model językowy z Twoich notatek.',
+                   '/zestawy/nowy', 'Utwórz pierwszy zestaw') }}
+  </div>
+  {% endif %}
+</section>
+
+<section class="mt-10">
+  <h2 class="section-title">Zapisane w ulubionych ({{ favorites | length }})</h2>
+  {% if favorites %}
+  <div class="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {% for item in favorites %}<div class="relative">{{ set_card(item) }}</div>{% endfor %}
+  </div>
+  {% else %}
+  <div class="mt-3">
+    {{ empty_state('Brak zestawów w ulubionych',
+                   'Znajdź wartościowe materiały w bazie publicznej i przypnij je do pulpitu jednym kliknięciem.',
+                   '/baza-publiczna', 'Przeglądaj bazę publiczną') }}
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

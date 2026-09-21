@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="MedFiszki">
+  <rect width="64" height="64" rx="14" fill="#1d66f0"/>
+  <rect x="12" y="16" width="30" height="22" rx="4" fill="#ffffff" opacity=".55"/>
+  <rect x="20" y="24" width="30" height="22" rx="4" fill="#ffffff"/>
+  <path d="M27 35h8M27 40h16" stroke="#1d66f0" stroke-width="3" stroke-linecap="round"/>
+</svg>

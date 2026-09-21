@@ -1,0 +1,157 @@
+{
+  "schema": "medfiszki/study-set",
+  "version": 1,
+  "title": "Neuroanatomia — nerwy czaszkowe I–XII",
+  "description": "Przykładowy zestaw pokazowy: przebieg, otwory podstawy czaszki, funkcje oraz objawy uszkodzenia dwunastu nerwów czaszkowych. Materiał przygotowany jako wzorzec formatu importu JSON.",
+  "subject": "Anatomia",
+  "tags": ["Neuroanatomia", "Nerwy czaszkowe", "Anatomia głowy", "Wysoka wydajność"],
+  "visibility": "public",
+  "cards": [
+    {
+      "front": "Nerw czaszkowy I — nazwa, rodzaj włókien i otwór przejścia",
+      "back": "Nerw węchowy (n. olfactorius). Włókna wyłącznie czuciowe specjalne (węch). Przechodzi przez otworki blaszki sitowej kości sitowej do opuszki węchowej.",
+      "hint": "Jedyny nerw, który nie przechodzi przez pień mózgu.",
+      "note": "Złamanie przedniego dołu czaszki z rozerwaniem blaszki sitowej daje anosmię i może powodować wyciek płynu mózgowo-rdzeniowego z nosa."
+    },
+    {
+      "front": "Nerw czaszkowy II — przebieg i miejsce skrzyżowania",
+      "back": "Nerw wzrokowy (n. opticus). Czuciowy specjalny (wzrok). Opuszcza oczodół kanałem wzrokowym, a włókna z połowic nosowych siatkówek krzyżują się w skrzyżowaniu wzrokowym.",
+      "hint": "Formalnie uwypuklenie ośrodkowego układu nerwowego, osłonięte oponami.",
+      "note": "Uszkodzenie w linii środkowej skrzyżowania (np. gruczolak przysadki) daje niedowidzenie połowicze dwuskroniowe."
+    },
+    {
+      "front": "Nerw czaszkowy III — unerwiane mięśnie i składowa przywspółczulna",
+      "back": "Nerw okoruchowy (n. oculomotorius). Unerwia mięsień dźwigacz powieki górnej oraz mięśnie proste: górny, dolny, przyśrodkowy i mięsień skośny dolny. Włókna przywspółczulne przełączają się w zwoju rzęskowym i unerwiają mięsień zwieracz źrenicy oraz mięsień rzęskowy.",
+      "hint": "Szczelina oczodołowa górna.",
+      "note": "Pełne porażenie: opadnięcie powieki, gałka ustawiona „w dół i na zewnątrz”, szeroka niereagująca źrenica."
+    },
+    {
+      "front": "Nerw czaszkowy IV — unerwiany mięsień i cecha wyjątkowa",
+      "back": "Nerw bloczkowy (n. trochlearis). Unerwia wyłącznie mięsień skośny górny. Jako jedyny nerw czaszkowy opuszcza pień mózgu po stronie grzbietowej i krzyżuje się przed wyjściem, więc unerwia mięsień po stronie przeciwnej.",
+      "hint": "Najdłuższy śródczaszkowy przebieg i najcieńszy nerw czaszkowy.",
+      "note": "Uszkodzenie utrudnia schodzenie po schodach — dwojenie nasila się przy patrzeniu w dół i przyśrodkowo."
+    },
+    {
+      "front": "Nerw czaszkowy V — gałęzie i otwory przejścia",
+      "back": "Nerw trójdzielny (n. trigeminus). V1 — nerw oczny (szczelina oczodołowa górna), V2 — nerw szczękowy (otwór okrągły), V3 — nerw żuchwowy (otwór owalny). Czucie twarzy oraz ruchowe unerwienie mięśni żucia przez V3.",
+      "hint": "Zasada: okrągły dla szczękowego, owalny dla żuchwowego.",
+      "note": "Neuralgia nerwu trójdzielnego dotyczy najczęściej gałęzi V2 i V3."
+    },
+    {
+      "front": "Nerw czaszkowy VI — unerwiany mięsień i objaw uszkodzenia",
+      "back": "Nerw odwodzący (n. abducens). Unerwia mięsień prosty boczny. Uszkodzenie powoduje zeza zbieżnego oraz dwojenie poziome nasilające się przy patrzeniu w stronę uszkodzenia.",
+      "hint": "Długi przebieg wewnątrzczaszkowy czyni go wrażliwym na wzrost ciśnienia śródczaszkowego.",
+      "note": "Izolowane porażenie VI bywa fałszywym objawem lokalizacyjnym przy ciasnocie śródczaszkowej."
+    },
+    {
+      "front": "Nerw czaszkowy VII — funkcje i otwór wyjścia z czaszki",
+      "back": "Nerw twarzowy (n. facialis). Ruchowo unerwia mięśnie mimiczne i mięsień strzemiączkowy, czuciowo smak z 2/3 przednich języka (struna bębenkowa), przywspółczulnie gruczoły łzowy, podżuchwowy i podjęzykowy. Wchodzi przewodem słuchowym wewnętrznym, opuszcza czaszkę otworem rylcowo-sutkowym.",
+      "hint": "Zwoje: skrzydłowo-podniebienny i podżuchwowy.",
+      "note": "Porażenie obwodowe obejmuje całą połowę twarzy, ośrodkowe oszczędza mięśnie czoła dzięki obustronnemu unerwieniu korowemu."
+    },
+    {
+      "front": "Nerw czaszkowy VIII — składowe i badanie kliniczne",
+      "back": "Nerw przedsionkowo-ślimakowy (n. vestibulocochlearis). Część ślimakowa przewodzi słuch, część przedsionkowa informacje o równowadze i położeniu głowy. Przebiega przewodem słuchowym wewnętrznym razem z nerwem VII.",
+      "hint": "Próby Webera i Rinnego różnicują niedosłuch przewodzeniowy od odbiorczego.",
+      "note": "Osłoniak przedsionkowy w kącie mostowo-móżdżkowym uszkadza kolejno VIII, VII i V."
+    },
+    {
+      "front": "Nerw czaszkowy IX — funkcje i otwór przejścia",
+      "back": "Nerw językowo-gardłowy (n. glossopharyngeus). Czucie i smak z 1/3 tylnej języka, czucie z gardła oraz zatoki i kłębka szyjnego, ruchowo mięsień rylcowo-gardłowy, przywspółczulnie ślinianka przyuszna przez zwój uszny. Opuszcza czaszkę otworem szyjnym.",
+      "hint": "Ramię aferentne odruchu gardłowego.",
+      "note": "Wraz z X i XI tworzy zespół otworu szyjnego (zespół Verneta)."
+    },
+    {
+      "front": "Nerw czaszkowy X — zakres unerwienia",
+      "back": "Nerw błędny (n. vagus). Ruchowo unerwia mięśnie podniebienia, gardła i krtani, czuciowo krtań i oponę tylnego dołu, przywspółczulnie narządy klatki piersiowej i jamy brzusznej do zgięcia śledzionowego okrężnicy. Opuszcza czaszkę otworem szyjnym.",
+      "hint": "Ramię eferentne odruchu gardłowego.",
+      "note": "Uszkodzenie nerwu krtaniowego wstecznego powoduje chrypkę i porażenie fałdu głosowego."
+    },
+    {
+      "front": "Nerw czaszkowy XI — unerwiane mięśnie i sposób badania",
+      "back": "Nerw dodatkowy (n. accessorius). Unerwia mięsień mostkowo-obojczykowo-sutkowy i część zstępującą mięśnia czworobocznego. Badanie: unoszenie barków przeciw oporowi oraz skręt głowy w stronę przeciwną do badanego mięśnia MOS.",
+      "hint": "Korzenie rdzeniowe C1–C5 wstępują przez otwór wielki.",
+      "note": "Jatrogenne uszkodzenie w trójkącie szyi bocznej po biopsji węzła daje opadanie barku i skrzydlatą łopatkę."
+    },
+    {
+      "front": "Nerw czaszkowy XII — funkcja i objaw uszkodzenia",
+      "back": "Nerw podjęzykowy (n. hypoglossus). Unerwia wszystkie mięśnie wewnętrzne i zewnętrzne języka z wyjątkiem mięśnia podniebienno-językowego. Opuszcza czaszkę kanałem nerwu podjęzykowego.",
+      "hint": "Kanał nerwu podjęzykowego w kości potylicznej.",
+      "note": "Przy uszkodzeniu obwodowym wysunięty język zbacza w stronę uszkodzenia, widoczny jest zanik i drżenia pęczkowe."
+    },
+    {
+      "front": "Które nerwy czaszkowe niosą włókna przywspółczulne?",
+      "back": "Nerwy III, VII, IX i X. Zwoje przełączeniowe: rzęskowy (III), skrzydłowo-podniebienny i podżuchwowy (VII), uszny (IX) oraz zwoje śródścienne narządów (X).",
+      "hint": "Cztery nerwy — zasada 1973 w odwrotnej kolejności nie działa, zapamiętaj: 3, 7, 9, 10.",
+      "note": "Wszystkie zwoje przywspółczulne głowy leżą blisko gałęzi nerwu trójdzielnego, który dostarcza im drogę dojścia do narządów docelowych."
+    },
+    {
+      "front": "Zawartość szczeliny oczodołowej górnej",
+      "back": "Nerwy III, IV, V1 (gałęzie łzowa, czołowa i nosowo-rzęskowa) oraz VI, a także żyła oczna górna.",
+      "hint": "Cztery nerwy ruchowe oka i pierwsza gałąź trójdzielnego.",
+      "note": "Zespół szczeliny oczodołowej górnej: oftalmoplegia, opadnięcie powieki i znieczulenie czoła."
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "Pacjent zgłasza dwojenie nasilające się podczas schodzenia po schodach i odruchowo przechyla głowę w stronę przeciwną do uszkodzenia. Który nerw czaszkowy jest uszkodzony?",
+      "options": [
+        { "text": "Nerw okoruchowy (III)", "is_correct": false, "feedback": "Porażenie III daje opadnięcie powieki i ustawienie gałki w dół i na zewnątrz, a nie izolowane dwojenie przy patrzeniu w dół." },
+        { "text": "Nerw bloczkowy (IV)", "is_correct": true, "feedback": "Mięsień skośny górny odpowiada za obniżanie gałki w addukcji oraz intorsję — stąd charakterystyczny przechył głowy." },
+        { "text": "Nerw odwodzący (VI)", "is_correct": false, "feedback": "Uszkodzenie VI powoduje dwojenie poziome i zeza zbieżnego." },
+        { "text": "Nerw wzrokowy (II)", "is_correct": false, "feedback": "Nerw II nie unerwia mięśni gałkoruchowych — jego uszkodzenie daje ubytki pola widzenia." }
+      ],
+      "explanation": "Mięsień skośny górny, unerwiony przez nerw bloczkowy, obniża gałkę oczną w przywiedzeniu i dokonuje intorsji. Kompensacyjny przechył głowy w stronę przeciwną (dodatni test Bielschowskiego) jest klasycznym objawem."
+    },
+    {
+      "prompt": "Oświetlenie prawego oka nie wywołuje zwężenia żadnej ze źrenic, natomiast oświetlenie oka lewego powoduje zwężenie obu. Gdzie znajduje się uszkodzenie?",
+      "options": [
+        { "text": "Prawy nerw wzrokowy (II)", "is_correct": true, "feedback": "Przerwane jest ramię aferentne odruchu po stronie prawej." },
+        { "text": "Prawy nerw okoruchowy (III)", "is_correct": false, "feedback": "Wtedy prawa źrenica nie reagowałaby również przy oświetleniu oka lewego." },
+        { "text": "Lewy nerw wzrokowy (II)", "is_correct": false, "feedback": "Oświetlenie oka lewego wywołuje prawidłową reakcję obustronną, więc lewe ramię aferentne jest zachowane." },
+        { "text": "Lewy nerw okoruchowy (III)", "is_correct": false, "feedback": "Lewa źrenica zwęża się przy oświetleniu oka lewego, więc ramię eferentne działa." }
+      ],
+      "explanation": "Ramię aferentne odruchu źrenicznego na światło biegnie nerwem II, a eferentne przywspółczulnymi włóknami nerwu III. Zachowana reakcja konsensualna przy uszkodzeniu jednego oka wskazuje na względny dośrodkowy defekt źreniczny (źrenica Marcusa Gunna)."
+    },
+    {
+      "prompt": "Które stwierdzenia odróżniają obwodowe porażenie nerwu twarzowego od porażenia ośrodkowego? Zaznacz wszystkie prawidłowe.",
+      "options": [
+        { "text": "Porażenie obwodowe obejmuje mięśnie czoła po stronie uszkodzenia", "is_correct": true, "feedback": "Jądro dla górnej części twarzy traci jedyne zaopatrzenie z uszkodzonego nerwu." },
+        { "text": "Porażenie ośrodkowe oszczędza mięśnie czoła", "is_correct": true, "feedback": "Górna część jądra otrzymuje obustronne unerwienie korowe." },
+        { "text": "Porażeniu obwodowemu może towarzyszyć nadwrażliwość na dźwięki i zaburzenia smaku", "is_correct": true, "feedback": "Uszkodzenie powyżej odejścia nerwu strzemiączkowego i struny bębenkowej daje hiperakuzję i utratę smaku z 2/3 przednich języka." },
+        { "text": "Porażenie ośrodkowe zawsze przebiega z suchością oka po stronie uszkodzenia", "is_correct": false, "feedback": "Wydzielanie łez zależy od włókien przywspółczulnych nerwu obwodowego, nie od drogi korowo-jądrowej." }
+      ],
+      "explanation": "Kluczem różnicowania jest obustronne unerwienie korowe części jądra nerwu VII odpowiadającej za mięśnie czoła. Objawy towarzyszące (hiperakuzja, zaburzenia smaku, suchość oka) lokalizują uszkodzenie wzdłuż przebiegu nerwu w kanale."
+    },
+    {
+      "prompt": "Podczas badania pacjent wysuwa język, który wyraźnie zbacza w stronę lewą. Zaobserwowano także zanik mięśni tej połowy języka. Jaka jest najbardziej prawdopodobna lokalizacja uszkodzenia?",
+      "options": [
+        { "text": "Lewy nerw podjęzykowy (XII) — uszkodzenie dolnego neuronu ruchowego", "is_correct": true, "feedback": "Osłabiony mięsień bródkowo-językowy nie przeciwstawia się stronie zdrowej, więc język zbacza w stronę uszkodzenia." },
+        { "text": "Prawy nerw podjęzykowy (XII)", "is_correct": false, "feedback": "Wtedy język zbaczałby w prawo." },
+        { "text": "Lewa droga korowo-jądrowa", "is_correct": false, "feedback": "Uszkodzenie górnego neuronu ruchowego powoduje zbaczanie w stronę przeciwną i nie daje zaniku mięśni." },
+        { "text": "Lewy nerw językowo-gardłowy (IX)", "is_correct": false, "feedback": "Nerw IX odpowiada za czucie i smak z 1/3 tylnej języka, a nie za jego ruchy." }
+      ],
+      "explanation": "Zanik mięśni i drżenia pęczkowe wskazują na uszkodzenie dolnego neuronu ruchowego. Mięsień bródkowo-językowy wysuwa język ku przodowi i przyśrodkowo, więc jego porażenie powoduje zbaczanie w stronę chorą."
+    },
+    {
+      "prompt": "Które nerwy czaszkowe opuszczają jamę czaszki przez otwór szyjny?",
+      "options": [
+        { "text": "IX, X, XI", "is_correct": true, "feedback": "Razem z opuszką żyły szyjnej wewnętrznej i zatoką skalistą dolną." },
+        { "text": "VII i VIII", "is_correct": false, "feedback": "Te nerwy wchodzą do przewodu słuchowego wewnętrznego." },
+        { "text": "III, IV, VI", "is_correct": false, "feedback": "Przechodzą przez szczelinę oczodołową górną." },
+        { "text": "X, XI, XII", "is_correct": false, "feedback": "Nerw XII opuszcza czaszkę własnym kanałem nerwu podjęzykowego." }
+      ],
+      "explanation": "Zespół otworu szyjnego (zespół Verneta) obejmuje porażenie nerwów IX, X i XI: zaburzenia połykania, chrypkę oraz osłabienie unoszenia barku."
+    },
+    {
+      "prompt": "Które ramiona odruchu gardłowego są prawidłowo przypisane?",
+      "options": [
+        { "text": "Aferentne — nerw IX, eferentne — nerw X", "is_correct": true, "feedback": "Nerw językowo-gardłowy odbiera bodziec z tylnej ściany gardła, a nerw błędny odpowiada za skurcz mięśni gardła." },
+        { "text": "Aferentne — nerw X, eferentne — nerw IX", "is_correct": false, "feedback": "Kierunek jest odwrotny." },
+        { "text": "Aferentne — nerw V, eferentne — nerw VII", "is_correct": false, "feedback": "To ramiona odruchu rogówkowego." },
+        { "text": "Aferentne — nerw VII, eferentne — nerw V", "is_correct": false, "feedback": "Nerw VII jest ramieniem eferentnym odruchu rogówkowego, nie gardłowego." }
+      ],
+      "explanation": "Zniesienie odruchu gardłowego po jednej stronie wraz z przesunięciem języczka w stronę zdrową wskazuje na uszkodzenie nerwów IX i X po stronie chorej."
+    }
+  ]
+}

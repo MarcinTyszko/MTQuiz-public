@@ -1,0 +1,35 @@
+services:
+  medfiszki:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: medfiszki:1.0.0
+    container_name: medfiszki
+    restart: unless-stopped
+    # Proces działa bez uprawnień administratora, z tożsamością właściciela katalogu ./data.
+    # Sprawdź własne wartości poleceniem: id -u ; id -g
+    user: "${QUIZAPP_UID:-1000}:${QUIZAPP_GID:-1000}"
+    ports:
+      # Interfejs dostępny pod http://localhost:8080.
+      # Port na hoście zmienisz zmienną QUIZAPP_PORT w pliku .env.
+      - "${QUIZAPP_PORT:-8080}:8000"
+    volumes:
+      # Baza SQLite, klucz podpisu sesji i archiwa kopii zapasowych.
+      - ./data:/data
+    environment:
+      QUIZAPP_DATA_DIR: /data
+      # Ustaw własny, losowy klucz w pliku .env, aby sesje przetrwały odtworzenie wolumenu.
+      QUIZAPP_SECRET_KEY: ${QUIZAPP_SECRET_KEY:-}
+      # Przy wdrożeniu za odwrotnym proxy z HTTPS ustaw na "true".
+      QUIZAPP_COOKIE_SECURE: ${QUIZAPP_COOKIE_SECURE:-false}
+      # Wyłącz samodzielną rejestrację kont, aby instancja pozostała zamknięta.
+      QUIZAPP_ALLOW_REGISTRATION: ${QUIZAPP_ALLOW_REGISTRATION:-true}
+      TZ: ${TZ:-Europe/Warsaw}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=4).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    security_opt:
+      - no-new-privileges:true

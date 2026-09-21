@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block title %}Panel administratora — {{ app_name }}{% endblock %}
+{% block head_scripts %}<script defer src="{{ static_url('js/admin.js') }}"></script>{% endblock %}
+
+{% block content %}
+<div x-data="adminPanel()" x-init="init()" x-cloak>
+  <h1 class="text-2xl font-bold tracking-tight text-ink-900 dark:text-white">Panel administratora</h1>
+  <p class="mt-1 text-sm text-ink-600 dark:text-ink-300">Zarządzanie kontami, moderacja bazy publicznej i kopie zapasowe instancji.</p>
+
+  <!-- Statystyki -->
+  <section class="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <template x-for="tile in tiles" :key="tile.label">
+      <div class="card p-4">
+        <p class="text-xs font-medium uppercase tracking-wide text-ink-500 dark:text-ink-400" x-text="tile.label"></p>
+        <p class="mt-1 text-2xl font-semibold tabular-nums text-ink-900 dark:text-white" x-text="tile.value"></p>
+        <p class="mt-0.5 text-xs text-ink-500 dark:text-ink-400" x-show="tile.hint" x-text="tile.hint"></p>
+      </div>
+    </template>
+  </section>
+
+  <!-- Zakładki -->
+  <div class="mt-8 flex gap-1 overflow-x-auto border-b border-ink-200 dark:border-ink-800" role="tablist">
+    <template x-for="item in tabs" :key="item.key">
+      <button type="button" role="tab" class="shrink-0 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors"
+              :class="tab === item.key ? 'border-brand-600 text-brand-700 dark:text-brand-400' : 'border-transparent text-ink-500 hover:text-ink-800 dark:hover:text-ink-200'"
+              @click="tab = item.key" x-text="item.label"></button>
+    </template>
+  </div>
+
+  <!-- Użytkownicy ------------------------------------------------------ -->
+  <section x-show="tab === 'users'" class="mt-5">
+    <div class="flex flex-wrap items-center gap-2">
+      <input class="input max-w-xs" placeholder="Szukaj konta…" x-model="userQuery" @input.debounce.300ms="loadUsers()">
+      <button type="button" class="btn-ghost btn-sm" @click="loadUsers()">Odśwież</button>
+    </div>
+
+    <div class="card mt-4 overflow-x-auto">
+      <table class="w-full min-w-[46rem] text-sm">
+        <thead class="border-b border-ink-200 text-left text-xs uppercase tracking-wide text-ink-500 dark:border-ink-800 dark:text-ink-400">
+          <tr>
+            <th class="px-4 py-3 font-medium">Użytkownik</th>
+            <th class="px-4 py-3 font-medium">Rola</th>
+            <th class="px-4 py-3 font-medium">Status</th>
+            <th class="px-4 py-3 font-medium">Zestawy</th>
+            <th class="px-4 py-3 font-medium">Ostatnie logowanie</th>
+            <th class="px-4 py-3 text-right font-medium">Operacje</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-ink-100 dark:divide-ink-800">
+          <template x-for="item in users" :key="item.id">
+            <tr>
+              <td class="px-4 py-3">
+                <p class="font-medium text-ink-900 dark:text-white" x-text="item.username"></p>
+                <p class="text-xs text-ink-500 dark:text-ink-400" x-text="item.email || '—'"></p>
+              </td>
+              <td class="px-4 py-3">
+                <select class="input !min-h-0 !w-auto py-1 text-xs" :value="item.role" @change="setRole(item, $event.target.value)">
+                  <option value="user">Użytkownik</option>
+                  <option value="admin">Administrator</option>
+                </select>
+              </td>
+              <td class="px-4 py-3">
+                <span :class="item.is_active ? 'badge-success' : 'badge-danger'" x-text="item.is_active ? 'Aktywne' : 'Zablokowane'"></span>
+                <span class="badge-neutral ml-1" x-show="item.must_change_password">Zmiana hasła</span>
+              </td>
+              <td class="px-4 py-3 tabular-nums text-ink-600 dark:text-ink-300">
+                <span x-text="item.sets_count"></span>
+                <span class="text-xs text-ink-400">(<span x-text="item.public_sets_count"></span> publ.)</span>
+              </td>
+              <td class="px-4 py-3 text-xs text-ink-500 dark:text-ink-400" x-text="formatDate(item.last_login_at)"></td>
+              <td class="px-4 py-3">
+                <div class="flex justify-end gap-1">
+                  <button type="button" class="btn-ghost btn-sm" @click="toggleActive(item)"
+                          x-text="item.is_active ? 'Dezaktywuj' : 'Aktywuj'"></button>
+                  <button type="button" class="btn-ghost btn-sm" @click="resetPassword(item)">Reset hasła</button>
+                  <button type="button" class="btn-ghost btn-sm text-rose-600 dark:text-rose-400" @click="deleteUser(item)">Usuń</button>
+                </div>
+              </td>
+            </tr>
+          </template>
+          <tr x-show="!users.length">
+            <td colspan="6" class="px-4 py-8 text-center text-sm text-ink-500 dark:text-ink-400">Brak kont spełniających kryteria.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div x-show="temporaryPassword" x-cloak class="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
+      <p class="font-semibold">Hasło tymczasowe</p>
+      <p class="mt-1 break-words" x-text="temporaryPassword"></p>
+      <button type="button" class="btn-ghost btn-sm mt-2" @click="temporaryPassword = ''">Ukryj</button>
+    </div>
+  </section>
+
+  <!-- Moderacja zestawów ----------------------------------------------- -->
+  <section x-show="tab === 'sets'" x-cloak class="mt-5">
+    <div class="flex flex-wrap items-center gap-2">
+      <input class="input max-w-xs" placeholder="Szukaj zestawu…" x-model="setQuery" @input.debounce.300ms="loadSets()">
+      <label class="flex cursor-pointer items-center gap-2 text-sm text-ink-700 dark:text-ink-300">
+        <input type="checkbox" class="h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500" x-model="onlyPublic" @change="loadSets()">
+        Tylko publiczne
+      </label>
+      <label class="flex cursor-pointer items-center gap-2 text-sm text-ink-700 dark:text-ink-300">
+        <input type="checkbox" class="h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500" x-model="onlyHidden" @change="loadSets()">
+        Tylko zdjęte
+      </label>
+    </div>
+
+    <div class="mt-4 space-y-2">
+      <template x-for="item in sets" :key="item.id">
+        <article class="card flex flex-wrap items-center gap-3 p-4">
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <a :href="`/zestawy/${item.id}`" class="truncate font-medium text-ink-900 hover:underline dark:text-white" x-text="item.title"></a>
+              <span :class="item.visibility === 'public' ? 'badge-success' : 'badge-neutral'"
+                    x-text="item.visibility === 'public' ? 'Publiczny' : 'Prywatny'"></span>
+              <span class="badge-danger" x-show="!item.is_published">Zdjęty</span>
+            </div>
+            <p class="mt-1 text-xs text-ink-500 dark:text-ink-400">
+              Autor: <span x-text="item.author_username"></span> ·
+              <span x-text="item.cards_count"></span> fiszek ·
+              <span x-text="item.questions_count"></span> pytań ·
+              <span x-text="item.favorites_count"></span> polubień
+            </p>
+          </div>
+          <div class="flex shrink-0 gap-1">
+            <button type="button" class="btn-ghost btn-sm" @click="togglePublished(item)"
+                    x-text="item.is_published ? 'Zdejmij z bazy' : 'Przywróć'"></button>
+            <button type="button" class="btn-ghost btn-sm text-rose-600 dark:text-rose-400" @click="deleteSet(item)">Usuń</button>
+          </div>
+        </article>
+      </template>
+      <p x-show="!sets.length" class="card px-4 py-8 text-center text-sm text-ink-500 dark:text-ink-400">Brak zestawów spełniających kryteria.</p>
+    </div>
+  </section>
+
+  <!-- Kopie zapasowe ---------------------------------------------------- -->
+  <section x-show="tab === 'backup'" x-cloak class="mt-5 grid gap-4 lg:grid-cols-2">
+    <div class="card p-5">
+      <h2 class="section-title">Pobierz kopię zapasową</h2>
+      <p class="mt-2 text-sm text-ink-600 dark:text-ink-300">
+        Tworzy spójną migawkę bazy SQLite i pakuje ją w archiwum ZIP razem z manifestem.
+        Archiwum jest równocześnie zapisywane w katalogu <code class="rounded bg-ink-200 px-1 dark:bg-ink-800">/data/backups</code>.
+      </p>
+      <dl class="mt-4 space-y-1 text-xs text-ink-500 dark:text-ink-400">
+        <div class="flex justify-between"><dt>Plik bazy</dt><dd class="font-mono" x-text="stats.database_path"></dd></div>
+        <div class="flex justify-between"><dt>Rozmiar</dt><dd class="tabular-nums" x-text="formatBytes(stats.database_size_bytes)"></dd></div>
+      </dl>
+      <button type="button" class="btn-primary mt-4 w-full" @click="downloadBackup()" :disabled="busy">
+        <span x-show="!busy">Pobierz kopię zapasową</span><span x-show="busy" x-cloak>Przygotowywanie…</span>
+      </button>
+    </div>
+
+    <div class="card p-5">
+      <h2 class="section-title">Przywróć bazę</h2>
+      <p class="mt-2 text-sm text-ink-600 dark:text-ink-300">
+        Wgraj archiwum ZIP utworzone przez tę aplikację albo surowy plik <code class="rounded bg-ink-200 px-1 dark:bg-ink-800">.db</code>.
+        Przed nadpisaniem system automatycznie zapisze kopię bezpieczeństwa obecnego stanu.
+      </p>
+      <div class="mt-4 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-xs text-rose-900 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-100">
+        Operacja zastępuje wszystkie dane: konta, zestawy i historię nauki. Po przywróceniu wszyscy użytkownicy
+        muszą zalogować się ponownie.
+      </div>
+      <label class="mt-4 flex cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-ink-300 px-4 py-6 text-center dark:border-ink-700">
+        <span class="text-sm font-medium text-ink-800 dark:text-ink-100">Wybierz plik kopii</span>
+        <span class="text-xs text-ink-500 dark:text-ink-400" x-text="restoreFileName || 'Formaty: .zip, .db'"></span>
+        <input type="file" accept=".zip,.db,.sqlite,.sqlite3" class="sr-only" @change="onRestoreFile($event)">
+      </label>
+      <button type="button" class="btn-danger mt-4 w-full" @click="restore()" :disabled="!restoreFile || busy">
+        <span x-show="!busy">Przywróć bazę danych</span><span x-show="busy" x-cloak>Przywracanie…</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Dziennik ---------------------------------------------------------- -->
+  <section x-show="tab === 'audit'" x-cloak class="mt-5">
+    <div class="card divide-y divide-ink-100 dark:divide-ink-800">
+      <template x-for="entry in audit" :key="entry.id">
+        <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 px-4 py-3 text-sm">
+          <span class="badge-neutral shrink-0 font-mono text-[11px]" x-text="entry.action"></span>
+          <span class="min-w-0 flex-1 text-ink-700 dark:text-ink-200" x-text="entry.detail"></span>
+          <span class="text-xs text-ink-500 dark:text-ink-400" x-text="`${entry.actor_label} · ${formatDate(entry.created_at)}`"></span>
+        </div>
+      </template>
+      <p x-show="!audit.length" class="px-4 py-8 text-center text-sm text-ink-500 dark:text-ink-400">Dziennik jest pusty.</p>
+    </div>
+  </section>
+</div>
+{% endblock %}

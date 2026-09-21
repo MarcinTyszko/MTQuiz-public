@@ -1,0 +1,118 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  testy:
+    name: Testy (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Konfiguracja Pythona
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Instalacja zależności
+        run: pip install -r requirements-dev.txt
+
+      - name: Uruchomienie testów
+        run: python -m pytest -q
+
+  zasoby:
+    name: Budowa zasobów statycznych
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Konfiguracja Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalacja zależności front-endu
+        run: npm ci --no-audit --no-fund
+        working-directory: frontend
+
+      - name: Budowa arkusza Tailwind i zależności przeglądarkowych
+        run: npm run build
+        working-directory: frontend
+
+      - name: Kontrola wyniku budowy
+        run: |
+          test -s app/static/css/app.css
+          test -s app/static/vendor/alpine.min.js
+
+  obraz:
+    name: Obraz Dockera i test dymny
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Konfiguracja Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Budowa obrazu
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: medfiszki:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Uruchomienie kontenera i test dymny
+        run: |
+          mkdir -p dane-ci
+          docker run -d --name medfiszki-ci \
+            -p 8000:8000 \
+            -u "$(id -u):$(id -g)" \
+            -v "$PWD/dane-ci:/data" \
+            -e QUIZAPP_SECRET_KEY=klucz-testowy-ci \
+            medfiszki:ci
+
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8000/healthz > /dev/null; then
+              echo "Aplikacja odpowiada."
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              echo "Aplikacja nie wystartowała w wyznaczonym czasie."
+              docker logs medfiszki-ci
+              exit 1
+            fi
+            sleep 2
+          done
+
+          echo "--- sonda zdrowia"
+          curl -fsS http://localhost:8000/healthz
+
+          echo "--- strona logowania"
+          curl -fsS -o /dev/null -w '%{http_code}\n' http://localhost:8000/logowanie
+
+          echo "--- baza publiczna z zestawem pokazowym"
+          curl -fsS http://localhost:8000/api/public/sets | grep -q "Neuroanatomia"
+
+          echo "--- kontener nie działa z uprawnieniami administratora"
+          test "$(docker exec medfiszki-ci id -u)" != "0"
+
+      - name: Zatrzymanie kontenera
+        if: always()
+        run: docker rm -f medfiszki-ci || true

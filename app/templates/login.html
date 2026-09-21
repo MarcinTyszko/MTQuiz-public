@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}{% if mode == 'register' %}Rejestracja{% else %}Logowanie{% endif %} — {{ app_name }}{% endblock %}
+{% block head_scripts %}<script defer src="{{ static_url('js/auth.js') }}"></script>{% endblock %}
+{% block main_class %}mx-auto flex w-full max-w-md flex-1 items-center px-4 py-10 sm:px-6{% endblock %}
+
+{% block content %}
+<div class="w-full" x-data="authForm({{ 'true' if mode == 'register' else 'false' }}, {{ next_url | tojson_attr }})" x-cloak>
+  <div class="card p-6 sm:p-8">
+    <h1 class="text-xl font-semibold tracking-tight text-ink-900 dark:text-white" x-text="isRegister ? 'Załóż konto' : 'Zaloguj się'"></h1>
+    <p class="mt-1 text-sm text-ink-600 dark:text-ink-300" x-text="isRegister ? 'Konto daje dostęp do własnej biblioteki zestawów.' : 'Wpisz dane swojego konta na tej instancji.'"></p>
+
+    <div x-show="error" x-cloak class="mt-4 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-900 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-100" x-text="error"></div>
+
+    <form class="mt-5 space-y-4" @submit.prevent="submit()">
+      <div>
+        <label class="label" for="username">Nazwa użytkownika</label>
+        <input id="username" class="input" x-model="form.username" autocomplete="username" required autofocus
+               :placeholder="isRegister ? 'np. jan.kowalski' : 'nazwa użytkownika lub e-mail'">
+      </div>
+
+      <template x-if="isRegister">
+        <div>
+          <label class="label" for="email">Adres e-mail <span class="font-normal text-ink-400">(opcjonalnie)</span></label>
+          <input id="email" type="email" class="input" x-model="form.email" autocomplete="email" placeholder="jan@uczelnia.pl">
+        </div>
+      </template>
+
+      <div>
+        <label class="label" for="password">Hasło</label>
+        <div class="relative">
+          <input id="password" :type="showPassword ? 'text' : 'password'" class="input pr-12" x-model="form.password"
+                 :autocomplete="isRegister ? 'new-password' : 'current-password'" required>
+          <button type="button" class="absolute inset-y-0 right-0 px-3 text-xs font-medium text-ink-500 hover:text-ink-800 dark:hover:text-ink-200"
+                  @click="showPassword = !showPassword" x-text="showPassword ? 'Ukryj' : 'Pokaż'"></button>
+        </div>
+        <p class="hint" x-show="isRegister">Minimum 8 znaków.</p>
+      </div>
+
+      <template x-if="!isRegister">
+        <label class="flex cursor-pointer items-center gap-2 text-sm text-ink-700 dark:text-ink-300">
+          <input type="checkbox" class="h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500" x-model="form.remember">
+          Zapamiętaj mnie na tym urządzeniu
+        </label>
+      </template>
+
+      <button type="submit" class="btn-primary w-full" :disabled="busy">
+        <span x-show="!busy" x-text="isRegister ? 'Utwórz konto' : 'Zaloguj się'"></span>
+        <span x-show="busy" x-cloak>Przetwarzanie…</span>
+      </button>
+    </form>
+
+    {% if allow_registration %}
+    <p class="mt-5 text-center text-sm text-ink-600 dark:text-ink-300">
+      <template x-if="!isRegister"><span>Nie masz konta? <a href="/rejestracja" class="link">Zarejestruj się</a></span></template>
+      <template x-if="isRegister"><span>Masz już konto? <a href="/logowanie" class="link">Zaloguj się</a></span></template>
+    </p>
+    {% endif %}
+  </div>
+
+  <p class="mt-4 text-center text-xs text-ink-500 dark:text-ink-400">
+    Pierwsze uruchomienie instancji? Zaloguj się jako <code class="rounded bg-ink-200 px-1 py-0.5 dark:bg-ink-800">admin</code> /
+    <code class="rounded bg-ink-200 px-1 py-0.5 dark:bg-ink-800">admin</code> i od razu ustaw własne hasło.
+  </p>
+</div>
+{% endblock %}

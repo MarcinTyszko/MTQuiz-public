@@ -1,0 +1,165 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-ink-50 text-ink-900 antialiased dark:bg-ink-950 dark:text-ink-100;
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  /* Wyłączenie animacji dla osób preferujących ograniczony ruch. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+
+  ::selection {
+    @apply bg-brand-200 text-brand-950;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex select-none items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold
+           transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500
+           focus-visible:ring-offset-2 focus-visible:ring-offset-ink-50 disabled:cursor-not-allowed
+           disabled:opacity-50 dark:focus-visible:ring-offset-ink-950;
+    min-height: 2.75rem;
+  }
+
+  .btn-primary {
+    @apply btn bg-brand-600 text-white hover:bg-brand-700 active:bg-brand-800;
+  }
+
+  .btn-secondary {
+    @apply btn border border-ink-200 bg-white text-ink-800 hover:bg-ink-100
+           dark:border-ink-700 dark:bg-ink-900 dark:text-ink-100 dark:hover:bg-ink-800;
+  }
+
+  .btn-ghost {
+    @apply btn text-ink-600 hover:bg-ink-100 hover:text-ink-900
+           dark:text-ink-300 dark:hover:bg-ink-800 dark:hover:text-white;
+  }
+
+  .btn-danger {
+    @apply btn bg-rose-600 text-white hover:bg-rose-700 active:bg-rose-800;
+  }
+
+  .btn-sm {
+    @apply px-3 py-1.5 text-xs;
+    min-height: 2.25rem;
+  }
+
+  .card {
+    @apply rounded-2xl border border-ink-200 bg-white shadow-card dark:border-ink-800 dark:bg-ink-900;
+  }
+
+  .input {
+    @apply w-full rounded-xl border border-ink-200 bg-white px-3.5 py-2.5 text-sm text-ink-900
+           placeholder:text-ink-400 focus:border-brand-500 focus:outline-none focus:ring-2
+           focus:ring-brand-500/30 dark:border-ink-700 dark:bg-ink-950 dark:text-ink-100
+           dark:placeholder:text-ink-500;
+    min-height: 2.75rem;
+  }
+
+  textarea.input {
+    min-height: 5rem;
+  }
+
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-ink-700 dark:text-ink-300;
+  }
+
+  .hint {
+    @apply mt-1 text-xs text-ink-500 dark:text-ink-400;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium;
+  }
+
+  .badge-neutral {
+    @apply badge bg-ink-100 text-ink-700 dark:bg-ink-800 dark:text-ink-200;
+  }
+
+  .badge-brand {
+    @apply badge bg-brand-100 text-brand-800 dark:bg-brand-950 dark:text-brand-200;
+  }
+
+  .badge-success {
+    @apply badge bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200;
+  }
+
+  .badge-danger {
+    @apply badge bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-200;
+  }
+
+  .link {
+    @apply font-medium text-brand-600 underline-offset-4 hover:underline dark:text-brand-400;
+  }
+
+  .section-title {
+    @apply text-lg font-semibold tracking-tight text-ink-900 dark:text-white;
+  }
+
+  /* Efekt odwracania fiszki w 3D. */
+  .flip-scene {
+    perspective: 1600px;
+  }
+
+  .flip-card {
+    @apply relative h-full w-full;
+    transform-style: preserve-3d;
+    transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .flip-card.is-flipped {
+    transform: rotateY(180deg);
+  }
+
+  .flip-face {
+    @apply absolute inset-0 flex flex-col overflow-y-auto rounded-3xl p-6 sm:p-10;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .flip-face-back {
+    transform: rotateY(180deg);
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-ink-300 dark:bg-ink-700;
+  }
+}
+
+@layer utilities {
+  .safe-bottom {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
+  }
+
+  [x-cloak] {
+    display: none !important;
+  }
+}

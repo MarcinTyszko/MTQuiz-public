@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="pl" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="{{ app_tagline }}">
+  <title>{% block title %}{{ app_name }}{% endblock %}</title>
+  <link rel="icon" href="{{ static_url('favicon.svg') }}" type="image/svg+xml">
+  <link rel="stylesheet" href="{{ static_url('css/app.css') }}">
+  <script>
+    // Ustawienie motywu przed pierwszym renderowaniem — eliminuje mignięcie jasnego tła.
+    (function () {
+      try {
+        var stored = localStorage.getItem('medfiszki-theme');
+        var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (stored === 'dark' || (stored !== 'light' && prefersDark)) {
+          document.documentElement.classList.add('dark');
+        }
+      } catch (error) {
+        /* Tryb prywatny bez dostępu do localStorage — zostaje motyw jasny. */
+      }
+    })();
+  </script>
+  <script defer src="{{ static_url('js/app.js') }}"></script>
+  {% block head_scripts %}{% endblock %}
+  <script defer src="{{ static_url('vendor/alpine.min.js') }}"></script>
+</head>
+<body class="flex min-h-full flex-col">
+  <a href="#tresc" class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-brand-600 focus:px-4 focus:py-2 focus:text-white">
+    Przejdź do treści
+  </a>
+
+  {% block navigation %}{% include "partials/nav.html" %}{% endblock %}
+
+  <main id="tresc" class="flex-1 {% block main_class %}mx-auto w-full max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-10{% endblock %}">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% block footer %}
+  <footer class="mt-auto border-t border-ink-200 bg-white/60 py-6 dark:border-ink-800 dark:bg-ink-900/40">
+    <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-4 text-xs text-ink-500 sm:flex-row sm:px-6 lg:px-8 dark:text-ink-400">
+      <p>{{ app_name }} — {{ app_tagline }}. Instancja samohostowana.</p>
+      <p class="flex items-center gap-3">
+        <a class="hover:text-ink-800 dark:hover:text-ink-200" href="/baza-publiczna">Baza publiczna</a>
+        <a class="hover:text-ink-800 dark:hover:text-ink-200" href="/api/docs">API</a>
+      </p>
+    </div>
+  </footer>
+  {% endblock %}
+
+  {% include "partials/toasts.html" %}
+  {% block scripts %}{% endblock %}
+</body>
+</html>

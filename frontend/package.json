@@ -1,0 +1,18 @@
+{
+  "name": "quizapp-frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Warstwa zasobów statycznych (Tailwind CSS + Alpine.js) dla platformy MedFiszki.",
+  "scripts": {
+    "build:css": "tailwindcss -i ./src/input.css -o ../app/static/css/app.css --minify",
+    "watch:css": "tailwindcss -i ./src/input.css -o ../app/static/css/app.css --watch",
+    "build:vendor": "node ./copy-vendor.mjs",
+    "build": "npm run build:css && npm run build:vendor"
+  },
+  "devDependencies": {
+    "tailwindcss": "3.4.17"
+  },
+  "dependencies": {
+    "alpinejs": "3.14.8"
+  }
+}

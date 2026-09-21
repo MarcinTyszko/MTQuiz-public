@@ -1,0 +1,384 @@
+{
+  "schema": "medfiszki/study-set",
+  "version": 1,
+  "title": "Narządy wewnętrzne — nazewnictwo łacińskie, polskie i angielskie",
+  "description": "Materiał testowy: 35 narządów wewnętrznych z podziałem na układy. Awers podaje nazwę łacińską, rewers odpowiedniki polski i angielski, wskazówka przynależność do układu.",
+  "subject": "Anatomia",
+  "tags": [
+    "Splanchnologia",
+    "Terminologia anatomiczna",
+    "Łacina medyczna",
+    "Trójjęzyczny"
+  ],
+  "visibility": "public",
+  "cards": [
+    {
+      "front": "Cor",
+      "back": "polski: serce\nangielski: heart",
+      "hint": "Układ krążenia",
+      "note": "Leży w śródpiersiu środkowym; koniuszek w V przestrzeni międzyżebrowej lewej."
+    },
+    {
+      "front": "Aorta",
+      "back": "polski: aorta / tętnica główna\nangielski: aorta",
+      "hint": "Układ krążenia",
+      "note": "Największa tętnica ciała; dzieli się na część wstępującą, łuk i zstępującą."
+    },
+    {
+      "front": "Vena cava superior",
+      "back": "polski: żyła główna górna\nangielski: superior vena cava",
+      "hint": "Układ krążenia",
+      "note": "Zbiera krew z głowy, szyi i kończyn górnych."
+    },
+    {
+      "front": "Pulmo dexter et sinister",
+      "back": "polski: płuco prawe i lewe\nangielski: right and left lung",
+      "hint": "Układ oddechowy",
+      "note": "Prawe ma trzy płaty, lewe dwa oraz wcięcie sercowe."
+    },
+    {
+      "front": "Trachea",
+      "back": "polski: tchawica\nangielski: trachea / windpipe",
+      "hint": "Układ oddechowy",
+      "note": "Dzieli się na oskrzela główne na wysokości kąta mostka (Th4/Th5)."
+    },
+    {
+      "front": "Larynx",
+      "back": "polski: krtań\nangielski: larynx / voice box",
+      "hint": "Układ oddechowy",
+      "note": "Zawiera fałdy głosowe; unerwienie ruchowe z nerwu błędnego."
+    },
+    {
+      "front": "Pharynx",
+      "back": "polski: gardło\nangielski: pharynx / throat",
+      "hint": "Układ oddechowy i pokarmowy",
+      "note": "Wspólny odcinek dróg oddechowych i pokarmowych."
+    },
+    {
+      "front": "Bronchus principalis",
+      "back": "polski: oskrzele główne\nangielski: main bronchus",
+      "hint": "Układ oddechowy",
+      "note": "Prawe jest szersze i bardziej pionowe — tam trafiają ciała obce."
+    },
+    {
+      "front": "Oesophagus",
+      "back": "polski: przełyk\nangielski: oesophagus / esophagus",
+      "hint": "Układ pokarmowy",
+      "note": "Ma trzy zwężenia fizjologiczne; przechodzi przez rozwór przeponowy."
+    },
+    {
+      "front": "Gaster (ventriculus)",
+      "back": "polski: żołądek\nangielski: stomach",
+      "hint": "Układ pokarmowy",
+      "note": "Krzywizna mniejsza i większa; wpust i odźwiernik."
+    },
+    {
+      "front": "Duodenum",
+      "back": "polski: dwunastnica\nangielski: duodenum",
+      "hint": "Układ pokarmowy",
+      "note": "Pierwszy odcinek jelita cienkiego; uchodzą tu przewody żółciowy i trzustkowy."
+    },
+    {
+      "front": "Jejunum",
+      "back": "polski: jelito czcze\nangielski: jejunum",
+      "hint": "Układ pokarmowy",
+      "note": "Bogatsze unaczynienie i wyższe fałdy okrężne niż jelito kręte."
+    },
+    {
+      "front": "Ileum",
+      "back": "polski: jelito kręte\nangielski: ileum",
+      "hint": "Układ pokarmowy",
+      "note": "Wchłanianie witaminy B12 i kwasów żółciowych w odcinku końcowym."
+    },
+    {
+      "front": "Caecum",
+      "back": "polski: jelito ślepe / kątnica\nangielski: caecum / cecum",
+      "hint": "Układ pokarmowy",
+      "note": "Od niego odchodzi wyrostek robaczkowy."
+    },
+    {
+      "front": "Appendix vermiformis",
+      "back": "polski: wyrostek robaczkowy\nangielski: vermiform appendix",
+      "hint": "Układ pokarmowy",
+      "note": "Punkt McBurneya wyznacza jego typowe rzutowanie na powłoki."
+    },
+    {
+      "front": "Colon",
+      "back": "polski: okrężnica\nangielski: colon",
+      "hint": "Układ pokarmowy",
+      "note": "Cztery odcinki: wstępnica, poprzecznica, zstępnica i esica."
+    },
+    {
+      "front": "Rectum",
+      "back": "polski: odbytnica\nangielski: rectum",
+      "hint": "Układ pokarmowy",
+      "note": "Końcowy odcinek jelita grubego przed kanałem odbytu."
+    },
+    {
+      "front": "Hepar",
+      "back": "polski: wątroba\nangielski: liver",
+      "hint": "Układ pokarmowy",
+      "note": "Największy gruczoł ciała; unaczynienie czynnościowe z żyły wrotnej."
+    },
+    {
+      "front": "Vesica biliaris (fellea)",
+      "back": "polski: pęcherzyk żółciowy\nangielski: gallbladder",
+      "hint": "Układ pokarmowy",
+      "note": "Objaw Murphy'ego w ostrym zapaleniu pęcherzyka."
+    },
+    {
+      "front": "Pancreas",
+      "back": "polski: trzustka\nangielski: pancreas",
+      "hint": "Układ pokarmowy",
+      "note": "Część zewnątrz- i wewnątrzwydzielnicza (wyspy trzustkowe)."
+    },
+    {
+      "front": "Lien (splen)",
+      "back": "polski: śledziona\nangielski: spleen",
+      "hint": "Układ chłonny",
+      "note": "Leży pod żebrami IX-XI po stronie lewej; narząd najczęściej uszkadzany w urazach brzucha."
+    },
+    {
+      "front": "Thymus",
+      "back": "polski: grasica\nangielski: thymus",
+      "hint": "Układ chłonny",
+      "note": "Dojrzewanie limfocytów T; zanika z wiekiem."
+    },
+    {
+      "front": "Ren dexter et sinister",
+      "back": "polski: nerka prawa i lewa\nangielski: right and left kidney",
+      "hint": "Układ moczowy",
+      "note": "Prawa leży niżej z powodu sąsiedztwa wątroby."
+    },
+    {
+      "front": "Ureter",
+      "back": "polski: moczowód\nangielski: ureter",
+      "hint": "Układ moczowy",
+      "note": "Trzy zwężenia fizjologiczne — typowe miejsca zaklinowania kamienia."
+    },
+    {
+      "front": "Vesica urinaria",
+      "back": "polski: pęcherz moczowy\nangielski: urinary bladder",
+      "hint": "Układ moczowy",
+      "note": "Trójkąt pęcherza między ujściami moczowodów i cewki."
+    },
+    {
+      "front": "Urethra",
+      "back": "polski: cewka moczowa\nangielski: urethra",
+      "hint": "Układ moczowy",
+      "note": "U mężczyzn dłuższa; u kobiet krótsza, stąd częstsze zakażenia."
+    },
+    {
+      "front": "Glandula suprarenalis",
+      "back": "polski: nadnercze\nangielski: adrenal gland / suprarenal gland",
+      "hint": "Układ dokrewny",
+      "note": "Kora wydziela kortyzol i aldosteron, rdzeń katecholaminy."
+    },
+    {
+      "front": "Glandula thyroidea",
+      "back": "polski: gruczoł tarczowy / tarczyca\nangielski: thyroid gland",
+      "hint": "Układ dokrewny",
+      "note": "Leży przed tchawicą; sąsiaduje z nerwem krtaniowym wstecznym."
+    },
+    {
+      "front": "Glandulae parathyroideae",
+      "back": "polski: przytarczyce\nangielski: parathyroid glands",
+      "hint": "Układ dokrewny",
+      "note": "Parathormon podnosi stężenie wapnia we krwi."
+    },
+    {
+      "front": "Hypophysis (glandula pituitaria)",
+      "back": "polski: przysadka mózgowa\nangielski: pituitary gland",
+      "hint": "Układ dokrewny",
+      "note": "Leży w siodle tureckim kości klinowej."
+    },
+    {
+      "front": "Encephalon",
+      "back": "polski: mózgowie\nangielski: brain / encephalon",
+      "hint": "Układ nerwowy",
+      "note": "Obejmuje mózg, móżdżek i pień mózgu."
+    },
+    {
+      "front": "Cerebellum",
+      "back": "polski: móżdżek\nangielski: cerebellum",
+      "hint": "Układ nerwowy",
+      "note": "Koordynacja ruchów i utrzymanie równowagi."
+    },
+    {
+      "front": "Medulla spinalis",
+      "back": "polski: rdzeń kręgowy\nangielski: spinal cord",
+      "hint": "Układ nerwowy",
+      "note": "U dorosłego kończy się na wysokości L1/L2 — stąd bezpieczne miejsce punkcji lędźwiowej."
+    },
+    {
+      "front": "Medulla oblongata",
+      "back": "polski: rdzeń przedłużony\nangielski: medulla oblongata",
+      "hint": "Układ nerwowy",
+      "note": "Zawiera ośrodki oddechowy i naczynioruchowy."
+    },
+    {
+      "front": "Cutis",
+      "back": "polski: skóra\nangielski: skin",
+      "hint": "Powłoka wspólna",
+      "note": "Największy narząd ciała; naskórek, skóra właściwa i tkanka podskórna."
+    }
+  ],
+  "questions": [
+    {
+      "prompt": "Łacińska nazwa „lien” (lub „splen”) odnosi się do którego narządu?",
+      "explanation": "Lien, czyli splen, to śledziona (ang. spleen). Stąd pochodzą przymiotniki „splenektomia” i „śledzionowy”.",
+      "options": [
+        {
+          "text": "Śledziony",
+          "is_correct": true,
+          "feedback": "Od greckiego splen pochodzi splenektomia — usunięcie śledziony."
+        },
+        {
+          "text": "Wątroby",
+          "is_correct": false,
+          "feedback": "Wątroba to hepar, ang. liver."
+        },
+        {
+          "text": "Trzustki",
+          "is_correct": false,
+          "feedback": "Trzustka to pancreas."
+        },
+        {
+          "text": "Nerki",
+          "is_correct": false,
+          "feedback": "Nerka to ren, ang. kidney."
+        }
+      ]
+    },
+    {
+      "prompt": "Które przyporządkowanie nazwy łacińskiej, polskiej i angielskiej jest w całości prawidłowe?",
+      "explanation": "Vesica biliaris (lub fellea) to pęcherzyk żółciowy, ang. gallbladder. Vesica urinaria to pęcherz moczowy, ang. urinary bladder — łatwo je pomylić ze względu na wspólny człon „vesica”.",
+      "options": [
+        {
+          "text": "Vesica biliaris — pęcherzyk żółciowy — gallbladder",
+          "is_correct": true,
+          "feedback": "Poprawnie; „biliaris” od bilis, czyli żółć."
+        },
+        {
+          "text": "Vesica urinaria — pęcherzyk żółciowy — gallbladder",
+          "is_correct": false,
+          "feedback": "Vesica urinaria to pęcherz moczowy."
+        },
+        {
+          "text": "Hepar — trzustka — pancreas",
+          "is_correct": false,
+          "feedback": "Hepar to wątroba, ang. liver."
+        },
+        {
+          "text": "Ren — śledziona — spleen",
+          "is_correct": false,
+          "feedback": "Ren to nerka, ang. kidney."
+        }
+      ]
+    },
+    {
+      "prompt": "Ciało obce zaaspirowane do dróg oddechowych najczęściej trafia do prawego oskrzela głównego. Dlaczego?",
+      "explanation": "Bronchus principalis dexter jest szerszy, krótszy i przebiega bardziej pionowo niż lewy, co ułatwia przedostanie się ciała obcego.",
+      "options": [
+        {
+          "text": "Jest szersze i przebiega bardziej pionowo",
+          "is_correct": true,
+          "feedback": "Cecha anatomiczna o dużym znaczeniu klinicznym."
+        },
+        {
+          "text": "Jest dłuższe i węższe niż lewe",
+          "is_correct": false,
+          "feedback": "Odwrotnie — prawe jest krótsze i szersze."
+        },
+        {
+          "text": "Odchodzi poniżej rozwidlenia przełyku",
+          "is_correct": false,
+          "feedback": "Przełyk nie ma rozwidlenia na tym poziomie."
+        },
+        {
+          "text": "Jest unerwione wyłącznie przez nerw przeponowy",
+          "is_correct": false,
+          "feedback": "Nerw przeponowy unerwia przeponę, nie oskrzela."
+        }
+      ]
+    },
+    {
+      "prompt": "Które stwierdzenia o terminologii układu pokarmowego są prawidłowe? Zaznacz wszystkie prawidłowe.",
+      "explanation": "Jelito cienkie dzieli się na dwunastnicę, jelito czcze i jelito kręte. Appendix vermiformis to wyrostek robaczkowy odchodzący od kątnicy.",
+      "options": [
+        {
+          "text": "Duodenum to polska dwunastnica",
+          "is_correct": true,
+          "feedback": "Nazwa od długości dwunastu szerokości palca."
+        },
+        {
+          "text": "Jejunum to polskie jelito czcze",
+          "is_correct": true,
+          "feedback": "Od łacińskiego jejunus — czczy, pusty."
+        },
+        {
+          "text": "Appendix vermiformis to polski wyrostek robaczkowy",
+          "is_correct": true,
+          "feedback": "Ang. vermiform appendix; odchodzi od kątnicy."
+        },
+        {
+          "text": "Colon to polska odbytnica",
+          "is_correct": false,
+          "feedback": "Colon to okrężnica; odbytnica to rectum."
+        }
+      ]
+    },
+    {
+      "prompt": "Na jakiej wysokości u osoby dorosłej kończy się medulla spinalis i jakie ma to znaczenie praktyczne?",
+      "explanation": "Rdzeń kręgowy kończy się stożkiem rdzeniowym na wysokości L1/L2. Poniżej tego poziomu kanał kręgowy wypełnia ogon koński, dlatego punkcję lędźwiową wykonuje się na wysokości L3/L4 lub L4/L5.",
+      "options": [
+        {
+          "text": "L1/L2 — poniżej tego poziomu bezpiecznie wykonuje się punkcję lędźwiową",
+          "is_correct": true,
+          "feedback": "Poniżej stożka znajduje się ogon koński, odsuwający się przed igłą."
+        },
+        {
+          "text": "Th12 — punkcję wykonuje się na wysokości Th10",
+          "is_correct": false,
+          "feedback": "Punkcja powyżej stożka groziłaby uszkodzeniem rdzenia."
+        },
+        {
+          "text": "L5/S1 — punkcję wykonuje się w odcinku szyjnym",
+          "is_correct": false,
+          "feedback": "Rdzeń kończy się wyżej; punkcji szyjnej nie stosuje się rutynowo."
+        },
+        {
+          "text": "S2 — poziom ten odpowiada końcowi worka oponowego",
+          "is_correct": false,
+          "feedback": "Na wysokości S2 kończy się worek oponowy, a nie rdzeń."
+        }
+      ]
+    },
+    {
+      "prompt": "Pacjentka z bólem w prawym podżebrzu ma zatrzymanie wdechu przy ucisku pod łukiem żebrowym. Którego narządu dotyczy to badanie?",
+      "explanation": "Objaw Murphy'ego wskazuje na ostre zapalenie pęcherzyka żółciowego (vesica biliaris, ang. gallbladder) leżącego na trzewnej powierzchni wątroby.",
+      "options": [
+        {
+          "text": "Vesica biliaris — pęcherzyka żółciowego",
+          "is_correct": true,
+          "feedback": "Objaw Murphy'ego jest klasyczny dla ostrego zapalenia pęcherzyka."
+        },
+        {
+          "text": "Lien — śledziony",
+          "is_correct": false,
+          "feedback": "Śledziona leży po stronie lewej."
+        },
+        {
+          "text": "Pancreas — trzustki",
+          "is_correct": false,
+          "feedback": "Ból trzustkowy typowo promieniuje opasująco do pleców."
+        },
+        {
+          "text": "Ren dexter — nerki prawej",
+          "is_correct": false,
+          "feedback": "Dla nerki charakterystyczny jest objaw Goldflama."
+        }
+      ]
+    }
+  ]
+}
