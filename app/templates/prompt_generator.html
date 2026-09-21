@@ -9,8 +9,10 @@
     <p class="mt-2 text-sm text-ink-600 dark:text-ink-300">
       Ustaw parametry, skopiuj gotowe polecenie i wklej je do dowolnego modelu językowego —
       <span class="font-medium text-ink-800 dark:text-ink-100">Claude, ChatGPT, Gemini</span> lub innego.
-      Prompt sam tłumaczy modelowi strukturę pliku JSON, więc nie musisz dołączać żadnej dokumentacji.
-      Otrzymaną odpowiedź wgrywasz w zakładce <a href="/zestawy/import" class="link">Import AI</a>.
+      Generator nie jest przypisany do jednej dziedziny: działa tak samo dla anatomii, prawa,
+      programowania, historii czy nauki języka obcego. Prompt sam tłumaczy modelowi strukturę
+      pliku JSON, więc nie musisz dołączać żadnej dokumentacji. Otrzymaną odpowiedź wgrywasz
+      w zakładce <a href="/zestawy/import" class="link">Import AI</a>.
     </p>
   </div>
 
@@ -32,9 +34,25 @@
         <h2 class="section-title">Parametry materiału</h2>
 
         <div>
+          <label class="label" for="profil">Profil dziedziny</label>
+          <select id="profil" class="input" x-model="profil">
+            <template x-for="pozycja in profile" :key="pozycja.klucz">
+              <option :value="pozycja.klucz" x-text="pozycja.etykieta"></option>
+            </template>
+          </select>
+          <p class="hint">Dobiera listę wiarygodnych źródeł, dodatkowe zasady rygoru i przykład w prompcie.</p>
+        </div>
+
+        <div>
+          <label class="label" for="dziedzina">Dziedzina lub przedmiot <span class="text-rose-500">*</span></label>
+          <input id="dziedzina" class="input" x-model="dziedzina" maxlength="120"
+                 placeholder="np. Prawo cywilne, Kubernetes, Język hiszpański B1, Farmakologia kliniczna">
+        </div>
+
+        <div>
           <label class="label" for="temat">Temat lub zakres materiału <span class="text-rose-500">*</span></label>
           <textarea id="temat" class="input" rows="3" x-model="temat"
-                    placeholder="np. Farmakologia leków przeciwpadaczkowych: mechanizmy, wskazania, działania niepożądane i interakcje"></textarea>
+                    placeholder="np. Wady oświadczenia woli: rodzaje, przesłanki i skutki prawne"></textarea>
           <p class="hint">Im precyzyjniej opiszesz zakres, tym mniej model będzie improwizował.</p>
         </div>
 
@@ -59,6 +77,18 @@
             </label>
           </div>
         </fieldset>
+
+        <div>
+          <label class="label" for="wlasneZrodla">
+            Wskazane źródła <span class="font-normal text-ink-400">(opcjonalnie)</span>
+          </label>
+          <textarea id="wlasneZrodla" class="input" rows="3" x-model="wlasneZrodla"
+                    placeholder="Jedno źródło na wiersz, np.&#10;Kodeks cywilny, tekst jednolity&#10;Radwański Z. — Prawo cywilne. Część ogólna"></textarea>
+          <p class="hint">
+            Puste pole oznacza listę domyślną dla wybranego profilu.
+            <span x-show="zrodlo === 'wlasne'">Przy materiałach własnych wpisy trafiają jako dodatkowe wskazania.</span>
+          </p>
+        </div>
 
         <div>
           <label class="label" for="poziom">Poziom odbiorcy</label>
@@ -128,8 +158,8 @@
           </div>
         </div>
 
-        <div x-show="!temat.trim()" class="border-b border-amber-300 bg-amber-50 px-4 py-2.5 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
-          Wpisz temat materiału — dopóki pole jest puste, prompt zawiera miejsce do uzupełnienia ręcznego.
+        <div x-show="brakujeDanych" class="border-b border-amber-300 bg-amber-50 px-4 py-2.5 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
+          Uzupełnij dziedzinę i temat — dopóki pola są puste, prompt zawiera miejsca do wypełnienia ręcznego.
         </div>
 
         <div x-show="podglad">
@@ -213,7 +243,7 @@ python3 -m json.tool pakiet.json > /dev/null && echo "JSON poprawny"</code></pre
             <p>Prompt nie zawiera niczego specyficznego dla jednego dostawcy, więc zadziała także w modelach lokalnych.</p>
             <ul class="list-disc space-y-1.5 pl-5">
               <li>Model musi mieć okno kontekstu mieszczące prompt (około <span x-text="przyblizoneTokeny.toLocaleString('pl-PL')"></span> tokenów) oraz Twój materiał.</li>
-              <li>Ustaw niską temperaturę — przy materiale medycznym kreatywność jest wadą.</li>
+              <li>Ustaw niską temperaturę — przy materiale faktograficznym kreatywność jest wadą.</li>
               <li>Mniejsze modele lepiej radzą sobie z partiami po 10–15 fiszek niż z jednym dużym zamówieniem.</li>
               <li>Jeżeli model nie utrzymuje poprawnej składni JSON, zmniejsz liczbę fiszek i sklej kilka pakietów w edytorze.</li>
             </ul>
@@ -240,8 +270,9 @@ python3 -m json.tool pakiet.json > /dev/null && echo "JSON poprawny"</code></pre
         </ol>
         <div class="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
           <span class="font-semibold">Zastrzeżenie:</span> żaden prompt nie gwarantuje bezbłędności modelu.
-          Materiał wygenerowany automatycznie traktuj jak notatki kolegi z roku — pomocne, ale wymagające
-          sprawdzenia w podręczniku, zanim oprzesz na nich decyzję kliniczną.
+          Materiał wygenerowany automatycznie traktuj jak notatki pożyczone od kolegi z roku — pomocne,
+          ale wymagające sprawdzenia w źródle, zanim oprzesz na nich odpowiedź na egzaminie
+          albo decyzję zawodową.
         </div>
       </section>
     </div>

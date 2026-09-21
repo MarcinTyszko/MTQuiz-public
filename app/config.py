@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_prefix="QUIZAPP_", extra="ignore")
 
     app_name: str = "MTQuiz"
-    app_tagline: str = "Platforma nauki dla kierunków medycznych"
+    app_tagline: str = "Fiszki i quizy do nauki każdego przedmiotu"
 
     # Katalog danych trwałych (montowany jako wolumen Dockera).
     data_dir: Path = Path("/data")

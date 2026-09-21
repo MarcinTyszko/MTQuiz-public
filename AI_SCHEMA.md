@@ -5,8 +5,10 @@ prompt systemowy do sesji z modelem językowym, w których przygotowujesz pakiet
 na podstawie własnych skryptów, notatek i materiałów PDF.
 
 > **Szybsza droga:** zakładka **Prompt AI** w aplikacji (`/generator-promptu`) składa
-> rozbudowane polecenie dopasowane do tematu, poziomu odbiorcy, liczby fiszek i języków,
-> wraz z instrukcją obsługi dla Claude CLI, ChatGPT, Gemini i modeli lokalnych.
+> rozbudowane polecenie dopasowane do dziedziny, tematu, poziomu odbiorcy, liczby fiszek
+> i układu językowego, wraz z instrukcją obsługi dla Claude CLI, ChatGPT, Gemini i modeli
+> lokalnych. Format jest niezależny od dyscypliny — poniższe przykłady pochodzą z medycyny,
+> ale te same pola opisują fiszki z prawa, programowania czy nauki języka.
 > Ten plik przydaje się, gdy chcesz zrozumieć format do końca albo budować własne narzędzia.
 
 Cały plik jest przeznaczony do przekazania modelowi. Typowe użycie:

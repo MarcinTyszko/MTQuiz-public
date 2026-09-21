@@ -12,7 +12,7 @@
   <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white">
   <img alt="Docker" src="https://img.shields.io/badge/Docker-compose-2496ED?logo=docker&logoColor=white">
   <img alt="Licencja MIT" src="https://img.shields.io/badge/licencja-MIT-green">
-  <img alt="Testy" src="https://img.shields.io/badge/testy-111%20pytest-brightgreen">
+  <img alt="Testy" src="https://img.shields.io/badge/testy-122%20pytest-brightgreen">
 </p>
 
 ---
@@ -71,13 +71,18 @@ od razu zmienić) · gotowe materiały do testów: [`przyklady/`](przyklady/).
 - Eksport i import pojedynczego zestawu w formacie JSON.
 
 **Generator promptu AI**
-- Kreator w zakładce **Prompt AI**: ustawiasz temat, poziom odbiorcy, liczbę fiszek i pytań,
-  języki oraz rygor źródeł, a aplikacja składa gotowe do wklejenia polecenie.
+- Kreator w zakładce **Prompt AI**: ustawiasz dziedzinę, temat, poziom odbiorcy, liczbę fiszek
+  i pytań, układ językowy oraz rygor źródeł, a aplikacja składa gotowe do wklejenia polecenie.
+- **Niezależny od dziedziny.** Siedem profili — uniwersalny, nauki ścisłe, medycyna, prawo,
+  technologia i IT, języki obce, humanistyka — dobiera listę wiarygodnych źródeł, dodatkowe
+  zasady rygoru oraz przykład w prompcie. Listę źródeł możesz nadpisać własną.
 - Prompt sam opisuje modelowi strukturę pliku JSON — nie trzeba dołączać dokumentacji.
 - Neutralny wobec dostawcy: **Claude CLI, Claude w przeglądarce, ChatGPT, Gemini** oraz modele
   lokalne, z osobną instrukcją obsługi dla każdego z nich.
-- Rozbudowany blok zasad ograniczających konfabulację: zakaz wymyślania dawek i wartości
-  referencyjnych, wymóg pomijania zagadnień niepewnych, opcjonalne wskazanie źródła w każdej fiszce.
+- Rozbudowany blok zasad ograniczających konfabulację: zakaz podawania niepewnych liczb, dat
+  i oznaczeń, wymóg pomijania zagadnień niepewnych, opcjonalne wskazanie źródła w każdej fiszce.
+  Profile dokładają zasady branżowe — stan prawny, wersję oprogramowania, jednostki wielkości,
+  rejestr językowy czy oddzielenie faktu od interpretacji.
 
 **Silnik importu AI**
 - Wgranie pliku `.json` (przeciągnij i upuść) albo wklejenie treści.
@@ -230,8 +235,10 @@ Przy HTTPS ustaw dodatkowo `QUIZAPP_COOKIE_SECURE=true`.
 
 ## Import materiału z Claude CLI
 
-Najszybsza droga prowadzi przez zakładkę **Prompt AI** (`/generator-promptu`): ustawiasz
-parametry materiału, kopiujesz wygenerowane polecenie i wklejasz je do dowolnego modelu.
+Najszybsza droga prowadzi przez zakładkę **Prompt AI** (`/generator-promptu`): wybierasz profil
+dziedziny, ustawiasz parametry materiału, kopiujesz wygenerowane polecenie i wklejasz je do
+dowolnego modelu. Generator nie jest przypisany do jednej dyscypliny — działa tak samo dla
+anatomii, prawa cywilnego, Kubernetesa, historii i nauki języka obcego.
 Pełna specyfikacja formatu znajduje się w pliku **[`AI_SCHEMA.md`](AI_SCHEMA.md)**.
 
 Skrócony przebieg z wiersza poleceń:
