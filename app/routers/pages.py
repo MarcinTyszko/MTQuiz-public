@@ -182,6 +182,15 @@ def import_page(request: Request, user: OptionalUser):
     return _render(request, "import.html", {"user": user})
 
 
+@router.get("/generator-promptu", response_class=HTMLResponse)
+def prompt_generator_page(request: Request, user: OptionalUser):
+    """Kreator promptu dla modeli językowych (Claude, ChatGPT, Gemini i inne)."""
+    guard = _require_user(user, request)
+    if guard is not None:
+        return guard
+    return _render(request, "prompt_generator.html", {"user": user})
+
+
 @router.get("/zestawy/{set_id}", response_class=HTMLResponse)
 def set_detail_page(request: Request, set_id: int, user: OptionalUser, db: DbSession):
     if user is not None and user.must_change_password:

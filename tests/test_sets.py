@@ -196,6 +196,6 @@ def test_eksport_zwraca_kanoniczny_json(client):
     assert response.status_code == 200
     assert "attachment" in response.headers["content-disposition"]
     data = response.json()
-    assert data["schema"] == "medfiszki/study-set"
+    assert data["schema"] == "mtquiz/study-set"
     assert len(data["cards"]) == 2
     assert data["questions"][0]["options"][1]["is_correct"] is True

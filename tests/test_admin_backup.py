@@ -121,12 +121,12 @@ def test_kopia_zapasowa_zawiera_baze_i_manifest(client, data_dir):
     import json
 
     manifest = json.loads(archive.read("manifest.json"))
-    assert manifest["schema"] == "medfiszki/backup"
+    assert manifest["schema"] == "mtquiz/backup"
     assert manifest["tables"]["study_sets"] == 1
     assert manifest["tables"]["users"] == 2
 
     # Archiwum zostaje również w katalogu danych.
-    assert list((data_dir / "backups").glob("medfiszki-backup-*.zip"))
+    assert list((data_dir / "backups").glob("mtquiz-backup-*.zip"))
 
 
 def test_przywrocenie_bazy_cofa_zmiany(client, data_dir):
@@ -152,7 +152,7 @@ def test_przywrocenie_bazy_cofa_zmiany(client, data_dir):
     assert stats["users_total"] == 2
 
     # Kopia bezpieczeństwa sprzed przywrócenia została zapisana.
-    assert list((data_dir / "backups").glob("medfiszki-przed-przywroceniem-*.db"))
+    assert list((data_dir / "backups").glob("mtquiz-przed-przywroceniem-*.db"))
 
 
 def test_przywrocenie_bez_potwierdzenia_jest_blokowane(client):

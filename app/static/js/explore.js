@@ -1,7 +1,7 @@
 /** Widok „Baza publiczna”: wyszukiwanie, sortowanie, ulubione i klonowanie. */
 (function () {
   "use strict";
-  const { api, toast } = window.MedFiszki;
+  const { api, toast } = window.MTQuiz;
 
   function exploreFeed(initial) {
     return {

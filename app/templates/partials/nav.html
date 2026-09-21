@@ -5,7 +5,7 @@
 >
   <nav class="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6 lg:px-8" aria-label="Nawigacja główna">
     <a href="{{ '/pulpit' if user else '/' }}" class="flex shrink-0 items-center gap-2">
-      <span class="grid h-9 w-9 place-items-center rounded-xl bg-brand-600 text-sm font-bold text-white">MF</span>
+      <span class="grid h-9 w-9 place-items-center rounded-xl bg-brand-600 text-sm font-bold text-white">MT</span>
       <span class="hidden text-base font-semibold tracking-tight text-ink-900 sm:block dark:text-white">{{ app_name }}</span>
     </a>
 
@@ -15,6 +15,7 @@
       <a href="/baza-publiczna" class="btn-ghost btn-sm">Baza publiczna</a>
       <a href="/zestawy/nowy" class="btn-ghost btn-sm">Nowy zestaw</a>
       <a href="/zestawy/import" class="btn-ghost btn-sm">Import AI</a>
+      <a href="/generator-promptu" class="btn-ghost btn-sm">Prompt AI</a>
       {% if user.is_admin %}<a href="/panel" class="btn-ghost btn-sm">Panel</a>{% endif %}
     </div>
     {% else %}
@@ -93,6 +94,7 @@
       <a href="/baza-publiczna" class="btn-ghost justify-start">Baza publiczna</a>
       <a href="/zestawy/nowy" class="btn-ghost justify-start">Nowy zestaw</a>
       <a href="/zestawy/import" class="btn-ghost justify-start">Import AI</a>
+      <a href="/generator-promptu" class="btn-ghost justify-start">Prompt AI</a>
       <a href="/konto" class="btn-ghost justify-start">Moje konto</a>
       {% if user.is_admin %}<a href="/panel" class="btn-ghost justify-start">Panel administratora</a>{% endif %}
       <button type="button" data-logout class="btn-ghost justify-start text-rose-600 dark:text-rose-400">Wyloguj się</button>

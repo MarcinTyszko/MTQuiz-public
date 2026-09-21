@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+{% block title %}Generator promptu AI — {{ app_name }}{% endblock %}
+{% block head_scripts %}<script defer src="{{ static_url('js/prompt_generator.js') }}"></script>{% endblock %}
+
+{% block content %}
+<div x-data="promptGenerator()" x-cloak>
+  <div class="max-w-3xl">
+    <h1 class="text-2xl font-bold tracking-tight text-ink-900 dark:text-white">Generator promptu AI</h1>
+    <p class="mt-2 text-sm text-ink-600 dark:text-ink-300">
+      Ustaw parametry, skopiuj gotowe polecenie i wklej je do dowolnego modelu językowego —
+      <span class="font-medium text-ink-800 dark:text-ink-100">Claude, ChatGPT, Gemini</span> lub innego.
+      Prompt sam tłumaczy modelowi strukturę pliku JSON, więc nie musisz dołączać żadnej dokumentacji.
+      Otrzymaną odpowiedź wgrywasz w zakładce <a href="/zestawy/import" class="link">Import AI</a>.
+    </p>
+  </div>
+
+  <div class="mt-8 grid gap-6 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-start">
+
+    <!-- Konfiguracja ---------------------------------------------------- -->
+    <div class="space-y-5 lg:sticky lg:top-24">
+      <section class="card p-5">
+        <h2 class="section-title">Szybki start</h2>
+        <p class="hint mb-3">Wczytaj przykładowe ustawienia i dostosuj je do siebie.</p>
+        <div class="flex flex-wrap gap-2">
+          <template x-for="szablon in szablony" :key="szablon.klucz">
+            <button type="button" class="btn-secondary btn-sm" @click="zastosujSzablon(szablon.klucz)" x-text="szablon.etykieta"></button>
+          </template>
+        </div>
+      </section>
+
+      <section class="card space-y-4 p-5">
+        <h2 class="section-title">Parametry materiału</h2>
+
+        <div>
+          <label class="label" for="temat">Temat lub zakres materiału <span class="text-rose-500">*</span></label>
+          <textarea id="temat" class="input" rows="3" x-model="temat"
+                    placeholder="np. Farmakologia leków przeciwpadaczkowych: mechanizmy, wskazania, działania niepożądane i interakcje"></textarea>
+          <p class="hint">Im precyzyjniej opiszesz zakres, tym mniej model będzie improwizował.</p>
+        </div>
+
+        <fieldset>
+          <legend class="label">Skąd model ma czerpać wiedzę</legend>
+          <div class="space-y-2">
+            <label class="flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors"
+                   :class="zrodlo === 'wlasne' ? 'border-brand-500 bg-brand-50 dark:bg-brand-950/40' : 'border-ink-200 dark:border-ink-700'">
+              <input type="radio" value="wlasne" x-model="zrodlo" class="mt-0.5 h-4 w-4 text-brand-600 focus:ring-brand-500">
+              <span>
+                <span class="block text-sm font-medium text-ink-900 dark:text-white">Z moich materiałów</span>
+                <span class="block text-xs text-ink-500 dark:text-ink-400">PDF, skan, notatki z wykładu. Model nie może dodać nic od siebie.</span>
+              </span>
+            </label>
+            <label class="flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors"
+                   :class="zrodlo === 'wiedza' ? 'border-brand-500 bg-brand-50 dark:bg-brand-950/40' : 'border-ink-200 dark:border-ink-700'">
+              <input type="radio" value="wiedza" x-model="zrodlo" class="mt-0.5 h-4 w-4 text-brand-600 focus:ring-brand-500">
+              <span>
+                <span class="block text-sm font-medium text-ink-900 dark:text-white">Z wiedzy podręcznikowej</span>
+                <span class="block text-xs text-ink-500 dark:text-ink-400">Prompt wskazuje konkretne podręczniki jako punkt odniesienia.</span>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+
+        <div>
+          <label class="label" for="poziom">Poziom odbiorcy</label>
+          <select id="poziom" class="input" x-model="poziom">
+            <template x-for="pozycja in poziomy" :key="pozycja.klucz">
+              <option :value="pozycja.klucz" x-text="pozycja.etykieta"></option>
+            </template>
+          </select>
+        </div>
+
+        <div>
+          <label class="label" for="jezyki">Języki w fiszkach</label>
+          <select id="jezyki" class="input" x-model="jezyki">
+            <template x-for="pozycja in jezykiOpcje" :key="pozycja.klucz">
+              <option :value="pozycja.klucz" x-text="pozycja.etykieta"></option>
+            </template>
+          </select>
+          <p class="hint">Wariant trójjęzyczny narzuca układ rewersu: „polski: …” i „angielski: …”.</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="label" for="fiszki">Liczba fiszek</label>
+            <input id="fiszki" type="number" min="1" max="300" class="input" x-model.number="fiszki">
+          </div>
+          <div>
+            <label class="label" for="pytania">Liczba pytań</label>
+            <input id="pytania" type="number" min="0" max="150" class="input" x-model.number="pytania">
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <label class="flex cursor-pointer items-start gap-2 text-sm text-ink-700 dark:text-ink-300">
+            <input type="checkbox" class="mt-0.5 h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500" x-model="wymagajZrodel">
+            <span>Wymagaj wskazania źródła w notatce każdej fiszki</span>
+          </label>
+          <label class="flex cursor-pointer items-start gap-2 text-sm text-ink-700 dark:text-ink-300">
+            <input type="checkbox" class="mt-0.5 h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500" x-model="wielokrotnyWybor">
+            <span>Pozwól na pytania wielokrotnego wyboru</span>
+          </label>
+        </div>
+
+        <div>
+          <label class="label" for="dodatkowe">Dodatkowe wymagania <span class="font-normal text-ink-400">(opcjonalnie)</span></label>
+          <textarea id="dodatkowe" class="input" rows="3" x-model="dodatkowe"
+                    placeholder="Jedna wskazówka na wiersz, np.&#10;Pomiń dawkowanie u dzieci&#10;Dodaj mnemotechniki tam, gdzie to możliwe"></textarea>
+        </div>
+      </section>
+    </div>
+
+    <!-- Prompt ---------------------------------------------------------- -->
+    <div class="space-y-6">
+      <section class="card overflow-hidden">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-ink-200 p-4 dark:border-ink-800">
+          <div>
+            <h2 class="section-title">Gotowy prompt</h2>
+            <p class="hint">
+              <span x-text="dlugoscPromptu.toLocaleString('pl-PL')"></span> znaków ·
+              około <span x-text="przyblizoneTokeny.toLocaleString('pl-PL')"></span> tokenów
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button type="button" class="btn-primary btn-sm" @click="kopiuj()">Kopiuj prompt</button>
+            <button type="button" class="btn-secondary btn-sm" @click="pobierz()">Pobierz .txt</button>
+            <button type="button" class="btn-ghost btn-sm" @click="podglad = !podglad"
+                    x-text="podglad ? 'Zwiń' : 'Rozwiń'"></button>
+          </div>
+        </div>
+
+        <div x-show="!temat.trim()" class="border-b border-amber-300 bg-amber-50 px-4 py-2.5 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
+          Wpisz temat materiału — dopóki pole jest puste, prompt zawiera miejsce do uzupełnienia ręcznego.
+        </div>
+
+        <div x-show="podglad">
+          <pre class="scrollbar-thin max-h-[36rem] overflow-auto bg-ink-900 p-4 text-[11px] leading-relaxed text-ink-100 dark:bg-ink-950"><code x-text="promptTekst"></code></pre>
+        </div>
+      </section>
+
+      <!-- Instrukcje dla poszczególnych modeli ------------------------- -->
+      <section class="card overflow-hidden">
+        <div class="flex gap-1 overflow-x-auto border-b border-ink-200 px-2 pt-2 dark:border-ink-800" role="tablist">
+          <template x-for="pozycja in [
+            { klucz: 'claude', nazwa: 'Claude CLI' },
+            { klucz: 'claude-web', nazwa: 'Claude (przeglądarka)' },
+            { klucz: 'chatgpt', nazwa: 'ChatGPT' },
+            { klucz: 'gemini', nazwa: 'Gemini' },
+            { klucz: 'inne', nazwa: 'Inne modele' }
+          ]" :key="pozycja.klucz">
+            <button type="button" role="tab" class="shrink-0 rounded-t-lg border-b-2 px-3 py-2 text-sm font-medium transition-colors"
+                    :class="zakladka === pozycja.klucz ? 'border-brand-600 text-brand-700 dark:text-brand-400' : 'border-transparent text-ink-500 hover:text-ink-800 dark:hover:text-ink-200'"
+                    @click="zakladka = pozycja.klucz" x-text="pozycja.nazwa"></button>
+          </template>
+        </div>
+
+        <div class="p-5 text-sm text-ink-700 dark:text-ink-200">
+          <div x-show="zakladka === 'claude'" class="space-y-3">
+            <p>Prompt trafia do <code class="rounded bg-ink-200 px-1 dark:bg-ink-800">stdin</code>, a ścieżkę do materiału podajesz w treści polecenia.</p>
+            <pre class="overflow-x-auto rounded-xl bg-ink-900 p-3 text-xs text-ink-100 dark:bg-ink-950"><code># zapisz prompt przyciskiem „Pobierz .txt”, a następnie:
+claude -p "$(cat prompt.txt)
+
+Przetwórz plik ./materialy/wyklad-03.pdf" > pakiet.json
+
+# szybka kontrola składni
+python3 -m json.tool pakiet.json > /dev/null && echo "JSON poprawny"</code></pre>
+            <p class="text-xs text-ink-500 dark:text-ink-400">
+              Przy obszernym skrypcie poproś najpierw o spis rozdziałów, a potem generuj pakiety rozdział po rozdziale.
+              Jeden zestaw na 300 fiszek jest trudniejszy w nauce niż pięć tematycznych.
+            </p>
+          </div>
+
+          <div x-show="zakladka === 'claude-web'" class="space-y-3" x-cloak>
+            <ol class="list-decimal space-y-1.5 pl-5">
+              <li>Załóż nową rozmowę, żeby wcześniejszy kontekst nie zniekształcił odpowiedzi.</li>
+              <li>Dołącz materiał (PDF lub zdjęcia notatek) jako załącznik.</li>
+              <li>Wklej prompt i wyślij.</li>
+              <li>Skopiuj całą odpowiedź — łącznie z blokiem <code class="rounded bg-ink-200 px-1 dark:bg-ink-800">```json</code>, import sam go usunie.</li>
+            </ol>
+            <p class="text-xs text-ink-500 dark:text-ink-400">
+              Jeżeli odpowiedź się urwie, napisz „kontynuuj od ostatniego kompletnego obiektu” i sklej fragmenty,
+              albo poproś o mniejszą liczbę fiszek.
+            </p>
+          </div>
+
+          <div x-show="zakladka === 'chatgpt'" class="space-y-3" x-cloak>
+            <ol class="list-decimal space-y-1.5 pl-5">
+              <li>Wybierz model rozumujący (na przykład tryb „Thinking”) — daje wyraźnie mniej błędów merytorycznych.</li>
+              <li>Dołącz PDF przyciskiem spinacza, poczekaj, aż plik się wczyta.</li>
+              <li>Wklej prompt i wyślij.</li>
+              <li>Skopiuj odpowiedź do pliku <code class="rounded bg-ink-200 px-1 dark:bg-ink-800">.json</code> albo wklej ją wprost w zakładce Import AI.</li>
+            </ol>
+            <p class="text-xs text-ink-500 dark:text-ink-400">
+              Gdy model uparcie dopisuje komentarz przed JSON-em, dopisz na końcu promptu:
+              „Twoja odpowiedź musi zaczynać się znakiem { i kończyć znakiem }”. Import i tak poradzi sobie z otoczką,
+              ale czysta odpowiedź łatwiej przechodzi walidację.
+            </p>
+          </div>
+
+          <div x-show="zakladka === 'gemini'" class="space-y-3" x-cloak>
+            <ol class="list-decimal space-y-1.5 pl-5">
+              <li>W Google AI Studio ustaw <span class="font-medium">Temperature</span> na 0,2–0,4 — ogranicza to improwizację.</li>
+              <li>Jeżeli dostępna jest opcja <span class="font-medium">Structured output</span> / JSON mode, włącz ją.</li>
+              <li>Dołącz materiał i wklej prompt.</li>
+              <li>Skopiuj wynik do pliku albo wprost do zakładki Import AI.</li>
+            </ol>
+            <p class="text-xs text-ink-500 dark:text-ink-400">
+              Gemini bywa hojny w liczbie fiszek. Jeżeli przekroczy zamówioną liczbę, nie szkodzi —
+              nadmiar usuniesz w edytorze przed zapisem zestawu.
+            </p>
+          </div>
+
+          <div x-show="zakladka === 'inne'" class="space-y-3" x-cloak>
+            <p>Prompt nie zawiera niczego specyficznego dla jednego dostawcy, więc zadziała także w modelach lokalnych.</p>
+            <ul class="list-disc space-y-1.5 pl-5">
+              <li>Model musi mieć okno kontekstu mieszczące prompt (około <span x-text="przyblizoneTokeny.toLocaleString('pl-PL')"></span> tokenów) oraz Twój materiał.</li>
+              <li>Ustaw niską temperaturę — przy materiale medycznym kreatywność jest wadą.</li>
+              <li>Mniejsze modele lepiej radzą sobie z partiami po 10–15 fiszek niż z jednym dużym zamówieniem.</li>
+              <li>Jeżeli model nie utrzymuje poprawnej składni JSON, zmniejsz liczbę fiszek i sklej kilka pakietów w edytorze.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Co dalej ------------------------------------------------------ -->
+      <section class="card p-5">
+        <h2 class="section-title">Co dalej z odpowiedzią modelu</h2>
+        <ol class="mt-3 space-y-2 text-sm text-ink-700 dark:text-ink-200">
+          <li class="flex gap-3">
+            <span class="grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-brand-100 text-xs font-bold text-brand-700 dark:bg-brand-950 dark:text-brand-300">1</span>
+            <span>Przejdź do zakładki <a href="/zestawy/import" class="link">Import AI</a> i wgraj plik albo wklej treść odpowiedzi.</span>
+          </li>
+          <li class="flex gap-3">
+            <span class="grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-brand-100 text-xs font-bold text-brand-700 dark:bg-brand-950 dark:text-brand-300">2</span>
+            <span>Sprawdź raport walidacji — zobaczysz liczbę rozpoznanych fiszek i listę elementów pominiętych wraz z powodem.</span>
+          </li>
+          <li class="flex gap-3">
+            <span class="grid h-6 w-6 shrink-0 place-items-center rounded-lg bg-brand-100 text-xs font-bold text-brand-700 dark:bg-brand-950 dark:text-brand-300">3</span>
+            <span><span class="font-medium">Zawsze przejrzyj treść przed nauką.</span> Model potrafi zmyślać mimo rygoru w prompcie — przycisk „Otwórz w edytorze i popraw” pozwala poprawić wszystko przed zapisem.</span>
+          </li>
+        </ol>
+        <div class="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
+          <span class="font-semibold">Zastrzeżenie:</span> żaden prompt nie gwarantuje bezbłędności modelu.
+          Materiał wygenerowany automatycznie traktuj jak notatki kolegi z roku — pomocne, ale wymagające
+          sprawdzenia w podręczniku, zanim oprzesz na nich decyzję kliniczną.
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}

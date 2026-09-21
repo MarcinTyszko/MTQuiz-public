@@ -105,3 +105,33 @@ def test_api_zwraca_json_zamiast_html_dla_bledow(client):
     response = client.get("/api/sets", headers={"Accept": "application/json"})
     assert response.status_code == 401
     assert response.json()["detail"] == "Wymagane zalogowanie."
+
+
+def test_generator_promptu_wymaga_zalogowania(client):
+    response = client.get("/generator-promptu", follow_redirects=False)
+    assert response.status_code == 303
+    assert response.headers["location"].startswith("/logowanie?next=")
+
+
+def test_generator_promptu_renderuje_sie_dla_uzytkownika(client):
+    register(client)
+    response = client.get("/generator-promptu")
+
+    assert response.status_code == 200
+    assert "Generator promptu AI" in response.text
+    # Komponent i jego skrypt muszą być podpięte.
+    assert 'x-data="promptGenerator()"' in response.text
+    assert "/static/js/prompt_generator.js?v=" in response.text
+    # Zakładki dla poszczególnych dostawców modeli.
+    for dostawca in ("Claude CLI", "ChatGPT", "Gemini"):
+        assert dostawca in response.text
+
+
+def test_nawigacja_prowadzi_do_generatora_promptu(client):
+    register(client)
+    assert '/generator-promptu' in client.get("/pulpit").text
+
+
+def test_strona_importu_odsyla_do_generatora(client):
+    register(client)
+    assert "/generator-promptu" in client.get("/zestawy/import").text

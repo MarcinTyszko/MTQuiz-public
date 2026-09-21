@@ -74,19 +74,19 @@ jobs:
           context: .
           push: false
           load: true
-          tags: medfiszki:ci
+          tags: mtquiz:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Uruchomienie kontenera i test dymny
         run: |
           mkdir -p dane-ci
-          docker run -d --name medfiszki-ci \
+          docker run -d --name mtquiz-ci \
             -p 8000:8000 \
             -u "$(id -u):$(id -g)" \
             -v "$PWD/dane-ci:/data" \
             -e QUIZAPP_SECRET_KEY=klucz-testowy-ci \
-            medfiszki:ci
+            mtquiz:ci
 
           for i in $(seq 1 30); do
             if curl -fsS http://localhost:8000/healthz > /dev/null; then
@@ -95,7 +95,7 @@ jobs:
             fi
             if [ "$i" -eq 30 ]; then
               echo "Aplikacja nie wystartowała w wyznaczonym czasie."
-              docker logs medfiszki-ci
+              docker logs mtquiz-ci
               exit 1
             fi
             sleep 2
@@ -111,8 +111,8 @@ jobs:
           curl -fsS http://localhost:8000/api/public/sets | grep -q "Neuroanatomia"
 
           echo "--- kontener nie działa z uprawnieniami administratora"
-          test "$(docker exec medfiszki-ci id -u)" != "0"
+          test "$(docker exec mtquiz-ci id -u)" != "0"
 
       - name: Zatrzymanie kontenera
         if: always()
-        run: docker rm -f medfiszki-ci || true
+        run: docker rm -f mtquiz-ci || true

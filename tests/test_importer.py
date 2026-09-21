@@ -224,7 +224,7 @@ def test_przyklad_ze_specyfikacji_ai_schema_jest_importowalny(normalise):
     blocks = re.findall(r"```json\n(.*?)\n```", spec, re.S)
     payloads = [json.loads(block) for block in blocks]
 
-    example = next(item for item in payloads if item.get("schema") == "medfiszki/study-set")
+    example = next(item for item in payloads if item.get("schema") == "mtquiz/study-set")
     result = normalise(example)
 
     assert result.ok is True

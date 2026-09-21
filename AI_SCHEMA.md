@@ -1,8 +1,13 @@
-# AI_SCHEMA.md — specyfikacja pakietu nauki dla MedFiszki
+# AI_SCHEMA.md — specyfikacja pakietu nauki dla MTQuiz
 
-Dokument opisuje format wymiany danych `medfiszki/study-set` oraz zawiera gotowy
-prompt systemowy do sesji **Claude CLI**, w których przygotowujesz pakiety nauki
+Dokument opisuje format wymiany danych `mtquiz/study-set` oraz zawiera gotowy
+prompt systemowy do sesji z modelem językowym, w których przygotowujesz pakiety nauki
 na podstawie własnych skryptów, notatek i materiałów PDF.
+
+> **Szybsza droga:** zakładka **Prompt AI** w aplikacji (`/generator-promptu`) składa
+> rozbudowane polecenie dopasowane do tematu, poziomu odbiorcy, liczby fiszek i języków,
+> wraz z instrukcją obsługi dla Claude CLI, ChatGPT, Gemini i modeli lokalnych.
+> Ten plik przydaje się, gdy chcesz zrozumieć format do końca albo budować własne narzędzia.
 
 Cały plik jest przeznaczony do przekazania modelowi. Typowe użycie:
 
@@ -26,7 +31,7 @@ Co najmniej jeden z nich musi być niepusty.
 
 | Pole | Typ | Wymagane | Ograniczenia | Opis |
 |---|---|---|---|---|
-| `schema` | `string` | nie | `"medfiszki/study-set"` | Znacznik formatu; ignorowany przy imporcie, zalecany dla czytelności. |
+| `schema` | `string` | nie | `"mtquiz/study-set"` | Znacznik formatu; ignorowany przy imporcie, zalecany dla czytelności. |
 | `version` | `integer` | nie | `1` | Wersja formatu. |
 | `title` | `string` | **tak** | 1–200 znaków | Tytuł zestawu. Brak tytułu → import nada „Zaimportowany zestaw” i zgłosi ostrzeżenie. |
 | `description` | `string` | nie | ≤ 5000 znaków | Zakres materiału, źródło, uwagi dla uczącego się. |
@@ -78,12 +83,12 @@ Pytanie, w którym żaden wariant nie ma `is_correct: true`, jest **pomijane** w
 ```json
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://medfiszki.local/schemas/study-set.json",
-  "title": "medfiszki/study-set",
+  "$id": "https://mtquiz.local/schemas/study-set.json",
+  "title": "mtquiz/study-set",
   "type": "object",
   "required": ["title"],
   "properties": {
-    "schema":      { "const": "medfiszki/study-set" },
+    "schema":      { "const": "mtquiz/study-set" },
     "version":     { "type": "integer", "minimum": 1 },
     "title":       { "type": "string", "minLength": 1, "maxLength": 200 },
     "description": { "type": "string", "maxLength": 5000 },
@@ -147,15 +152,16 @@ Pytanie, w którym żaden wariant nie ma `is_correct: true`, jest **pomijane** w
 
 ---
 
-## 3. Prompt systemowy dla Claude CLI
+## 3. Prompt systemowy (uniwersalny)
 
-Skopiuj poniższy blok w całości (w aplikacji dostępny jest też przycisk
-**„Skopiuj prompt systemowy”** na stronie *Import AI*).
+Poniższy blok działa w dowolnym modelu językowym — Claude, ChatGPT, Gemini, a także
+w modelach uruchamianych lokalnie. Nie zawiera niczego specyficznego dla jednego dostawcy.
+W aplikacji rozbudowaną, parametryzowaną wersję wygenerujesz w zakładce **Prompt AI**.
 
 ```text
 Jesteś asystentem przygotowującym materiały do nauki dla studenta kierunku medycznego.
 Na podstawie dostarczonych materiałów źródłowych (PDF, skrypt, notatki z wykładu)
-utwórz pakiet nauki w formacie JSON zgodnym ze schematem "medfiszki/study-set".
+utwórz pakiet nauki w formacie JSON zgodnym ze schematem "mtquiz/study-set".
 
 === ZASADY BEZWZGLĘDNE (ochrona przed konfabulacją) ===
 1. Korzystaj WYŁĄCZNIE z treści obecnych w materiale źródłowym. Nie uzupełniaj luk
@@ -214,7 +220,7 @@ utwórz pakiet nauki w formacie JSON zgodnym ze schematem "medfiszki/study-set".
 
 === FORMAT WYJŚCIOWY ===
 {
-  "schema": "medfiszki/study-set",
+  "schema": "mtquiz/study-set",
   "version": 1,
   "title": string,
   "description": string,
@@ -283,7 +289,7 @@ Skrócona wersja zestawu pokazowego dołączonego do aplikacji
 
 ```json
 {
-  "schema": "medfiszki/study-set",
+  "schema": "mtquiz/study-set",
   "version": 1,
   "title": "Neuroanatomia — nerwy czaszkowe I–XII",
   "description": "Przebieg, otwory podstawy czaszki, funkcje oraz objawy uszkodzenia dwunastu nerwów czaszkowych.",
@@ -336,6 +342,9 @@ Skrócona wersja zestawu pokazowego dołączonego do aplikacji
 ---
 
 ## 6. Gotowe polecenia dla Claude CLI
+
+Poniższe przykłady dotyczą Claude CLI. Odpowiedniki dla pozostałych modeli
+(ChatGPT, Gemini, modele lokalne) znajdziesz w zakładce **Prompt AI** w aplikacji.
 
 **Jeden plik PDF → jeden pakiet**
 

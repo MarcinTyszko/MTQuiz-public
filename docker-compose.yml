@@ -1,10 +1,10 @@
 services:
-  medfiszki:
+  mtquiz:
     build:
       context: .
       dockerfile: Dockerfile
-    image: medfiszki:1.0.0
-    container_name: medfiszki
+    image: mtquiz:1.0.0
+    container_name: mtquiz
     restart: unless-stopped
     # Proces działa bez uprawnień administratora, z tożsamością właściciela katalogu ./data.
     # Sprawdź własne wartości poleceniem: id -u ; id -g

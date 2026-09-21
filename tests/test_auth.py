@@ -46,7 +46,7 @@ def test_zbyt_slabe_haslo_jest_odrzucane(client):
 
 def test_zmiana_hasla_uniewaznia_wydane_tokeny(client):
     register(client, "kasia", "PierwszeHaslo123")
-    token = client.cookies.get("medfiszki_session")
+    token = client.cookies.get("mtquiz_session")
     assert token
 
     client.post(
@@ -54,7 +54,7 @@ def test_zmiana_hasla_uniewaznia_wydane_tokeny(client):
         json={"current_password": "PierwszeHaslo123", "new_password": "DrugieHaslo456"},
     )
 
-    fresh_token = client.cookies.get("medfiszki_session")
+    fresh_token = client.cookies.get("mtquiz_session")
     assert fresh_token and fresh_token != token
     assert client.get("/api/auth/me").status_code == 200
 

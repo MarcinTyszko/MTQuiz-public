@@ -1,6 +1,6 @@
 # Materiały testowe
 
-Gotowe pakiety nauki w formacie `medfiszki/study-set`, służące do sprawdzenia
+Gotowe pakiety nauki w formacie `mtquiz/study-set`, służące do sprawdzenia
 wszystkich funkcji aplikacji bez czekania na własne materiały. Tematyka: **nazewnictwo
 anatomiczne w trzech językach** — łacińskim (Terminologia Anatomica), polskim i angielskim.
 

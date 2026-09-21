@@ -61,9 +61,9 @@
         <p class="font-semibold" x-text="preview.ok ? 'Pakiet jest poprawny' : 'Pakietu nie można zaimportować'"></p>
         <p class="mt-1" x-show="preview.ok">
           Rozpoznano <span class="font-semibold" x-text="preview.stats.cards"></span>
-          <span x-text="window.MedFiszki.plural(preview.stats.cards, 'fiszkę', 'fiszki', 'fiszek')"></span>
+          <span x-text="window.MTQuiz.plural(preview.stats.cards, 'fiszkę', 'fiszki', 'fiszek')"></span>
           oraz <span class="font-semibold" x-text="preview.stats.questions"></span>
-          <span x-text="window.MedFiszki.plural(preview.stats.questions, 'pytanie', 'pytania', 'pytań')"></span>.
+          <span x-text="window.MTQuiz.plural(preview.stats.questions, 'pytanie', 'pytania', 'pytań')"></span>.
         </p>
       </div>
 
@@ -168,10 +168,14 @@
   ]
 }</code></pre>
 
-    <div class="mt-4">
-      <button type="button" class="btn-secondary btn-sm" @click="copyPrompt()">Skopiuj prompt systemowy</button>
-      <p class="hint">Wklej go w sesji Claude CLI razem ze ścieżką do pliku PDF z notatkami.</p>
+    <div class="mt-4 flex flex-wrap items-center gap-2">
+      <a href="/generator-promptu" class="btn-primary btn-sm">Otwórz generator promptu</a>
+      <button type="button" class="btn-secondary btn-sm" @click="copyPrompt()">Skopiuj prompt podstawowy</button>
     </div>
+    <p class="hint">
+      Generator składa rozbudowane polecenie dopasowane do tematu, poziomu i liczby fiszek —
+      działa w Claude, ChatGPT, Gemini i modelach lokalnych.
+    </p>
   </section>
 </div>
 {% endblock %}

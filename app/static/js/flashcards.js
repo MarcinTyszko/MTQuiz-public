@@ -1,7 +1,7 @@
 /** Tryb nauki fiszkami: obrót karty, nawigacja, gesty dotykowe, statystyki sesji. */
 (function () {
   "use strict";
-  const { api, toast, shuffle, formatDuration, readJsonScript, bindSwipe } = window.MedFiszki;
+  const { api, toast, shuffle, formatDuration, readJsonScript, bindSwipe } = window.MTQuiz;
 
   function flashcardRunner() {
     return {

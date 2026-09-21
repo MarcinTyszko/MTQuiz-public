@@ -52,8 +52,8 @@ ENV PYTHONUNBUFFERED=1 \
     QUIZAPP_DATA_DIR=/data
 
 # Konto bez uprawnień administracyjnych — minimalizacja powierzchni ataku.
-RUN groupadd --gid 10001 medfiszki \
- && useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin medfiszki
+RUN groupadd --gid 10001 mtquiz \
+ && useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin mtquiz
 
 COPY --from=python-deps /opt/venv /opt/venv
 

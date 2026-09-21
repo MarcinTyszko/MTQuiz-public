@@ -1,13 +1,13 @@
 /** Import pakietów JSON: walidacja, podgląd i przekazanie danych do edytora. */
 (function () {
   "use strict";
-  const { api, toast } = window.MedFiszki;
+  const { api, toast } = window.MTQuiz;
 
-  const IMPORT_KEY = "medfiszki-import-draft";
+  const IMPORT_KEY = "mtquiz-import-draft";
 
   const SYSTEM_PROMPT = `Jesteś asystentem przygotowującym materiały do nauki dla studenta medycyny.
 Na podstawie dostarczonych materiałów źródłowych (PDF, notatki, skrypt) utwórz pakiet nauki
-w formacie JSON zgodnym ze schematem "medfiszki/study-set".
+w formacie JSON zgodnym ze schematem "mtquiz/study-set".
 
 ZASADY BEZWZGLĘDNE
 1. Korzystaj wyłącznie z treści obecnych w materiale źródłowym. Nie dodawaj faktów spoza niego.
@@ -91,7 +91,7 @@ wtedy oznacz wszystkie poprawne warianty wartością true.`;
             const warnings = this.issues("warning").length;
             toast(
               warnings
-                ? `Pakiet poprawny, ale ${warnings} ${window.MedFiszki.plural(warnings, "element wymaga", "elementy wymagają", "elementów wymaga")} uwagi.`
+                ? `Pakiet poprawny, ale ${warnings} ${window.MTQuiz.plural(warnings, "element wymaga", "elementy wymagają", "elementów wymaga")} uwagi.`
                 : "Pakiet jest poprawny.",
               warnings ? "warning" : "success"
             );

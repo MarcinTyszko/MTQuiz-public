@@ -10,11 +10,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Ustawienia środowiskowe platformy MedFiszki."""
+    """Ustawienia środowiskowe platformy MTQuiz."""
 
     model_config = SettingsConfigDict(env_file=".env", env_prefix="QUIZAPP_", extra="ignore")
 
-    app_name: str = "MedFiszki"
+    app_name: str = "MTQuiz"
     app_tagline: str = "Platforma nauki dla kierunków medycznych"
 
     # Katalog danych trwałych (montowany jako wolumen Dockera).
@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     secret_key: str = Field(default="")
     jwt_algorithm: str = "HS256"
     session_ttl_minutes: int = 60 * 24 * 14  # 14 dni
-    cookie_name: str = "medfiszki_session"
+    cookie_name: str = "mtquiz_session"
     cookie_secure: bool = False
     cookie_samesite: str = "lax"
 

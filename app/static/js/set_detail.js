@@ -1,7 +1,7 @@
 /** Akcje na stronie szczegółów zestawu: ulubione, kopiowanie, usuwanie. */
 (function () {
   "use strict";
-  const { api, toast, confirmDialog } = window.MedFiszki;
+  const { api, toast, confirmDialog } = window.MTQuiz;
 
   function setActions(initial) {
     return {

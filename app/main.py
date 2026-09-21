@@ -15,7 +15,7 @@ from .config import STATIC_DIR, settings
 from .routers import admin, auth, pages, sets, study
 from .templating import templates
 
-logger = logging.getLogger("medfiszki")
+logger = logging.getLogger("mtquiz")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
 

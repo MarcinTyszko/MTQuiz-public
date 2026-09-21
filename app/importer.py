@@ -630,7 +630,7 @@ def normalise_payload(raw: Any, *, default_visibility: Visibility | None = None)
 def export_payload(study_set: Any) -> dict[str, Any]:
     """Serializuje zestaw do kanonicznego formatu wymiany JSON."""
     return {
-        "schema": "medfiszki/study-set",
+        "schema": "mtquiz/study-set",
         "version": 1,
         "title": study_set.title,
         "description": study_set.description,

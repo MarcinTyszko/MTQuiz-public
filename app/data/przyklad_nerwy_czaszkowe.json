@@ -1,5 +1,5 @@
 {
-  "schema": "medfiszki/study-set",
+  "schema": "mtquiz/study-set",
   "version": 1,
   "title": "Neuroanatomia — nerwy czaszkowe I–XII",
   "description": "Przykładowy zestaw pokazowy: przebieg, otwory podstawy czaszki, funkcje oraz objawy uszkodzenia dwunastu nerwów czaszkowych. Materiał przygotowany jako wzorzec formatu importu JSON.",

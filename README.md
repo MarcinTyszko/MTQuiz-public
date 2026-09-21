@@ -1,4 +1,4 @@
-<h1 align="center">MedFiszki</h1>
+<h1 align="center">MTQuiz</h1>
 
 <p align="center">
   Samohostowana platforma nauki — fiszki i quizy dla wymagającego materiału akademickiego.
@@ -12,7 +12,7 @@
   <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white">
   <img alt="Docker" src="https://img.shields.io/badge/Docker-compose-2496ED?logo=docker&logoColor=white">
   <img alt="Licencja MIT" src="https://img.shields.io/badge/licencja-MIT-green">
-  <img alt="Testy" src="https://img.shields.io/badge/testy-90%20pytest-brightgreen">
+  <img alt="Testy" src="https://img.shields.io/badge/testy-111%20pytest-brightgreen">
 </p>
 
 ---
@@ -70,6 +70,15 @@ od razu zmienić) · gotowe materiały do testów: [`przyklady/`](przyklady/).
   fiszek oraz pytań, walidacja przed zapisem, ostrzeżenie przed utratą zmian.
 - Eksport i import pojedynczego zestawu w formacie JSON.
 
+**Generator promptu AI**
+- Kreator w zakładce **Prompt AI**: ustawiasz temat, poziom odbiorcy, liczbę fiszek i pytań,
+  języki oraz rygor źródeł, a aplikacja składa gotowe do wklejenia polecenie.
+- Prompt sam opisuje modelowi strukturę pliku JSON — nie trzeba dołączać dokumentacji.
+- Neutralny wobec dostawcy: **Claude CLI, Claude w przeglądarce, ChatGPT, Gemini** oraz modele
+  lokalne, z osobną instrukcją obsługi dla każdego z nich.
+- Rozbudowany blok zasad ograniczających konfabulację: zakaz wymyślania dawek i wartości
+  referencyjnych, wymóg pomijania zagadnień niepewnych, opcjonalne wskazanie źródła w każdej fiszce.
+
 **Silnik importu AI**
 - Wgranie pliku `.json` (przeciągnij i upuść) albo wklejenie treści.
 - Parser odporny na typowe odstępstwa modeli językowych: bloki ```` ```json ````,
@@ -107,8 +116,8 @@ od razu zmienić) · gotowe materiały do testów: [`przyklady/`](przyklady/).
 potrzebne wyłącznie do pracy nad kodem.
 
 ```bash
-git clone <adres-repozytorium> medfiszki
-cd medfiszki
+git clone <adres-repozytorium> mtquiz
+cd mtquiz
 
 # 1. Konfiguracja
 cp .env.example .env
@@ -144,7 +153,7 @@ Zatrzymanie i aktualizacja:
 ```bash
 docker compose down                 # zatrzymanie (dane w ./data pozostają)
 git pull && docker compose up -d --build   # aktualizacja do nowej wersji
-docker compose logs -f medfiszki    # podgląd logów
+docker compose logs -f mtquiz    # podgląd logów
 ```
 
 ---
@@ -194,7 +203,7 @@ Wszystkie ustawienia przekazywane są zmiennymi środowiskowymi z przedrostkiem
 | `QUIZAPP_BOOTSTRAP_ADMIN_PASSWORD` | `admin` | Hasło startowe (i tak wymaga zmiany przy pierwszym logowaniu). |
 | `QUIZAPP_MAX_UPLOAD_BYTES` | `26214400` | Limit rozmiaru importowanego pliku JSON (25 MB). |
 | `QUIZAPP_MAX_RESTORE_BYTES` | `536870912` | Limit rozmiaru przywracanej kopii (512 MB). |
-| `QUIZAPP_APP_NAME` | `MedFiszki` | Nazwa instancji w interfejsie. |
+| `QUIZAPP_APP_NAME` | `MTQuiz` | Nazwa instancji w interfejsie. |
 
 ### Praca za odwrotnym proxy
 
@@ -221,8 +230,11 @@ Przy HTTPS ustaw dodatkowo `QUIZAPP_COOKIE_SECURE=true`.
 
 ## Import materiału z Claude CLI
 
-Pełna specyfikacja formatu oraz gotowy prompt systemowy znajdują się w pliku
-**[`AI_SCHEMA.md`](AI_SCHEMA.md)**. Skrócony przebieg:
+Najszybsza droga prowadzi przez zakładkę **Prompt AI** (`/generator-promptu`): ustawiasz
+parametry materiału, kopiujesz wygenerowane polecenie i wklejasz je do dowolnego modelu.
+Pełna specyfikacja formatu znajduje się w pliku **[`AI_SCHEMA.md`](AI_SCHEMA.md)**.
+
+Skrócony przebieg z wiersza poleceń:
 
 ```bash
 # 1. Wygenerowanie pakietu z notatek
@@ -268,7 +280,7 @@ Aplikacja tworzy spójną migawkę bazy (API `sqlite3.backup`, bezpieczne nawet 
 zapisu) i pakuje ją w archiwum ZIP zawierające:
 
 ```
-medfiszki-backup-RRRRMMDD-GGMMSS.zip
+mtquiz-backup-RRRRMMDD-GGMMSS.zip
 ├── quizapp.db      # kompletna baza danych
 └── manifest.json   # data utworzenia, rozmiar, liczności tabel
 ```
@@ -280,26 +292,26 @@ Archiwum trafia jednocześnie do przeglądarki i do katalogu `./data/backups/`
 
 ```bash
 # Migawka bez zatrzymywania aplikacji
-docker compose exec medfiszki \
+docker compose exec mtquiz \
   python -c "from app.backup import create_backup_archive; print(create_backup_archive()[0])"
 
 # Skopiowanie archiwów na maszynę kopii zapasowych
-rsync -av ./data/backups/ kopie@nas:/wolumen/medfiszki/
+rsync -av ./data/backups/ kopie@nas:/wolumen/mtquiz/
 ```
 
 Do zadania w `cron` (codziennie o 3:00):
 
 ```cron
-0 3 * * * cd /opt/medfiszki && docker compose exec -T medfiszki \
-  python -c "from app.backup import create_backup_archive; create_backup_archive()" >> /var/log/medfiszki-backup.log 2>&1
+0 3 * * * cd /opt/mtquiz && docker compose exec -T mtquiz \
+  python -c "from app.backup import create_backup_archive; create_backup_archive()" >> /var/log/mtquiz-backup.log 2>&1
 ```
 
 Najprostszy wariant przy zatrzymanej aplikacji to zwykłe skopiowanie katalogu:
 
 ```bash
-docker compose stop medfiszki
-tar czf medfiszki-$(date +%F).tar.gz ./data
-docker compose start medfiszki
+docker compose stop mtquiz
+tar czf mtquiz-$(date +%F).tar.gz ./data
+docker compose start mtquiz
 ```
 
 ### Przywracanie
@@ -311,16 +323,16 @@ docker compose start medfiszki
 3. Aplikacja weryfikuje plik przed nadpisaniem: nagłówek SQLite, `PRAGMA integrity_check`,
    obecność wymaganych tabel oraz istnienie co najmniej jednego konta administratora.
 4. Stan sprzed operacji zapisywany jest automatycznie jako
-   `./data/backups/medfiszki-przed-przywroceniem-*.db`.
+   `./data/backups/mtquiz-przed-przywroceniem-*.db`.
 5. Po przywróceniu zaloguj się ponownie — tokeny sesji pochodzą z przywróconej bazy.
 
 Przywracanie z powłoki (przy zatrzymanej aplikacji):
 
 ```bash
-docker compose stop medfiszki
-unzip -o medfiszki-backup-20260921-030000.zip quizapp.db -d ./data
+docker compose stop mtquiz
+unzip -o mtquiz-backup-20260921-030000.zip quizapp.db -d ./data
 rm -f ./data/quizapp.db-wal ./data/quizapp.db-shm
-docker compose start medfiszki
+docker compose start mtquiz
 ```
 
 > **Uwaga:** przywrócenie zastępuje wszystkie dane — konta, zestawy i historię nauki.
@@ -328,6 +340,33 @@ docker compose start medfiszki
 > bezpieczeństwa z katalogu `./data/backups/`.
 
 ---
+
+## Narzędzia administracyjne (wiersz poleceń)
+
+Moduł `app.cli` pozwala odzyskać dostęp i wykonać kopię bez wchodzenia do interfejsu.
+
+```bash
+# lista kont wraz ze stanem
+docker compose exec mtquiz python -m app.cli konta
+
+# przywrócenie konta admin do hasła startowego "admin"
+# (aplikacja poprosi o ustawienie własnego hasła przy pierwszym logowaniu)
+docker compose exec mtquiz python -m app.cli reset-admina
+
+# własne hasło zamiast startowego
+docker compose exec mtquiz python -m app.cli reset-admina --haslo TwojeNoweHaslo123
+
+# odzyskanie innego konta i nadanie mu uprawnień administratora
+docker compose exec mtquiz python -m app.cli reset-admina --login marcin
+
+# nowe konto administratora z losowym hasłem
+docker compose exec mtquiz python -m app.cli utworz-admina zapasowy
+
+# kopia zapasowa do ./data/backups
+docker compose exec mtquiz python -m app.cli kopia-zapasowa
+```
+
+Przy pracy lokalnej zamiast `docker compose exec mtquiz` użyj `.venv/bin/python`.
 
 ## Praca nad kodem
 
@@ -381,6 +420,7 @@ Każdy test pracuje na własnej, tymczasowej bazie.
 │   ├── importer.py         # uniwersalny parser pakietów JSON
 │   ├── backup.py           # kopie zapasowe i przywracanie bazy
 │   ├── bootstrap.py        # konto startowe i zestaw pokazowy
+│   ├── cli.py              # narzędzia administracyjne wiersza poleceń
 │   ├── templating.py       # Jinja2: filtry, wersjonowanie zasobów
 │   ├── routers/            # auth, sets, study, admin, pages
 │   ├── templates/          # widoki HTML
@@ -436,23 +476,15 @@ sesji albo nagłówkiem `Authorization: Bearer <token>`.
 ## Rozwiązywanie problemów
 
 **Nie mogę się zalogować na konto `admin`.**
-Konto startowe powstaje tylko wtedy, gdy w bazie nie ma żadnego administratora.
-Sprawdź dziennik: `docker compose logs medfiszki | grep bootstrap`. Jeżeli hasło
-zostało utracone, zatrzymaj kontener i zresetuj hasło bezpośrednio w bazie:
+Konto startowe powstaje tylko wtedy, gdy w bazie nie ma żadnego administratora, a jego hasło
+mogło zostać wcześniej zmienione. Przywróć hasło startowe jednym poleceniem:
 
 ```bash
-docker compose exec medfiszki python - <<'EOF'
-from app.database import session_scope
-from app.models import User
-from app.security import hash_password
-from sqlalchemy import select
-with session_scope() as db:
-    user = db.scalar(select(User).where(User.username == "admin"))
-    user.password_hash = hash_password("tymczasoweHaslo123")
-    user.must_change_password = True
-    user.is_active = True
-EOF
+docker compose exec mtquiz python -m app.cli reset-admina
 ```
+
+Następnie zaloguj się jako `admin` / `admin` — aplikacja od razu poprosi o ustawienie własnego
+hasła. Listę wszystkich kont pokaże `python -m app.cli konta`.
 
 **Kontener zatrzymuje się z komunikatem „Brak prawa zapisu do katalogu danych”.**
 Proces w kontenerze ma inne UID niż właściciel katalogu `./data`. Ustaw w pliku `.env`:

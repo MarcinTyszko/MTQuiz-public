@@ -66,7 +66,7 @@ def create_backup_archive() -> tuple[Path, dict]:
     """Buduje archiwum ZIP z migawką bazy i manifestem. Zwraca ścieżkę i manifest."""
     settings.ensure_directories()
     stamp = _timestamp()
-    archive_path = settings.backup_dir / f"medfiszki-backup-{stamp}.zip"
+    archive_path = settings.backup_dir / f"mtquiz-backup-{stamp}.zip"
 
     with tempfile.TemporaryDirectory() as tmp:
         snapshot = Path(tmp) / ARCHIVE_DB_NAME
@@ -74,7 +74,7 @@ def create_backup_archive() -> tuple[Path, dict]:
 
         manifest = {
             "application": settings.app_name,
-            "schema": "medfiszki/backup",
+            "schema": "mtquiz/backup",
             "version": 1,
             "created_at": datetime.now(timezone.utc).isoformat(),
             "database_file": ARCHIVE_DB_NAME,
@@ -91,8 +91,16 @@ def create_backup_archive() -> tuple[Path, dict]:
 
 
 def _prune_old_backups(keep: int = 10) -> None:
-    """Zachowuje wyłącznie `keep` najnowszych archiwów w katalogu kopii."""
-    archives = sorted(settings.backup_dir.glob("medfiszki-backup-*.zip"), key=lambda p: p.stat().st_mtime, reverse=True)
+    """Zachowuje wyłącznie `keep` najnowszych archiwów w katalogu kopii.
+
+    Uwzględnia również archiwa spod dawnej nazwy produktu, aby po zmianie
+    nazwy katalog kopii nie rósł w nieskończoność.
+    """
+    kandydaci = [
+        *settings.backup_dir.glob("mtquiz-backup-*.zip"),
+        *settings.backup_dir.glob("medfiszki-backup-*.zip"),
+    ]
+    archives = sorted(kandydaci, key=lambda p: p.stat().st_mtime, reverse=True)
     for stale in archives[keep:]:
         try:
             stale.unlink()
@@ -186,7 +194,7 @@ def restore_from_bytes(raw: bytes) -> dict:
         candidate = _extract_database(raw, workdir)
         table_stats = _validate_database_file(candidate)
 
-        safety_copy = settings.backup_dir / f"medfiszki-przed-przywroceniem-{_timestamp()}.db"
+        safety_copy = settings.backup_dir / f"mtquiz-przed-przywroceniem-{_timestamp()}.db"
         if settings.database_path.exists():
             snapshot_database(safety_copy)
 

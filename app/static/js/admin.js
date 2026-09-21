@@ -1,7 +1,7 @@
 /** Panel administratora: konta, moderacja, kopie zapasowe i dziennik zdarzeń. */
 (function () {
   "use strict";
-  const { api, toast, confirmDialog } = window.MedFiszki;
+  const { api, toast, confirmDialog } = window.MTQuiz;
 
   function adminPanel() {
     return {
@@ -210,7 +210,7 @@
           const url = URL.createObjectURL(blob);
           const link = document.createElement("a");
           link.href = url;
-          link.download = match ? match[1] : "medfiszki-backup.zip";
+          link.download = match ? match[1] : "mtquiz-backup.zip";
           document.body.appendChild(link);
           link.click();
           link.remove();

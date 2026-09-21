@@ -1,7 +1,7 @@
 /** Formularze logowania, rejestracji i zmiany hasła (komponenty Alpine.js). */
 (function () {
   "use strict";
-  const { api, toast } = window.MedFiszki;
+  const { api, toast } = window.MTQuiz;
 
   function authForm(isRegister, nextUrl) {
     return {

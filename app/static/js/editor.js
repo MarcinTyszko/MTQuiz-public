@@ -1,9 +1,9 @@
 /** Edytor zestawów: metadane, fiszki, pytania quizowe i zapis do API. */
 (function () {
   "use strict";
-  const { api, toast } = window.MedFiszki;
+  const { api, toast } = window.MTQuiz;
 
-  const IMPORT_KEY = "medfiszki-import-draft";
+  const IMPORT_KEY = "mtquiz-import-draft";
   let keyCounter = 0;
   const nextKey = () => `k${(keyCounter += 1)}`;
 
@@ -252,5 +252,5 @@
   }
 
   window.setEditor = setEditor;
-  window.MEDFISZKI_IMPORT_KEY = IMPORT_KEY;
+  window.MTQUIZ_IMPORT_KEY = IMPORT_KEY;
 })();

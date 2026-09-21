@@ -12,7 +12,7 @@
     // Ustawienie motywu przed pierwszym renderowaniem — eliminuje mignięcie jasnego tła.
     (function () {
       try {
-        var stored = localStorage.getItem('medfiszki-theme');
+        var stored = localStorage.getItem('mtquiz-theme');
         var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         if (stored === 'dark' || (stored !== 'light' && prefersDark)) {
           document.documentElement.classList.add('dark');

@@ -5,7 +5,7 @@
 (function () {
   "use strict";
 
-  const THEME_KEY = "medfiszki-theme";
+  const THEME_KEY = "mtquiz-theme";
 
   /* ----------------------------------------------------------------------- */
   /* Motyw jasny / ciemny                                                     */
@@ -249,6 +249,59 @@
   }
 
   /* ----------------------------------------------------------------------- */
+  /* Schowek                                                                  */
+  /* ----------------------------------------------------------------------- */
+  /**
+   * Kopiuje tekst do schowka. Korzysta z Clipboard API, a gdy przeglądarka je
+   * zablokuje (brak HTTPS, brak zgody) — z awaryjnego pola tekstowego.
+   */
+  async function copyToClipboard(text, { successMessage = "Skopiowano do schowka.", errorMessage = "Nie udało się skopiować — zaznacz tekst i użyj Ctrl+C." } = {}) {
+    if (!text) return false;
+
+    try {
+      await navigator.clipboard.writeText(text);
+      toast(successMessage, "success", 2400);
+      return true;
+    } catch (error) {
+      /* Przechodzimy do wariantu awaryjnego poniżej. */
+    }
+
+    const area = document.createElement("textarea");
+    area.value = text;
+    area.setAttribute("readonly", "");
+    area.style.position = "fixed";
+    area.style.top = "-1000px";
+    area.style.opacity = "0";
+    document.body.appendChild(area);
+    area.select();
+    area.setSelectionRange(0, text.length);
+
+    let skopiowano = false;
+    try {
+      skopiowano = document.execCommand("copy");
+    } catch (error) {
+      skopiowano = false;
+    }
+    area.remove();
+
+    toast(skopiowano ? successMessage : errorMessage, skopiowano ? "success" : "error", skopiowano ? 2400 : 5000);
+    return skopiowano;
+  }
+
+  /** Udostępnia tekst jako plik do pobrania. */
+  function downloadText(filename, text, mimeType = "text/plain;charset=utf-8") {
+    const blob = new Blob([text], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  /* ----------------------------------------------------------------------- */
   /* Narzędzia współdzielone                                                  */
   /* ----------------------------------------------------------------------- */
   function shuffle(items) {
@@ -322,7 +375,7 @@
     };
   }
 
-  window.MedFiszki = {
+  window.MTQuiz = {
     api,
     ApiError,
     toast,
@@ -333,5 +386,7 @@
     readJsonScript,
     bindSwipe,
     confirmDialog,
+    copyToClipboard,
+    downloadText,
   };
 })();

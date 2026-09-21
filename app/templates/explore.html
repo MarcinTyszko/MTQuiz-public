@@ -10,7 +10,7 @@
       <p class="mt-1 text-sm text-ink-600 dark:text-ink-300">Zestawy udostępnione przez społeczność tej instancji.</p>
     </div>
     <p class="text-sm text-ink-500 dark:text-ink-400" x-show="!loading" x-cloak>
-      <span x-text="items.length"></span> <span x-text="window.MedFiszki.plural(items.length, 'zestaw', 'zestawy', 'zestawów')"></span>
+      <span x-text="items.length"></span> <span x-text="window.MTQuiz.plural(items.length, 'zestaw', 'zestawy', 'zestawów')"></span>
     </p>
   </div>
 
@@ -93,8 +93,8 @@
         </div>
 
         <div class="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-ink-500 dark:text-ink-400">
-          <span><span x-text="item.cards_count"></span> <span x-text="window.MedFiszki.plural(item.cards_count, 'fiszka', 'fiszki', 'fiszek')"></span></span>
-          <span><span x-text="item.questions_count"></span> <span x-text="window.MedFiszki.plural(item.questions_count, 'pytanie', 'pytania', 'pytań')"></span></span>
+          <span><span x-text="item.cards_count"></span> <span x-text="window.MTQuiz.plural(item.cards_count, 'fiszka', 'fiszki', 'fiszek')"></span></span>
+          <span><span x-text="item.questions_count"></span> <span x-text="window.MTQuiz.plural(item.questions_count, 'pytanie', 'pytania', 'pytań')"></span></span>
           <span x-show="item.favorites_count">★ <span x-text="item.favorites_count"></span></span>
           <span x-show="item.fork_count">⑂ <span x-text="item.fork_count"></span></span>
         </div>

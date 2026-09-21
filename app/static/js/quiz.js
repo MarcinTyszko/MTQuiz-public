@@ -1,7 +1,7 @@
 /** Silnik quizu: tryb nauki i egzaminu, limit czasu, punktacja i omówienie. */
 (function () {
   "use strict";
-  const { api, toast, shuffle, formatDuration, readJsonScript, confirmDialog } = window.MedFiszki;
+  const { api, toast, shuffle, formatDuration, readJsonScript, confirmDialog } = window.MTQuiz;
 
   function quizRunner() {
     return {
