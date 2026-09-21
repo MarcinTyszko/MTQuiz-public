@@ -1,7 +1,7 @@
 <h1 align="center">MTQuiz</h1>
 
 <p align="center">
-  Samohostowana platforma nauki — fiszki i quizy dla wymagającego materiału akademickiego.
+  Samohostowana platforma do nauki — fiszki i quizy z dowolnego przedmiotu.
 </p>
 
 <p align="center">
@@ -12,14 +12,15 @@
   <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white">
   <img alt="Docker" src="https://img.shields.io/badge/Docker-compose-2496ED?logo=docker&logoColor=white">
   <img alt="Licencja MIT" src="https://img.shields.io/badge/licencja-MIT-green">
-  <img alt="Testy" src="https://img.shields.io/badge/testy-122%20pytest-brightgreen">
+  <img alt="Testy" src="https://img.shields.io/badge/testy-125%20pytest-brightgreen">
 </p>
 
 ---
 
-Alternatywa dla Quizleta przygotowana pod rygorystyczną naukę akademicką (medycyna,
-farmacja, kierunki przyrodnicze). Dane pozostają na Twoim serwerze, a materiał możesz
-generować modelem językowym z własnych notatek i skryptów PDF.
+Alternatywa dla Quizleta, którą uruchamiasz na własnym serwerze. Tworzysz zestawy fiszek
+i pytań testowych — ręcznie w edytorze albo generując je modelem językowym z własnych
+notatek i plików PDF. Nadaje się tak samo do anatomii, prawa cywilnego, Kubernetesa,
+historii i nauki języka obcego. Dane nie opuszczają Twojej maszyny.
 
 ```
 FastAPI + SQLAlchemy 2 + SQLite   ·   Jinja2 + Tailwind CSS + Alpine.js   ·   Docker
@@ -247,7 +248,7 @@ Skrócony przebieg z wiersza poleceń:
 # 1. Wygenerowanie pakietu z notatek
 claude -p "$(cat AI_SCHEMA.md)
 
-Przetwórz plik ./materialy/neuroanatomia-wyklad-03.pdf. Zwróć wyłącznie JSON." \
+Przetwórz plik ./materialy/wyklad-03.pdf. Zwróć wyłącznie JSON." \
   > pakiet.json
 
 # 2. Szybka kontrola składni
@@ -533,9 +534,7 @@ generowanym w katalogu danych.
 
 ## Współpraca
 
-Wskazówki dla osób zgłaszających zmiany znajdują się w pliku
-[`CONTRIBUTING.md`](CONTRIBUTING.md). Najważniejsza zasada: **językiem projektu jest polski**
-— dotyczy to interfejsu, komentarzy w kodzie, nazw testów i dokumentacji.
+Wskazówki dla osób zgłaszających zmiany: [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Licencja
 

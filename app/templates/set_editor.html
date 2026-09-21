@@ -39,15 +39,18 @@
     <div class="grid gap-4 sm:grid-cols-2">
       <div class="sm:col-span-2">
         <label class="label" for="set-title">Tytuł <span class="text-rose-500">*</span></label>
-        <input id="set-title" class="input" x-model="meta.title" maxlength="200" placeholder="np. Farmakologia — leki przeciwpadaczkowe">
+        <input id="set-title" class="input" x-model="meta.title" maxlength="200" placeholder="np. Prawo cywilne — wady oświadczenia woli">
       </div>
       <div>
         <label class="label" for="set-subject">Przedmiot</label>
-        <input id="set-subject" class="input" x-model="meta.subject" maxlength="120" placeholder="np. Farmakologia" list="subject-suggestions">
+        <input id="set-subject" class="input" x-model="meta.subject" maxlength="120" placeholder="np. Prawo cywilne" list="subject-suggestions">
         <datalist id="subject-suggestions">
-          <option value="Anatomia"></option><option value="Fizjologia"></option><option value="Biochemia"></option>
-          <option value="Farmakologia"></option><option value="Patofizjologia"></option><option value="Mikrobiologia"></option>
-          <option value="Histologia"></option><option value="Interna"></option><option value="Chirurgia"></option>
+          <option value="Anatomia"></option><option value="Biologia"></option><option value="Chemia"></option>
+          <option value="Fizyka"></option><option value="Matematyka"></option><option value="Farmakologia"></option>
+          <option value="Prawo cywilne"></option><option value="Prawo karne"></option><option value="Ekonomia"></option>
+          <option value="Historia"></option><option value="Geografia"></option><option value="Filozofia"></option>
+          <option value="Programowanie"></option><option value="Sieci komputerowe"></option><option value="Bazy danych"></option>
+          <option value="Język angielski"></option><option value="Język niemiecki"></option><option value="Język hiszpański"></option>
         </datalist>
       </div>
       <div>
@@ -74,7 +77,7 @@
           </template>
         </div>
         <input id="set-tags" class="input mt-2" x-model="tagDraft" @keydown.enter.prevent="addTag()" @keydown.,.prevent="addTag()"
-               placeholder="Wpisz tag i naciśnij Enter (np. Neuroanatomia)">
+               placeholder="Wpisz tag i naciśnij Enter (np. Powtórka przed kolokwium)">
         <p class="hint">Maksymalnie 20 tagów. Ułatwiają wyszukiwanie w bazie publicznej.</p>
       </div>
     </div>
@@ -110,7 +113,7 @@
         <div class="mt-3 grid gap-3 sm:grid-cols-2">
           <div>
             <label class="label">Awers — pojęcie / pytanie <span class="text-rose-500">*</span></label>
-            <textarea class="input" rows="3" x-model="card.front" placeholder="np. Nerw czaszkowy VII — funkcje"></textarea>
+            <textarea class="input" rows="3" x-model="card.front" placeholder="np. Czym jest wada oświadczenia woli"></textarea>
           </div>
           <div>
             <label class="label">Rewers — definicja / kontekst kliniczny <span class="text-rose-500">*</span></label>
@@ -136,7 +139,7 @@
 
     <div class="flex flex-wrap gap-2">
       <button type="button" class="btn-secondary" @click="addCard()">+ Dodaj fiszkę</button>
-      <a href="/zestawy/import" class="btn-ghost">Import z JSON</a>
+      <a href="/zestawy/import" class="btn-ghost">Import pliku JSON</a>
     </div>
   </section>
 

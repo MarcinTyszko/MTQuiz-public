@@ -2,15 +2,15 @@
 
 Dziękuję za zainteresowanie. Poniżej krótki przewodnik, jak zgłaszać zmiany.
 
-## Zasady ogólne
+## Konwencje
 
-- **Językiem projektu jest polski** — dotyczy to tekstów interfejsu, komunikatów
-  błędów, komentarzy w kodzie, docstringów, nazw testów i dokumentacji.
-  Wyjątkiem są identyfikatory techniczne formatu wymiany JSON (`front`, `back`,
-  `is_correct`, `visibility`), które muszą pozostać stabilne.
+- Teksty interfejsu, komunikaty błędów, komentarze, docstringi, nazwy testów
+  i dokumentacja są po polsku. Identyfikatory techniczne formatu wymiany JSON
+  (`front`, `back`, `is_correct`, `visibility`) zostają bez zmian — są częścią
+  kontraktu z importem.
 - Ścieżki widoków HTML są polskie (`/pulpit`, `/baza-publiczna`, `/zestawy/{id}/fiszki`),
   ścieżki API angielskie (`/api/sets`, `/api/study/sessions`).
-- Nie zostawiaj komentarzy `TODO` ani niedokończonych funkcji na gałęzi `main`.
+- Bez komentarzy `TODO` i niedokończonych funkcji na gałęzi `main`.
 
 ## Środowisko
 

@@ -16,7 +16,7 @@ Cały plik jest przeznaczony do przekazania modelowi. Typowe użycie:
 ```bash
 claude -p "$(cat AI_SCHEMA.md)
 
-Przetwórz materiał: ./materialy/neuroanatomia-wyklad-03.pdf" > pakiet.json
+Przetwórz materiał: ./materialy/wyklad-03.pdf" > pakiet.json
 ```
 
 Następnie zaimportuj `pakiet.json` w aplikacji: **Import AI → Plik .json → Sprawdź pakiet**.
@@ -37,7 +37,7 @@ Co najmniej jeden z nich musi być niepusty.
 | `version` | `integer` | nie | `1` | Wersja formatu. |
 | `title` | `string` | **tak** | 1–200 znaków | Tytuł zestawu. Brak tytułu → import nada „Zaimportowany zestaw” i zgłosi ostrzeżenie. |
 | `description` | `string` | nie | ≤ 5000 znaków | Zakres materiału, źródło, uwagi dla uczącego się. |
-| `subject` | `string` | nie | ≤ 120 znaków | Przedmiot wiodący, np. `Anatomia`, `Farmakologia`. |
+| `subject` | `string` | nie | ≤ 120 znaków | Przedmiot wiodący, np. `Anatomia`, `Prawo cywilne`, `Sieci komputerowe`. |
 | `tags` | `string[]` | nie | ≤ 20 pozycji, każda ≤ 64 znaki | Tagi tematyczne. Duplikaty (bez względu na wielkość liter) są scalane. |
 | `visibility` | `"private" \| "public"` | nie | domyślnie `"private"` | Widoczność po imporcie. |
 | `cards` | `Flashcard[]` | warunkowo | ≤ 5000 pozycji | Fiszki. |
@@ -50,7 +50,7 @@ Co najmniej jeden z nich musi być niepusty.
 | Pole | Typ | Wymagane | Ograniczenia | Opis |
 |---|---|---|---|---|
 | `front` | `string` | **tak** | 1–8000 znaków | Awers: pojęcie, pytanie lub polecenie. |
-| `back` | `string` | **tak** | 1–20000 znaków | Rewers: pełna odpowiedź wraz z kontekstem klinicznym. |
+| `back` | `string` | **tak** | 1–20000 znaków | Rewers: pełna odpowiedź wraz z niezbędnym kontekstem. |
 | `hint` | `string` | nie | ≤ 4000 znaków | Wskazówka odsłaniana na życzenie podczas nauki. |
 | `note` | `string` | nie | ≤ 8000 znaków | Notatka dodatkowa: pułapka egzaminacyjna, mnemotechnika, odsyłacz do materiału. |
 
@@ -161,7 +161,7 @@ w modelach uruchamianych lokalnie. Nie zawiera niczego specyficznego dla jednego
 W aplikacji rozbudowaną, parametryzowaną wersję wygenerujesz w zakładce **Prompt AI**.
 
 ```text
-Jesteś asystentem przygotowującym materiały do nauki dla studenta kierunku medycznego.
+Jesteś asystentem przygotowującym materiały do nauki.
 Na podstawie dostarczonych materiałów źródłowych (PDF, skrypt, notatki z wykładu)
 utwórz pakiet nauki w formacie JSON zgodnym ze schematem "mtquiz/study-set".
 
@@ -170,13 +170,12 @@ utwórz pakiet nauki w formacie JSON zgodnym ze schematem "mtquiz/study-set".
    wiedzą własną, nawet jeśli jesteś jej pewien.
 2. Jeżeli materiał nie pozwala sformułować jednoznacznej odpowiedzi, pomiń
    zagadnienie. Lepszy jest krótszy pakiet niż pakiet z błędem merytorycznym.
-3. Nie wymyślaj: dawek leków, wartości referencyjnych badań, odsetków, nazw
-   handlowych, nazwisk, dat, numerów wytycznych ani odsyłaczy do piśmiennictwa.
-   Przenoś je wyłącznie dosłownie z materiału.
+3. Nie wymyślaj liczb, wartości, dat, nazwisk, oznaczeń, numerów przepisów ani
+   odsyłaczy do piśmiennictwa. Przenoś je wyłącznie dosłownie z materiału.
 4. Nie łącz faktów z różnych fragmentów w nowy wniosek, którego materiał nie
    formułuje wprost.
-5. Zachowaj terminologię i nazewnictwo (polskie oraz łacińskie) dokładnie takie,
-   jakie występuje w materiale źródłowym.
+5. Zachowaj terminologię i nazewnictwo dokładnie takie, jakie występuje
+   w materiale źródłowym — łącznie z formami obcojęzycznymi, jeżeli tam są.
 6. Odpowiedz WYŁĄCZNIE obiektem JSON. Bez zdania wstępu, bez podsumowania,
    bez bloków ```json, bez komentarzy w treści.
 
@@ -186,25 +185,24 @@ utwórz pakiet nauki w formacie JSON zgodnym ze schematem "mtquiz/study-set".
   „Co wiesz o…?”. Pytaj o konkret: mechanizm, kryterium, wartość, różnicę.
 - "back": pełna, samodzielna odpowiedź w 1–3 zdaniach. Musi dać się zrozumieć
   bez zaglądania do awersu.
-- Priorytet materiału wysokowydajnego: mechanizmy działania, kryteria
-  rozpoznania, objawy patognomoniczne, cechy różnicujące, wyjątki od reguły,
-  klasyfikacje, powikłania.
+- Priorytet materiału wysokowydajnego: mechanizmy, kryteria rozstrzygające,
+  cechy różnicujące, klasyfikacje, wyjątki od reguły i następstwa.
 - Pomijaj treści organizacyjne (plan wykładu, literatura, podziękowania).
 - "hint": krótka podpowiedź naprowadzająca (kategoria, pierwsza litera,
   mnemotechnika) — nigdy nie zawiera pełnej odpowiedzi.
-- "note": pułapka egzaminacyjna, kontekst kliniczny lub powiązanie z inną partią
+- "note": pułapka egzaminacyjna, kontekst praktyczny lub powiązanie z inną partią
   materiału.
 
 === JAK BUDOWAĆ PYTANIA QUIZOWE ===
-- Styl egzaminu państwowego (LEK / LDEK): krótka winieta kliniczna albo precyzyjne
-  pytanie o fakt, zawsze dokładnie jeden problem do rozstrzygnięcia.
+- Styl egzaminacyjny: krótki opis sytuacji albo precyzyjne pytanie o fakt,
+  zawsze dokładnie jeden problem do rozstrzygnięcia.
 - Dokładnie 4 warianty odpowiedzi, chyba że materiał wymusza inną liczbę.
 - Dokładnie jedna odpowiedź poprawna. Jeżeli pytanie z natury wymaga kilku,
   napisz to w treści ("Zaznacz wszystkie prawidłowe") i ustaw is_correct: true
   dla każdego poprawnego wariantu.
 - Dystraktory muszą być prawdopodobne i pochodzić z tej samej kategorii
-  pojęciowej co odpowiedź poprawna (np. same nerwy, same leki, same enzymy).
-  Nie twórz wariantów oczywiście absurdalnych.
+  pojęciowej co odpowiedź poprawna (same instytucje prawne, same pierwiastki,
+  same polecenia). Nie twórz wariantów oczywiście absurdalnych.
 - Warianty podobnej długości i konstrukcji gramatycznej. Nie stosuj
   „wszystkie powyższe” ani „żadne z powyższych”.
 - "explanation": wyjaśnia, dlaczego poprawna odpowiedź jest poprawna — odwołuje
@@ -216,7 +214,7 @@ utwórz pakiet nauki w formacie JSON zgodnym ze schematem "mtquiz/study-set".
 - Domyślnie: 15–40 fiszek i 8–15 pytań na typowy wykład (20–40 slajdów).
 - Przy obszerniejszym materiale rozbij go na kilka pakietów tematycznych,
   każdy z własnym tytułem — nie twórz jednego zestawu na 300 fiszek.
-- "tags": 2–5 tagów opisujących temat (np. "Neuroanatomia", "Nerwy czaszkowe").
+- "tags": 2–5 tagów opisujących temat.
 - "subject": jeden przedmiot wiodący.
 - "visibility": zawsze "private", chyba że polecenie mówi inaczej.
 
@@ -286,8 +284,9 @@ fiszki i jakiegokolwiek poprawnego pytania.
 
 ## 5. Przykład poprawnego pakietu
 
-Skrócona wersja zestawu pokazowego dołączonego do aplikacji
-(pełny plik: `app/data/przyklad_nerwy_czaszkowe.json`).
+Przykład pochodzi z anatomii, ale format jest niezależny od dziedziny — te same pola
+opisują fiszki z prawa, programowania czy nauki języka. Skrócona wersja zestawu pokazowego
+dołączonego do aplikacji (pełny plik: `app/data/przyklad_nerwy_czaszkowe.json`).
 
 ```json
 {

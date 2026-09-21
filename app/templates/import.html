@@ -39,7 +39,7 @@
     <div x-show="source === 'text'" class="mt-4">
       <label class="label" for="json-text">Treść JSON</label>
       <textarea id="json-text" class="input scrollbar-thin font-mono text-xs" rows="14" x-model="rawText"
-                placeholder='{ "title": "Neuroanatomia", "cards": [ { "front": "...", "back": "..." } ] }'></textarea>
+                placeholder='{ "title": "Tytuł zestawu", "cards": [ { "front": "...", "back": "..." } ] }'></textarea>
       <p class="hint">Bloki ```json są usuwane automatycznie — możesz wkleić całą odpowiedź modelu.</p>
     </div>
 
@@ -141,17 +141,18 @@
 
   <!-- Ściągawka -------------------------------------------------------- -->
   <section class="card mt-8 p-5">
-    <h2 class="section-title">Jak przygotować pakiet w Claude CLI</h2>
+    <h2 class="section-title">Jak przygotować pakiet</h2>
     <p class="mt-1 text-sm text-ink-600 dark:text-ink-300">
-      Pełna specyfikacja znajduje się w pliku <code class="rounded bg-ink-200 px-1 dark:bg-ink-800">AI_SCHEMA.md</code>
-      w katalogu projektu. Poniżej skrócony schemat oraz gotowy prompt systemowy.
+      Najprościej skorzystać z <a href="/generator-promptu" class="link">generatora promptu</a>, który
+      złoży gotowe polecenie dla wybranego modelu. Pełna specyfikacja formatu znajduje się w pliku
+      <code class="rounded bg-ink-200 px-1 dark:bg-ink-800">AI_SCHEMA.md</code>. Poniżej skrócony schemat.
     </p>
 
     <pre class="mt-4 overflow-x-auto rounded-xl bg-ink-900 p-4 text-xs leading-relaxed text-ink-100 dark:bg-ink-950"><code>{
-  "title": "Neuroanatomia — nerwy czaszkowe",
+  "title": "Tytuł zestawu",
   "description": "Opis zestawu",
-  "subject": "Anatomia",
-  "tags": ["Neuroanatomia", "Nerwy czaszkowe"],
+  "subject": "Przedmiot",
+  "tags": ["Tag pierwszy", "Tag drugi"],
   "visibility": "private",
   "cards": [
     { "front": "Pojęcie", "back": "Definicja", "hint": "opcjonalnie", "note": "opcjonalnie" }

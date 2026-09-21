@@ -135,3 +135,39 @@ def test_nawigacja_prowadzi_do_generatora_promptu(client):
 def test_strona_importu_odsyla_do_generatora(client):
     register(client)
     assert "/generator-promptu" in client.get("/zestawy/import").text
+
+
+def test_stopka_zawiera_note_o_prawach_autorskich(client):
+    from datetime import datetime, timezone
+
+    html = client.get("/logowanie").text
+    rok = datetime.now(timezone.utc).year
+
+    assert f"© {rok} Marcin Tyszko" in html
+    assert "Wszelkie prawa zastrzeżone" in html
+    assert "licencji MIT" in html
+
+
+def test_menu_grupuje_trzy_drogi_tworzenia_zestawu(client):
+    """Edytor, generator promptu i import mają być w jednym menu, nie osobno w pasku."""
+    register(client)
+    html = client.get("/pulpit").text
+
+    assert "Dodaj zestaw" in html
+    for etykieta in ("Edytor ręczny", "Generator promptu AI", "Import pliku JSON"):
+        assert etykieta in html, etykieta
+    for sciezka in ("/zestawy/nowy", "/generator-promptu", "/zestawy/import"):
+        assert sciezka in html, sciezka
+
+    # Dawne, rozsypane pozycje paska nie mogą wrócić.
+    assert ">Import AI<" not in html
+    assert ">Prompt AI<" not in html
+
+
+def test_opis_aplikacji_nie_zaweza_jej_do_medycyny(client):
+    """Strona powitalna ma przedstawiać narzędzie jako ogólne, nie medyczne."""
+    html = client.get("/").text
+
+    assert "dowolnego przedmiotu" in html or "dowolnego przedmiotu" in html.lower()
+    for fraza in ("kierunków medycznych", "anatomię, farmakologię"):
+        assert fraza not in html, fraza

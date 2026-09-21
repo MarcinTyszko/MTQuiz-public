@@ -13,9 +13,52 @@
     <div class="ml-2 hidden items-center gap-1 md:flex">
       <a href="/pulpit" class="btn-ghost btn-sm">Moje zestawy</a>
       <a href="/baza-publiczna" class="btn-ghost btn-sm">Baza publiczna</a>
-      <a href="/zestawy/nowy" class="btn-ghost btn-sm">Nowy zestaw</a>
-      <a href="/zestawy/import" class="btn-ghost btn-sm">Import AI</a>
-      <a href="/generator-promptu" class="btn-ghost btn-sm">Prompt AI</a>
+
+      {# Trzy drogi do tego samego celu — utworzenia zestawu — zebrane w jednym menu. #}
+      <div class="relative" x-data="{ tworz: false }" @keydown.escape.window="tworz = false">
+        <button type="button" class="btn-ghost btn-sm" @click="tworz = !tworz" :aria-expanded="tworz" aria-haspopup="true">
+          Dodaj zestaw
+          <svg class="h-3.5 w-3.5 transition-transform" :class="tworz && 'rotate-180'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <path d="m6 9 6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div
+          x-show="tworz"
+          x-cloak
+          x-transition.opacity
+          @click.outside="tworz = false"
+          class="absolute left-0 z-50 mt-2 w-80 overflow-hidden rounded-xl border border-ink-200 bg-white p-1.5 shadow-float dark:border-ink-700 dark:bg-ink-900"
+        >
+          <a href="/zestawy/nowy" class="flex gap-3 rounded-lg px-3 py-2.5 hover:bg-ink-100 dark:hover:bg-ink-800">
+            <span class="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand-100 text-brand-700 dark:bg-brand-950 dark:text-brand-300">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+            </span>
+            <span>
+              <span class="block text-sm font-medium text-ink-900 dark:text-white">Edytor ręczny</span>
+              <span class="block text-xs text-ink-500 dark:text-ink-400">Zbuduj fiszki i pytania samodzielnie</span>
+            </span>
+          </a>
+          <a href="/generator-promptu" class="flex gap-3 rounded-lg px-3 py-2.5 hover:bg-ink-100 dark:hover:bg-ink-800">
+            <span class="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand-100 text-brand-700 dark:bg-brand-950 dark:text-brand-300">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m12 3 1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9Z" stroke-linejoin="round"/><path d="M18 16.5 18.8 18.2 20.5 19l-1.7.8-.8 1.7-.8-1.7-1.7-.8 1.7-.8Z" stroke-linejoin="round"/></svg>
+            </span>
+            <span>
+              <span class="block text-sm font-medium text-ink-900 dark:text-white">Generator promptu AI</span>
+              <span class="block text-xs text-ink-500 dark:text-ink-400">Przygotuj polecenie dla modelu językowego</span>
+            </span>
+          </a>
+          <a href="/zestawy/import" class="flex gap-3 rounded-lg px-3 py-2.5 hover:bg-ink-100 dark:hover:bg-ink-800">
+            <span class="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand-100 text-brand-700 dark:bg-brand-950 dark:text-brand-300">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 16V4m0 0L8 8m4-4 4 4M4 16v2.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V16" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span>
+              <span class="block text-sm font-medium text-ink-900 dark:text-white">Import pliku JSON</span>
+              <span class="block text-xs text-ink-500 dark:text-ink-400">Wgraj gotowy pakiet i sprawdź przed zapisem</span>
+            </span>
+          </a>
+        </div>
+      </div>
+
       {% if user.is_admin %}<a href="/panel" class="btn-ghost btn-sm">Panel</a>{% endif %}
     </div>
     {% else %}
@@ -42,7 +85,7 @@
       </button>
 
       {% if user %}
-      <div class="relative hidden md:block" x-data="{ menu: false }" @keydown.escape="menu = false">
+      <div class="relative hidden md:block" x-data="{ menu: false }" @keydown.escape.window="menu = false">
         <button type="button" class="btn-secondary btn-sm" @click="menu = !menu" :aria-expanded="menu">
           <span class="grid h-6 w-6 place-items-center rounded-full bg-brand-600 text-[11px] font-bold text-white">
             {{ user.label[:1] | upper }}
@@ -92,9 +135,13 @@
       {% if user %}
       <a href="/pulpit" class="btn-ghost justify-start">Moje zestawy</a>
       <a href="/baza-publiczna" class="btn-ghost justify-start">Baza publiczna</a>
-      <a href="/zestawy/nowy" class="btn-ghost justify-start">Nowy zestaw</a>
-      <a href="/zestawy/import" class="btn-ghost justify-start">Import AI</a>
-      <a href="/generator-promptu" class="btn-ghost justify-start">Prompt AI</a>
+
+      <p class="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-ink-400">Dodaj zestaw</p>
+      <a href="/zestawy/nowy" class="btn-ghost justify-start">Edytor ręczny</a>
+      <a href="/generator-promptu" class="btn-ghost justify-start">Generator promptu AI</a>
+      <a href="/zestawy/import" class="btn-ghost justify-start">Import pliku JSON</a>
+
+      <p class="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-ink-400">Konto</p>
       <a href="/konto" class="btn-ghost justify-start">Moje konto</a>
       {% if user.is_admin %}<a href="/panel" class="btn-ghost justify-start">Panel administratora</a>{% endif %}
       <button type="button" data-logout class="btn-ghost justify-start text-rose-600 dark:text-rose-400">Wyloguj się</button>

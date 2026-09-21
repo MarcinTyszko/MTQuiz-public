@@ -28,7 +28,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title=settings.app_name,
-    description="Samohostowana platforma nauki: fiszki i quizy dla kierunków medycznych.",
+    description="Samohostowana platforma do nauki: fiszki i quizy z dowolnego przedmiotu.",
     version="1.0.0",
     lifespan=lifespan,
     docs_url="/api/docs",
