@@ -45,12 +45,15 @@ od razu zmienić) · gotowe materiały do testów: [`przyklady/`](przyklady/).
 2. [Szybki start](#szybki-start)
 3. [Pierwsze logowanie](#pierwsze-logowanie)
 4. [Konfiguracja](#konfiguracja)
-5. [Import materiału z Claude CLI](#import-materiału-z-claude-cli)
+5. [Generowanie materiału modelem językowym](#generowanie-materiału-modelem-językowym)
 6. [Kopie zapasowe — instrukcja operacyjna](#kopie-zapasowe--instrukcja-operacyjna)
-7. [Praca nad kodem](#praca-nad-kodem)
-8. [Struktura projektu](#struktura-projektu)
-9. [API](#api)
-10. [Rozwiązywanie problemów](#rozwiązywanie-problemów)
+7. [Narzędzia administracyjne (wiersz poleceń)](#narzędzia-administracyjne-wiersz-poleceń)
+8. [Praca nad kodem](#praca-nad-kodem)
+9. [Struktura projektu](#struktura-projektu)
+10. [API](#api)
+11. [Rozwiązywanie problemów](#rozwiązywanie-problemów)
+12. [Współpraca](#współpraca)
+13. [Licencja](#licencja)
 
 ---
 
@@ -234,7 +237,7 @@ Przy HTTPS ustaw dodatkowo `QUIZAPP_COOKIE_SECURE=true`.
 
 ---
 
-## Import materiału z Claude CLI
+## Generowanie materiału modelem językowym
 
 Najszybsza droga prowadzi przez zakładkę **Prompt AI** (`/generator-promptu`): wybierasz profil
 dziedziny, ustawiasz parametry materiału, kopiujesz wygenerowane polecenie i wklejasz je do
