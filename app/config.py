@@ -45,6 +45,13 @@ class Settings(BaseSettings):
     # Dodanie przykładowego zestawu pokazowego przy pierwszym uruchomieniu.
     seed_example_set: bool = True
 
+    # Transkrypcja nagrań
+    max_audio_bytes: int = 512 * 1024 * 1024  # 512 MB
+    whisper_model: str = "large-v3"
+    whisper_language: str = "pl"
+    # Po ilu sekundach bez sygnału uznajemy proces transkrybujący za nieczynny.
+    worker_heartbeat_timeout: int = 90
+
     @field_validator("data_dir", mode="before")
     @classmethod
     def _expand(cls, value: str | Path) -> Path:
@@ -62,11 +69,17 @@ class Settings(BaseSettings):
     def backup_dir(self) -> Path:
         return self.data_dir / "backups"
 
+    @property
+    def transcripts_dir(self) -> Path:
+        """Katalog wymiany między aplikacją a procesem transkrybującym."""
+        return self.data_dir / "transkrypcje"
+
     def ensure_directories(self) -> None:
         """Tworzy katalogi trwałe, jeżeli jeszcze nie istnieją."""
         try:
             self.data_dir.mkdir(parents=True, exist_ok=True)
             self.backup_dir.mkdir(parents=True, exist_ok=True)
+            self.transcripts_dir.mkdir(parents=True, exist_ok=True)
         except PermissionError as exc:
             raise RuntimeError(
                 f"Brak prawa zapisu do katalogu danych „{self.data_dir}”. "

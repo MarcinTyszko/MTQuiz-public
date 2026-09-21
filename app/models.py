@@ -8,6 +8,7 @@ from sqlalchemy import (
     Boolean,
     DateTime,
     Enum,
+    Float,
     ForeignKey,
     Index,
     Integer,
@@ -40,6 +41,15 @@ class StudyMode(str, enum.Enum):
     QUIZ = "quiz"
 
 
+class TranscriptionStatus(str, enum.Enum):
+    """Stan zadania transkrypcji — wspólny dla aplikacji i procesu liczącego."""
+
+    QUEUED = "queued"
+    RUNNING = "running"
+    DONE = "done"
+    ERROR = "error"
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -64,6 +74,9 @@ class User(Base):
         back_populates="user", cascade="all, delete-orphan", passive_deletes=True
     )
     card_stars: Mapped[list["CardStar"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan", passive_deletes=True
+    )
+    transcriptions: Mapped[list["Transcription"]] = relationship(
         back_populates="user", cascade="all, delete-orphan", passive_deletes=True
     )
 
@@ -266,6 +279,54 @@ class StudySession(Base):
         return round(100 * self.score / self.total, 1) if self.total else 0.0
 
 
+class Transcription(Base):
+    """Nagranie zgłoszone do transkrypcji wraz z jej wynikiem.
+
+    Plik audio i wynik pracy procesu liczącego leżą w katalogu
+    ``/data/transkrypcje/<id>``; tutaj trzymamy metadane, stan i gotowy tekst,
+    dzięki czemu pobieranie i podgląd nie zależą od obecności procesu roboczego.
+    """
+
+    __tablename__ = "transcriptions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False)
+
+    title: Mapped[str] = mapped_column(String(200), nullable=False)
+    original_filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    stored_filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    size_bytes: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    duration_seconds: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+
+    language: Mapped[str] = mapped_column(String(8), default="pl", nullable=False)
+    model_name: Mapped[str] = mapped_column(String(40), default="large-v3", nullable=False)
+
+    status: Mapped[TranscriptionStatus] = mapped_column(
+        Enum(TranscriptionStatus, native_enum=False), default=TranscriptionStatus.QUEUED, nullable=False, index=True
+    )
+    progress: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    message: Mapped[str] = mapped_column(String(255), default="", nullable=False)
+    error_message: Mapped[str | None] = mapped_column(Text)
+
+    text: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    segments_json: Mapped[str | None] = mapped_column(Text)
+    segments_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False, index=True)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    user: Mapped["User"] = relationship(back_populates="transcriptions")
+
+    @property
+    def is_finished(self) -> bool:
+        return self.status in (TranscriptionStatus.DONE, TranscriptionStatus.ERROR)
+
+    @property
+    def word_count(self) -> int:
+        return len(self.text.split()) if self.text else 0
+
+
 class AuditLog(Base):
     """Dziennik działań administracyjnych (moderacja, kopie zapasowe, konta)."""
 
@@ -296,6 +357,8 @@ __all__ = [
     "StudySession",
     "StudySet",
     "Tag",
+    "Transcription",
+    "TranscriptionStatus",
     "User",
     "UserRole",
     "Visibility",

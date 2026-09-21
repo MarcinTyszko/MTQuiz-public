@@ -423,9 +423,43 @@
       wymagajZrodel: true,
       wielokrotnyWybor: true,
       dodatkowe: "",
+      // Materiał źródłowy przekazany z transkrypcji
+      material: null,
+      dolaczMaterial: true,
       // Interfejs
       zakladka: "claude",
       podglad: true,
+
+      init() {
+        const material = this.odczytajMaterial();
+        if (!material) return;
+        this.material = material;
+        this.zrodlo = "wlasne";
+        if (!this.temat.trim() && material.tytul) this.temat = material.tytul;
+        toast("Wczytano transkrypcję jako materiał źródłowy.", "success", 3000);
+      },
+
+      /** Odbiera tekst przekazany ze strony transkrypcji przez pamięć sesji. */
+      odczytajMaterial() {
+        try {
+          const surowe = sessionStorage.getItem("mtquiz-material-zrodlowy");
+          if (!surowe) return null;
+          sessionStorage.removeItem("mtquiz-material-zrodlowy");
+          const dane = JSON.parse(surowe);
+          return dane && dane.tekst ? dane : null;
+        } catch (error) {
+          return null;
+        }
+      },
+
+      odlaczMaterial() {
+        this.material = null;
+        this.dolaczMaterial = true;
+      },
+
+      get znakowMaterialu() {
+        return this.material ? this.material.tekst.length : 0;
+      },
 
       get profile() {
         return Object.entries(PROFILE).map(([klucz, wartosc]) => ({ klucz, ...wartosc }));
@@ -717,6 +751,21 @@
         ].join("\n");
       },
 
+      get sekcjaMaterialu() {
+        if (!this.material || !this.dolaczMaterial) return null;
+        return [
+          "## MATERIAŁ ŹRÓDŁOWY",
+          "",
+          `Poniżej znajduje się transkrypcja nagrania „${this.material.tytul}”.`,
+          "To jedyne źródło, z którego wolno Ci korzystać. Transkrypcja powstała automatycznie,",
+          "więc może zawierać przesłyszenia — fragmenty niejasne lub sprzeczne pomiń zamiast zgadywać.",
+          "",
+          "--- POCZĄTEK TRANSKRYPCJI ---",
+          this.material.tekst,
+          "--- KONIEC TRANSKRYPCJI ---",
+        ].join("\n");
+      },
+
       /** Składa kompletny prompt z wszystkich sekcji. */
       get promptTekst() {
         const poziom = POZIOMY[this.poziom];
@@ -739,7 +788,7 @@
             : "Pytania testowe: nie twórz ich, przygotuj wyłącznie fiszki.",
         ].join("\n");
 
-        return [
+        const sekcje = [
           naglowek,
           this.sekcjaZrodel,
           this.sekcjaRygoru,
@@ -747,7 +796,10 @@
           this.sekcjaSchematu,
           this.sekcjaPrzykladu,
           this.sekcjaFormatu,
-        ].join("\n\n---\n\n");
+        ];
+        const material = this.sekcjaMaterialu;
+        if (material) sekcje.push(material);
+        return sekcje.join("\n\n---\n\n");
       },
 
       get dlugoscPromptu() {

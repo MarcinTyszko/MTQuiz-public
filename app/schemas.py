@@ -6,7 +6,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
-from .models import StudyMode, UserRole, Visibility
+from .models import StudyMode, TranscriptionStatus, UserRole, Visibility
 
 NonEmptyStr = Annotated[str, Field(min_length=1)]
 
@@ -358,3 +358,50 @@ class ImportRequest(BaseModel):
 class MessageOut(BaseModel):
     ok: bool = True
     message: str = ""
+
+
+# --------------------------------------------------------------------------- #
+# Transkrypcje
+# --------------------------------------------------------------------------- #
+class TranscriptionSummary(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    title: str
+    original_filename: str
+    size_bytes: int
+    duration_seconds: float
+    language: str
+    model_name: str
+    status: TranscriptionStatus
+    progress: int
+    message: str = ""
+    error_message: str | None = None
+    segments_count: int
+    word_count: int = 0
+    has_audio: bool = False
+    created_at: datetime
+    started_at: datetime | None = None
+    finished_at: datetime | None = None
+
+
+class TranscriptionDetail(TranscriptionSummary):
+    text: str = ""
+    segments: list[dict] = Field(default_factory=list)
+
+
+class TranscriptionRename(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
+
+    @field_validator("title", mode="before")
+    @classmethod
+    def _strip(cls, value: object) -> object:
+        return value.strip() if isinstance(value, str) else value
+
+
+class WorkerStatus(BaseModel):
+    dostepny: bool = False
+    sygnal: str | None = None
+    urzadzenie: str | None = None
+    model: str | None = None
+    opis: str = ""

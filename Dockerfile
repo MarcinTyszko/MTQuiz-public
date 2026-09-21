@@ -51,6 +51,11 @@ ENV PYTHONUNBUFFERED=1 \
     PATH="/opt/venv/bin:$PATH" \
     QUIZAPP_DATA_DIR=/data
 
+# Czcionka z pełnym zestawem znaków — używana przy składaniu PDF-ów transkrypcji.
+RUN apt-get update \
+ && apt-get install --no-install-recommends -y fonts-dejavu-core \
+ && rm -rf /var/lib/apt/lists/*
+
 # Konto bez uprawnień administracyjnych — minimalizacja powierzchni ataku.
 RUN groupadd --gid 10001 mtquiz \
  && useradd --uid 10001 --gid 10001 --no-create-home --shell /usr/sbin/nologin mtquiz

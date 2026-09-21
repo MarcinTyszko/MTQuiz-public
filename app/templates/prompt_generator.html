@@ -3,7 +3,7 @@
 {% block head_scripts %}<script defer src="{{ static_url('js/prompt_generator.js') }}"></script>{% endblock %}
 
 {% block content %}
-<div x-data="promptGenerator()" x-cloak>
+<div x-data="promptGenerator()" x-init="init()" x-cloak>
   <div class="max-w-3xl">
     <h1 class="text-2xl font-bold tracking-tight text-ink-900 dark:text-white">Generator promptu AI</h1>
     <p class="mt-2 text-sm text-ink-600 dark:text-ink-300">
@@ -20,6 +20,26 @@
 
     <!-- Konfiguracja ---------------------------------------------------- -->
     <div class="space-y-5 lg:sticky lg:top-24">
+      <template x-if="material">
+        <section class="rounded-xl border border-brand-300 bg-brand-50 p-4 dark:border-brand-800 dark:bg-brand-950">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <p class="text-sm font-semibold text-brand-900 dark:text-brand-100">Materiał źródłowy z transkrypcji</p>
+              <p class="mt-0.5 truncate text-xs text-brand-800 dark:text-brand-200" x-text="material.tytul"></p>
+              <p class="mt-1 text-xs text-brand-700 dark:text-brand-300">
+                <span x-text="znakowMaterialu.toLocaleString('pl-PL')"></span> znaków —
+                zostanie doklejone na końcu promptu, więc wystarczy jedno wklejenie do modelu.
+              </p>
+            </div>
+            <button type="button" class="btn-ghost btn-sm shrink-0" @click="odlaczMaterial()" aria-label="Odłącz materiał">✕</button>
+          </div>
+          <label class="mt-3 flex cursor-pointer items-center gap-2 text-xs text-brand-900 dark:text-brand-100">
+            <input type="checkbox" class="h-4 w-4 rounded border-brand-300 text-brand-600 focus:ring-brand-500" x-model="dolaczMaterial">
+            Dołącz transkrypcję do kopiowanego promptu
+          </label>
+        </section>
+      </template>
+
       <section class="card p-5">
         <h2 class="section-title">Szybki start</h2>
         <p class="hint mb-3">Wczytaj przykładowe ustawienia i dostosuj je do siebie.</p>
@@ -268,6 +288,30 @@ python3 -m json.tool pakiet.json > /dev/null && echo "JSON poprawny"</code></pre
             <span><span class="font-medium">Zawsze przejrzyj treść przed nauką.</span> Model potrafi zmyślać mimo rygoru w prompcie — przycisk „Otwórz w edytorze i popraw” pozwala poprawić wszystko przed zapisem.</span>
           </li>
         </ol>
+        <details class="mt-5 rounded-xl border border-ink-200 px-4 py-3 text-xs text-ink-600 dark:border-ink-700 dark:text-ink-300">
+          <summary class="cursor-pointer font-semibold text-ink-800 dark:text-ink-100">Ile to zużywa tokenów i jak długo trwa</summary>
+          <div class="mt-2 space-y-2">
+            <p>
+              Największą pozycją jest sam materiał. Strona gęstego tekstu to mniej więcej
+              500–900 tokenów, więc sześćdziesięciostronicowy skrypt zajmuje 30–55 tysięcy tokenów,
+              zanim model napisze choćby jedną fiszkę. Do tego dochodzi ten prompt
+              (<span x-text="przyblizoneTokeny.toLocaleString('pl-PL')"></span> tokenów) oraz odpowiedź —
+              trzydzieści fiszek z wyjaśnieniami to kolejne kilkanaście tysięcy.
+            </p>
+            <p>
+              Zużycie rzędu pięćdziesięciu tysięcy tokenów przy takim pliku jest więc normą, nie awarią.
+              Czas zajmuje przede wszystkim <em>pisanie</em> odpowiedzi, a nie czytanie materiału.
+            </p>
+            <p class="font-medium text-ink-800 dark:text-ink-100">Jak to ograniczyć:</p>
+            <ul class="list-disc space-y-1 pl-5">
+              <li>Dziel materiał na rozdziały i zamawiaj osobny pakiet dla każdego — taniej, szybciej i wygodniej się z tego uczy.</li>
+              <li>Skany bez warstwy tekstowej kosztują wielokrotnie więcej niż zwykły PDF, bo każda strona idzie jako obraz. Przepuść je wcześniej przez rozpoznawanie tekstu.</li>
+              <li>Zmniejsz liczbę fiszek w jednym zamówieniu — to bezpośrednio skraca odpowiedź.</li>
+              <li>Do jednorazowego wygenerowania pakietu okno przeglądarkowe wystarczy; narzędzie agentowe dokłada własne odczyty plików.</li>
+            </ul>
+          </div>
+        </details>
+
         <div class="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
           <span class="font-semibold">Zastrzeżenie:</span> żaden prompt nie gwarantuje bezbłędności modelu.
           Materiał wygenerowany automatycznie traktuj jak notatki pożyczone od kolegi z roku — pomocne,

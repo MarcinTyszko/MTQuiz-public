@@ -12,7 +12,7 @@
   <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white">
   <img alt="Docker" src="https://img.shields.io/badge/Docker-compose-2496ED?logo=docker&logoColor=white">
   <img alt="Licencja MIT" src="https://img.shields.io/badge/licencja-MIT-green">
-  <img alt="Testy" src="https://img.shields.io/badge/testy-125%20pytest-brightgreen">
+  <img alt="Testy" src="https://img.shields.io/badge/testy-153%20pytest-brightgreen">
 </p>
 
 ---
@@ -45,15 +45,16 @@ od razu zmienić) · gotowe materiały do testów: [`przyklady/`](przyklady/).
 2. [Szybki start](#szybki-start)
 3. [Pierwsze logowanie](#pierwsze-logowanie)
 4. [Konfiguracja](#konfiguracja)
-5. [Generowanie materiału modelem językowym](#generowanie-materiału-modelem-językowym)
-6. [Kopie zapasowe — instrukcja operacyjna](#kopie-zapasowe--instrukcja-operacyjna)
-7. [Narzędzia administracyjne (wiersz poleceń)](#narzędzia-administracyjne-wiersz-poleceń)
-8. [Praca nad kodem](#praca-nad-kodem)
-9. [Struktura projektu](#struktura-projektu)
-10. [API](#api)
-11. [Rozwiązywanie problemów](#rozwiązywanie-problemów)
-12. [Współpraca](#współpraca)
-13. [Licencja](#licencja)
+5. [Transkrypcja nagrań](#transkrypcja-nagrań)
+6. [Generowanie materiału modelem językowym](#generowanie-materiału-modelem-językowym)
+7. [Kopie zapasowe — instrukcja operacyjna](#kopie-zapasowe--instrukcja-operacyjna)
+8. [Narzędzia administracyjne (wiersz poleceń)](#narzędzia-administracyjne-wiersz-poleceń)
+9. [Praca nad kodem](#praca-nad-kodem)
+10. [Struktura projektu](#struktura-projektu)
+11. [API](#api)
+12. [Rozwiązywanie problemów](#rozwiązywanie-problemów)
+13. [Współpraca](#współpraca)
+14. [Licencja](#licencja)
 
 ---
 
@@ -73,6 +74,15 @@ od razu zmienić) · gotowe materiały do testów: [`przyklady/`](przyklady/).
 - Rozbudowany edytor GUI: dodawanie, duplikowanie, zmiana kolejności i usuwanie
   fiszek oraz pytań, walidacja przed zapisem, ostrzeżenie przed utratą zmian.
 - Eksport i import pojedynczego zestawu w formacie JSON.
+
+**Transkrypcja nagrań**
+- Wgrywasz nagranie wykładu, podcastu albo ścieżkę dźwiękową z filmu (MP3, M4A, WAV, OGG,
+  OPUS, WEBM, FLAC — do 512 MB) i otrzymujesz zapis tekstowy ze znacznikami czasu.
+- Postęp widoczny na żywo; gotowy tekst pobierzesz jako **PDF, TXT** (ze znacznikami lub sam
+  tekst) albo **Markdown**, skopiujesz do schowka lub przekażesz jednym kliknięciem do
+  generatora promptu, który doklei go do polecenia dla modelu.
+- Liczenie wykonuje osobny proces (`scripts/transkrypcja-worker.sh`) uruchamiany tam, gdzie
+  jest karta graficzna — aplikacja w kontenerze nie potrzebuje GPU ani modeli.
 
 **Generator promptu AI**
 - Kreator w zakładce **Prompt AI**: ustawiasz dziedzinę, temat, poziom odbiorcy, liczbę fiszek
@@ -212,6 +222,9 @@ Wszystkie ustawienia przekazywane są zmiennymi środowiskowymi z przedrostkiem
 | `QUIZAPP_BOOTSTRAP_ADMIN_PASSWORD` | `admin` | Hasło startowe (i tak wymaga zmiany przy pierwszym logowaniu). |
 | `QUIZAPP_MAX_UPLOAD_BYTES` | `26214400` | Limit rozmiaru importowanego pliku JSON (25 MB). |
 | `QUIZAPP_MAX_RESTORE_BYTES` | `536870912` | Limit rozmiaru przywracanej kopii (512 MB). |
+| `QUIZAPP_MAX_AUDIO_BYTES` | `536870912` | Limit rozmiaru wgrywanego nagrania (512 MB). |
+| `QUIZAPP_WHISPER_MODEL` | `large-v3` | Model używany przez proces transkrybujący. |
+| `QUIZAPP_WHISPER_LANGUAGE` | `pl` | Domyślny język nagrań. |
 | `QUIZAPP_APP_NAME` | `MTQuiz` | Nazwa instancji w interfejsie. |
 
 ### Praca za odwrotnym proxy
@@ -236,6 +249,70 @@ server {
 Przy HTTPS ustaw dodatkowo `QUIZAPP_COOKIE_SECURE=true`.
 
 ---
+
+## Transkrypcja nagrań
+
+Aplikacja przyjmuje nagranie i pokazuje wynik, ale sama go nie liczy. Transkrypcję wykonuje
+osobny proces, uruchamiany tam, gdzie dostępna jest karta graficzna — dzięki temu obraz
+Dockera pozostaje lekki i nie wymaga przekazywania GPU do kontenera.
+
+### Uruchomienie procesu transkrybującego
+
+```bash
+./scripts/transkrypcja-worker.sh            # nasłuchuje w pętli
+./scripts/transkrypcja-worker.sh --raz      # przetwarza kolejkę i kończy
+./scripts/transkrypcja-worker.sh --cpu      # wymusza procesor
+```
+
+Skrypt sam szuka interpretera z pakietem `faster-whisper` — kolejno w zmiennej
+`PYTHON_TRANSKRYPCJI`, w `./.venv-transkrypcja`, w `./.venv`, a na końcu w systemie.
+Ustawia też ścieżki bibliotek CUDA, zanim uruchomi Pythona.
+
+Jednorazowe przygotowanie środowiska:
+
+```bash
+python3 -m venv --without-pip .venv-transkrypcja
+pip --python ./.venv-transkrypcja/bin/python install faster-whisper
+# karta NVIDIA — dodatkowo biblioteki CUDA:
+pip --python ./.venv-transkrypcja/bin/python install nvidia-cublas-cu12 nvidia-cudnn-cu12
+```
+
+Pierwsze uruchomienie pobiera model Whispera (`large-v3`, około 3 GB) do
+`~/.cache/huggingface`. Kolejne starty trwają kilka sekund.
+
+### Jak to działa
+
+Aplikacja zapisuje nagranie i opis zadania w `./data/transkrypcje/<id>`, a proces liczący
+odkłada tam stan i wynik. Wymiana odbywa się wyłącznie przez pliki, więc proces nie potrzebuje
+dostępu do bazy ani do zależności aplikacji.
+
+| Plik w katalogu zadania | Kto zapisuje | Zawartość |
+|---|---|---|
+| `zadanie.json` | aplikacja | identyfikator, nazwa pliku, język, model |
+| `audio.<ext>` | aplikacja | nagranie źródłowe |
+| `stan.json` | proces liczący | status, postęp, komunikat, ewentualny błąd |
+| `transkrypcja.txt` | proces liczący | zapis ze znacznikami czasu |
+| `transkrypcja.json` | proces liczący | segmenty z czasami startu i końca |
+
+Plik `./data/transkrypcje/_worker.json` jest sygnałem życia — na jego podstawie strona pokazuje,
+czy proces działa. Nagrania wysłane przy wyłączonym procesie czekają w kolejce.
+
+### Wydajność i formaty
+
+| | |
+|---|---|
+| Czas transkrypcji | około 1 minuta na 15 minut nagrania (`large-v3`, GPU) |
+| Praca na procesorze | kilkanaście razy wolniej — `--cpu` nadaje się do krótkich nagrań |
+| Przyjmowane formaty | MP3, M4A, WAV, OGG, OPUS, WEBM, FLAC, AAC, MP4 |
+| Limit rozmiaru | 512 MB (`QUIZAPP_MAX_AUDIO_BYTES`) |
+| Formaty pobierania | PDF, TXT ze znacznikami, TXT sam tekst, Markdown |
+
+Ścieżkę dźwiękową z materiału wideo wyodrębnisz dowolnym konwerterem; do rozpoznawania mowy
+w zupełności wystarczy MP3 64–128 kb/s. Nagrywaj i pobieraj wyłącznie materiały, do których
+masz prawo.
+
+Przy wdrożeniu za odwrotnym proxy pamiętaj o `client_max_body_size` — wysyłka nagrania
+przechodzi przez ten sam limit co przywracanie kopii zapasowej.
 
 ## Generowanie materiału modelem językowym
 
@@ -429,6 +506,7 @@ Każdy test pracuje na własnej, tymczasowej bazie.
 │   ├── deps.py             # zależności FastAPI, kontrola ról, ciasteczko sesji
 │   ├── services.py         # logika biznesowa zestawów, tagi, statystyki
 │   ├── importer.py         # uniwersalny parser pakietów JSON
+│   ├── transkrypcje.py     # kolejka transkrypcji, stan zadań i eksport wyników
 │   ├── backup.py           # kopie zapasowe i przywracanie bazy
 │   ├── bootstrap.py        # konto startowe i zestaw pokazowy
 │   ├── cli.py              # narzędzia administracyjne wiersza poleceń
@@ -437,6 +515,9 @@ Każdy test pracuje na własnej, tymczasowej bazie.
 │   ├── templates/          # widoki HTML
 │   ├── static/             # CSS, JS, zasoby zewnętrzne
 │   └── data/               # przykładowy pakiet JSON
+├── scripts/
+│   ├── worker_transkrypcji.py     # proces transkrybujący (poza kontenerem, na GPU)
+│   └── transkrypcja-worker.sh     # launcher wykrywający środowisko i biblioteki CUDA
 ├── frontend/               # źródła Tailwind CSS i skrypt kopiujący zależności
 ├── tests/                  # testy pytest
 ├── data/                   # wolumen danych (baza, kopie zapasowe) — poza repozytorium
@@ -474,6 +555,11 @@ sesji albo nagłówkiem `Authorization: Bearer <token>`.
 | `POST` | `/api/import/commit` | Walidacja i zapis zestawu |
 | `POST` `GET` | `/api/study/sessions` | Zapis i historia sesji nauki |
 | `GET` | `/api/study/stats` | Statystyki pulpitu |
+| `GET` `POST` | `/api/transkrypcje` | Lista transkrypcji i zgłoszenie nagrania |
+| `GET` | `/api/transkrypcje/worker` | Stan procesu transkrybującego |
+| `GET` `PATCH` `DELETE` | `/api/transkrypcje/{id}` | Szczegóły, zmiana nazwy, usunięcie |
+| `POST` | `/api/transkrypcje/{id}/ponow` | Ponowne zakolejkowanie zadania |
+| `GET` | `/api/transkrypcje/{id}/pobierz?format=` | Pobranie: `txt`, `tekst`, `md`, `pdf` |
 | `GET` | `/api/admin/stats` | Statystyki instancji |
 | `GET` `PATCH` `DELETE` | `/api/admin/users[/{id}]` | Zarządzanie kontami |
 | `POST` | `/api/admin/users/{id}/reset-password` | Reset hasła |

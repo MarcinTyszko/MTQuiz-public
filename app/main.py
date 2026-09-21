@@ -12,7 +12,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .bootstrap import initialise
 from .config import STATIC_DIR, settings
-from .routers import admin, auth, pages, sets, study
+from .routers import admin, auth, pages, sets, study, transcripts
 from .templating import templates
 
 logger = logging.getLogger("mtquiz")
@@ -41,6 +41,7 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 app.include_router(auth.router)
 app.include_router(sets.router)
 app.include_router(study.router)
+app.include_router(transcripts.router)
 app.include_router(admin.router)
 app.include_router(pages.router)
 

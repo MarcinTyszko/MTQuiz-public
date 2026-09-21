@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}{{ transcription.title }} — transkrypcja — {{ app_name }}{% endblock %}
+{% block head_scripts %}<script defer src="{{ static_url('js/transkrypcja_szczegoly.js') }}"></script>{% endblock %}
+{% block main_class %}mx-auto w-full max-w-4xl flex-1 px-4 py-6 sm:px-6 lg:py-10{% endblock %}
+
+{% block content %}
+<script type="application/json" id="dane-transkrypcji">{{ transcription_json | tojson_safe }}</script>
+
+<div x-data="szczegolyTranskrypcji()" x-init="init()" x-cloak>
+  <a href="/transkrypcje" class="text-xs text-ink-500 hover:underline dark:text-ink-400">← Wróć do listy transkrypcji</a>
+
+  <!-- Nagłówek -------------------------------------------------------- -->
+  <header class="mt-2 flex flex-wrap items-start justify-between gap-4">
+    <div class="min-w-0 flex-1">
+      <div x-show="!edycjaTytulu" class="flex items-center gap-2">
+        <h1 class="text-2xl font-bold tracking-tight text-ink-900 dark:text-white" x-text="dane.title"></h1>
+        <button type="button" class="btn-ghost btn-sm !px-2" @click="edycjaTytulu = true; $nextTick(() => $refs.poleTytulu.focus())" aria-label="Zmień nazwę">✎</button>
+      </div>
+      <div x-show="edycjaTytulu" x-cloak class="flex flex-wrap items-center gap-2">
+        <input x-ref="poleTytulu" class="input max-w-md" x-model="nowyTytul" maxlength="200"
+               @keydown.enter.prevent="zapiszTytul()" @keydown.escape="edycjaTytulu = false; nowyTytul = dane.title">
+        <button type="button" class="btn-primary btn-sm" @click="zapiszTytul()">Zapisz</button>
+        <button type="button" class="btn-ghost btn-sm" @click="edycjaTytulu = false; nowyTytul = dane.title">Anuluj</button>
+      </div>
+
+      <p class="mt-1.5 text-xs text-ink-500 dark:text-ink-400">
+        <span x-text="dane.original_filename"></span>
+        <template x-if="dane.duration_seconds > 0"><span> · <span x-text="czas(dane.duration_seconds)"></span></span></template>
+        <template x-if="gotowa"><span> · <span x-text="dane.segments_count"></span> segmentów · <span x-text="liczbaSlow"></span> słów</span></template>
+        · model <span x-text="dane.model_name"></span> · język <span x-text="dane.language || 'auto'"></span>
+      </p>
+    </div>
+
+    <div class="flex shrink-0 flex-wrap gap-2">
+      <button type="button" class="btn-ghost btn-sm text-rose-600 dark:text-rose-400" @click="usun()">Usuń</button>
+    </div>
+  </header>
+
+  <!-- Stan w toku ----------------------------------------------------- -->
+  <section x-show="wTrakcie" class="card mt-6 p-6 text-center">
+    <p class="text-sm font-medium text-ink-900 dark:text-white"
+       x-text="dane.status === 'queued' ? 'Nagranie czeka w kolejce' : 'Trwa transkrypcja'"></p>
+    <p class="mt-1 text-xs text-ink-500 dark:text-ink-400" x-text="dane.message"></p>
+    <div class="mx-auto mt-4 h-1.5 max-w-md overflow-hidden rounded-full bg-ink-200 dark:bg-ink-800">
+      <div class="h-full rounded-full bg-brand-600 transition-all duration-500"
+           :class="dane.status === 'queued' && 'animate-pulse'"
+           :style="`width: ${Math.max(dane.progress, 4)}%`"></div>
+    </div>
+    <p class="mt-2 text-xs tabular-nums text-ink-500 dark:text-ink-400" x-text="`${dane.progress}%`"></p>
+    <p class="mt-4 text-xs text-ink-500 dark:text-ink-400">Strona odświeży się sama po zakończeniu.</p>
+  </section>
+
+  <!-- Błąd ------------------------------------------------------------ -->
+  <section x-show="dane.status === 'error'" x-cloak class="mt-6 rounded-xl border border-rose-300 bg-rose-50 p-5 text-sm text-rose-900 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-100">
+    <p class="font-semibold">Transkrypcja nie powiodła się</p>
+    <p class="mt-1 break-words" x-text="dane.error_message"></p>
+    <button type="button" class="btn-secondary btn-sm mt-3" @click="ponow()" :disabled="!dane.has_audio">Ponów próbę</button>
+    <p class="mt-2 text-xs" x-show="!dane.has_audio">Nagranie źródłowe zostało usunięte — wyślij plik ponownie.</p>
+  </section>
+
+  <!-- Wynik ----------------------------------------------------------- -->
+  <template x-if="gotowa">
+    <div>
+      <section class="card mt-6 p-5">
+        <h2 class="section-title">Co dalej z tekstem</h2>
+
+        <div class="mt-4 grid gap-3 sm:grid-cols-2">
+          <button type="button" class="btn-primary w-full justify-start py-3 text-left" @click="doGeneratora()">
+            <span class="block">
+              <span class="block text-sm font-semibold">Zrób z tego fiszki</span>
+              <span class="block text-xs font-normal opacity-80">Przenieś transkrypcję do generatora promptu</span>
+            </span>
+          </button>
+          <button type="button" class="btn-secondary w-full justify-start py-3 text-left" @click="kopiujSamTekst()">
+            <span class="block">
+              <span class="block text-sm font-semibold">Kopiuj sam tekst</span>
+              <span class="block text-xs font-normal text-ink-500 dark:text-ink-400">Bez znaczników czasu, gotowe do wklejenia</span>
+            </span>
+          </button>
+        </div>
+
+        <h3 class="mt-6 text-xs font-semibold uppercase tracking-wide text-ink-500 dark:text-ink-400">Pobierz plik</h3>
+        <div class="mt-2 flex flex-wrap gap-2">
+          <button type="button" class="btn-secondary btn-sm" @click="pobierz('pdf')">PDF do druku</button>
+          <button type="button" class="btn-secondary btn-sm" @click="pobierz('txt')">TXT ze znacznikami</button>
+          <button type="button" class="btn-secondary btn-sm" @click="pobierz('tekst')">TXT sam tekst</button>
+          <button type="button" class="btn-secondary btn-sm" @click="pobierz('md')">Markdown</button>
+          <button type="button" class="btn-ghost btn-sm" @click="kopiujZeZnacznikami()">Kopiuj ze znacznikami</button>
+        </div>
+
+        <div class="mt-5 flex flex-wrap items-center gap-3 border-t border-ink-100 pt-4 text-xs text-ink-500 dark:border-ink-800 dark:text-ink-400">
+          <span x-show="dane.has_audio">Plik nagrania zajmuje miejsce na dysku.</span>
+          <button type="button" class="btn-ghost btn-sm" @click="usunNagranie()" x-show="dane.has_audio">Usuń samo nagranie</button>
+          <span x-show="!dane.has_audio">Nagranie źródłowe zostało usunięte — zapis tekstowy pozostaje.</span>
+        </div>
+      </section>
+
+      <section class="mt-8">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <h2 class="section-title">Transkrypcja</h2>
+          <div class="flex gap-1 rounded-lg bg-ink-100 p-1 dark:bg-ink-800">
+            <button type="button" class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
+                    :class="widok === 'segmenty' ? 'bg-white text-ink-900 shadow-sm dark:bg-ink-950 dark:text-white' : 'text-ink-600 dark:text-ink-300'"
+                    @click="widok = 'segmenty'">Ze znacznikami</button>
+            <button type="button" class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
+                    :class="widok === 'tekst' ? 'bg-white text-ink-900 shadow-sm dark:bg-ink-950 dark:text-white' : 'text-ink-600 dark:text-ink-300'"
+                    @click="widok = 'tekst'">Sam tekst</button>
+          </div>
+        </div>
+
+        <div class="card mt-3 max-h-[36rem] overflow-y-auto scrollbar-thin p-5">
+          <template x-if="widok === 'segmenty' && dane.segments.length">
+            <div class="space-y-3">
+              <template x-for="(segment, index) in dane.segments" :key="index">
+                <p class="flex gap-3 text-sm">
+                  <span class="shrink-0 pt-0.5 font-mono text-[11px] tabular-nums text-ink-400" x-text="czas(segment.start)"></span>
+                  <span class="text-ink-800 dark:text-ink-100" x-text="segment.tekst || segment.text"></span>
+                </p>
+              </template>
+            </div>
+          </template>
+
+          <template x-if="widok === 'segmenty' && !dane.segments.length">
+            <pre class="whitespace-pre-wrap font-sans text-sm text-ink-800 dark:text-ink-100" x-text="dane.text"></pre>
+          </template>
+
+          <template x-if="widok === 'tekst'">
+            <p class="whitespace-pre-wrap text-sm leading-relaxed text-ink-800 dark:text-ink-100" x-text="samTekst"></p>
+          </template>
+        </div>
+      </section>
+    </div>
+  </template>
+</div>
+{% endblock %}

@@ -171,3 +171,58 @@ def test_opis_aplikacji_nie_zaweza_jej_do_medycyny(client):
     assert "dowolnego przedmiotu" in html or "dowolnego przedmiotu" in html.lower()
     for fraza in ("kierunków medycznych", "anatomię, farmakologię"):
         assert fraza not in html, fraza
+
+
+def test_strona_transkrypcji_wymaga_zalogowania(client):
+    response = client.get("/transkrypcje", follow_redirects=False)
+    assert response.status_code == 303
+    assert response.headers["location"].startswith("/logowanie?next=")
+
+
+def test_strona_transkrypcji_renderuje_sie(client):
+    register(client)
+    response = client.get("/transkrypcje")
+
+    assert response.status_code == 200
+    assert "Transkrypcja AI" in response.text
+    assert 'x-data="listaTranskrypcji()"' in response.text
+    assert "transkrypcja-worker.sh" in response.text
+
+
+def test_strona_wyniku_transkrypcji(client):
+    import io
+
+    register(client)
+    utworzone = client.post(
+        "/api/transkrypcje",
+        files={"file": ("wyklad.mp3", io.BytesIO(b"dane" * 64), "audio/mpeg")},
+        data={"title": "Wykład testowy", "language": "pl"},
+    ).json()
+
+    response = client.get(f"/transkrypcje/{utworzone['id']}")
+    assert response.status_code == 200
+    assert "Wykład testowy" in response.text
+    assert 'x-data="szczegolyTranskrypcji()"' in response.text
+    assert 'id="dane-transkrypcji"' in response.text
+
+
+def test_cudza_transkrypcja_zwraca_404(client):
+    import io
+
+    register(client, "autor", "HasloAutora123")
+    utworzone = client.post(
+        "/api/transkrypcje",
+        files={"file": ("wyklad.mp3", io.BytesIO(b"dane" * 64), "audio/mpeg")},
+        data={"title": "Prywatne", "language": "pl"},
+    ).json()
+    client.post("/api/auth/logout")
+
+    register(client, "obcy", "HasloObcego1234")
+    assert client.get(f"/transkrypcje/{utworzone['id']}").status_code == 404
+
+
+def test_nawigacja_zawiera_transkrypcje(client):
+    register(client)
+    html = client.get("/pulpit").text
+    assert "/transkrypcje" in html
+    assert "Transkrypcja nagrania" in html

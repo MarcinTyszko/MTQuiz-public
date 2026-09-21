@@ -7,7 +7,7 @@ from sqlalchemy import func, select
 
 from ..config import settings
 from ..deps import DbSession, OptionalUser
-from ..models import Favorite, StudySession, StudySet, Visibility
+from ..models import Favorite, StudySession, StudySet, Transcription, Visibility
 from ..services import (
     can_edit,
     can_view,
@@ -18,6 +18,7 @@ from ..services import (
     to_detail,
     to_summary,
 )
+from .. import transkrypcje
 from ..templating import templates
 
 router = APIRouter(include_in_schema=False)
@@ -189,6 +190,53 @@ def prompt_generator_page(request: Request, user: OptionalUser):
     if guard is not None:
         return guard
     return _render(request, "prompt_generator.html", {"user": user})
+
+
+@router.get("/transkrypcje", response_class=HTMLResponse)
+def transcripts_page(request: Request, user: OptionalUser):
+    """Lista transkrypcji wraz z formularzem wysyłki nagrania."""
+    guard = _require_user(user, request)
+    if guard is not None:
+        return guard
+    return _render(request, "transcripts.html", {"user": user})
+
+
+@router.get("/transkrypcje/{transcription_id}", response_class=HTMLResponse)
+def transcript_detail_page(request: Request, transcription_id: int, user: OptionalUser, db: DbSession):
+    """Wynik pojedynczej transkrypcji: podgląd, pobieranie, przekazanie dalej."""
+    guard = _require_user(user, request)
+    if guard is not None:
+        return guard
+    assert user is not None
+
+    transcription = db.get(Transcription, transcription_id)
+    if transcription is None or (transcription.user_id != user.id and not user.is_admin):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Nie znaleziono transkrypcji.")
+
+    if transkrypcje.zsynchronizuj(transcription):
+        db.commit()
+        db.refresh(transcription)
+
+    dane = {
+        "id": transcription.id,
+        "title": transcription.title,
+        "original_filename": transcription.original_filename,
+        "size_bytes": transcription.size_bytes,
+        "duration_seconds": transcription.duration_seconds,
+        "language": transcription.language,
+        "model_name": transcription.model_name,
+        "status": transcription.status.value,
+        "progress": transcription.progress,
+        "message": transcription.message,
+        "error_message": transcription.error_message,
+        "segments_count": transcription.segments_count,
+        "word_count": transcription.word_count,
+        "has_audio": transkrypcje.nagranie_istnieje(transcription),
+        "text": transcription.text,
+        "segments": transkrypcje.segmenty(transcription),
+    }
+
+    return _render(request, "transcript_detail.html", {"user": user, "transcription": transcription, "transcription_json": dane})
 
 
 @router.get("/zestawy/{set_id}", response_class=HTMLResponse)
