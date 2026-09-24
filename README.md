@@ -81,8 +81,8 @@ od razu zmienić) · gotowe materiały do testów: [`przyklady/`](przyklady/).
 - Postęp widoczny na żywo; gotowy tekst pobierzesz jako **PDF, TXT** (ze znacznikami lub sam
   tekst) albo **Markdown**, skopiujesz do schowka lub przekażesz jednym kliknięciem do
   generatora promptu, który doklei go do polecenia dla modelu.
-- Liczenie wykonuje osobny proces (`scripts/transkrypcja-worker.sh`) uruchamiany tam, gdzie
-  jest karta graficzna — aplikacja w kontenerze nie potrzebuje GPU ani modeli.
+- Liczenie wykonuje osobny kontener `transkrypcja`, który startuje razem z aplikacją i sam
+  pobiera model Whispera — na procesorze albo, jeśli jest, na karcie NVIDIA.
 
 **Generator promptu AI**
 - Kreator w zakładce **Prompt AI**: ustawiasz dziedzinę, temat, poziom odbiorcy, liczbę fiszek
@@ -253,39 +253,51 @@ Przy HTTPS ustaw dodatkowo `QUIZAPP_COOKIE_SECURE=true`.
 ## Transkrypcja nagrań
 
 Aplikacja przyjmuje nagranie i pokazuje wynik, ale sama go nie liczy. Transkrypcję wykonuje
-osobny proces, uruchamiany tam, gdzie dostępna jest karta graficzna — dzięki temu obraz
-Dockera pozostaje lekki i nie wymaga przekazywania GPU do kontenera.
+osobny proces — kontener `transkrypcja` z `docker-compose.yml`. **Startuje razem z aplikacją**
+(`docker compose up -d --build`), wstaje sam po awarii i restarcie maszyny. Niczego nie trzeba
+instalować na hoście.
 
-### Instalacja usługi
-
-Jednorazowo, bez uprawnień administratora:
-
-```bash
-./scripts/zainstaluj-usluge.sh
-```
-
-Skrypt zakłada usługę systemd użytkownika `mtquiz-transkrypcja`, uruchamia ją od razu
-i włącza automatyczny start przy każdym uruchomieniu maszyny. Usługa wstaje też sama
-po awarii (`Restart=always`). Od tej chwili transkrypcja rusza zaraz po wysłaniu nagrania
-— nic nie trzeba włączać ręcznie.
-
-Skrypt próbuje również włączyć tryb *linger*, dzięki któremu usługa działa także wtedy,
-gdy nikt nie jest zalogowany graficznie. Jeżeli się nie uda, wypisze polecenie do wykonania
-z uprawnieniami administratora.
-
-Obsługa usługi:
+Przy pierwszym nagraniu proces sam pobiera model Whispera (`large-v3`, około 3 GB) do
+`./data/modele`. Trwa to kilka minut, jednorazowo — kolejne starty są szybkie.
 
 ```bash
-systemctl --user status mtquiz-transkrypcja     # stan
-systemctl --user restart mtquiz-transkrypcja    # ponowne uruchomienie
-journalctl --user -u mtquiz-transkrypcja -f     # podgląd dziennika na żywo
-./scripts/zainstaluj-usluge.sh --usun           # odinstalowanie
+docker compose logs -f transkrypcja     # podgląd dziennika na żywo
+docker compose restart transkrypcja     # ponowne uruchomienie
 ```
 
-Stan usługi widać też na stronie **Transkrypcja AI** — zielony pasek oznacza, że nasłuchuje,
+Stan procesu widać też na stronie **Transkrypcja AI** — zielony pasek oznacza, że nasłuchuje,
 i pokazuje nazwę aktualnie przetwarzanego nagrania.
 
-### Przygotowanie środowiska
+### Ustawienia (plik `.env`)
+
+| Zmienna | Domyślnie | Znaczenie |
+|---|---|---|
+| `QUIZAPP_TRANSKRYPCJA_KONTENER` | `1` | `0` wyłącza kontener (gdy liczy usługa na hoście — niżej) |
+| `QUIZAPP_WHISPER_MODEL` | `large-v3` | model Whispera; na procesorze szybsze są `medium` i `small` |
+
+### Karta graficzna NVIDIA
+
+Bez karty graficznej kontener liczy na procesorze — działa wszędzie, ale wolniej. Jeżeli
+serwer ma kartę NVIDIA i zainstalowany `nvidia-container-toolkit`, dołóż plik z obsługą GPU:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d --build
+# albo na stałe, w pliku .env:
+#   COMPOSE_FILE=docker-compose.yml:docker-compose.gpu.yml
+```
+
+### Usługa na hoście (bez GPU w Dockerze)
+
+Gdy maszyna ma kartę graficzną, ale Docker jej nie widzi (brak `nvidia-container-toolkit`),
+proces można uruchomić bezpośrednio na hoście jako usługę systemd użytkownika. Wtedy ustaw
+w `.env` `QUIZAPP_TRANSKRYPCJA_KONTENER=0`, żeby kontener na procesorze nie konkurował z usługą.
+
+```bash
+./scripts/zainstaluj-usluge.sh                  # instalacja i start (bez uprawnień administratora)
+systemctl --user status mtquiz-transkrypcja     # stan
+journalctl --user -u mtquiz-transkrypcja -f     # dziennik
+./scripts/zainstaluj-usluge.sh --usun           # odinstalowanie
+```
 
 Usługa potrzebuje interpretera Pythona z pakietem `faster-whisper`. Launcher szuka go kolejno
 w zmiennej `PYTHON_TRANSKRYPCJI`, w `./.venv-transkrypcja`, w `./.venv`, a na końcu w systemie;
@@ -298,29 +310,8 @@ pip --python ./.venv-transkrypcja/bin/python install faster-whisper
 pip --python ./.venv-transkrypcja/bin/python install nvidia-cublas-cu12 nvidia-cudnn-cu12
 ```
 
-Pierwsze uruchomienie pobiera model Whispera (`large-v3`, około 3 GB) do
-`~/.cache/huggingface`. Kolejne starty trwają kilka sekund.
-
-### Uruchomienie bez usługi
-
-Na czas diagnozy albo na maszynie bez systemd proces można odpalić wprost:
-
-```bash
-./scripts/transkrypcja-worker.sh            # nasłuchuje w pętli
-./scripts/transkrypcja-worker.sh --raz      # przetwarza kolejkę i kończy
-./scripts/transkrypcja-worker.sh --cpu      # wymusza procesor
-```
-
-Aplikacja rozpoznaje oba tryby: przy uruchomieniu ręcznym uprzedza, że proces zakończy się
-wraz z zamknięciem terminala.
-
-Na serwerze bez karty graficznej dopisz `--cpu` do `ExecStart` w pliku
-`~/.config/systemd/user/mtquiz-transkrypcja.service`, a przy dłuższych nagraniach rozważ
-mniejszy model (`--model medium`) — transkrypcja na procesorze jest kilkanaście razy wolniejsza.
-
-Jeżeli na maszynie działa `nvidia-container-toolkit`, proces może zamiast tego działać
-w kontenerze z dostępem do karty (`docker run --gpus all …`). Na tej instancji toolkit nie jest
-zainstalowany, dlatego domyślną i sprawdzoną ścieżką jest usługa systemd.
+Na czas diagnozy proces można też odpalić wprost: `./scripts/transkrypcja-worker.sh`
+(`--raz` przetwarza kolejkę i kończy, `--cpu` wymusza procesor).
 
 ### Jak to działa
 
@@ -335,6 +326,7 @@ dostępu do bazy ani do zależności aplikacji.
 | `stan.json` | proces liczący | status, postęp, komunikat, ewentualny błąd |
 | `transkrypcja.txt` | proces liczący | zapis ze znacznikami czasu |
 | `transkrypcja.json` | proces liczący | segmenty z czasami startu i końca |
+| `_przejete` | proces liczący | blokada — zadanie wziął już jeden z procesów |
 
 Plik `./data/transkrypcje/_worker.json` jest sygnałem życia — na jego podstawie strona pokazuje,
 czy proces działa. Nagrania wysłane przy wyłączonym procesie czekają w kolejce.
@@ -344,7 +336,7 @@ czy proces działa. Nagrania wysłane przy wyłączonym procesie czekają w kole
 | | |
 |---|---|
 | Czas transkrypcji | około 1 minuta na 15 minut nagrania (`large-v3`, GPU) |
-| Praca na procesorze | kilkanaście razy wolniej — `--cpu` nadaje się do krótkich nagrań |
+| Praca na procesorze | kilkanaście razy wolniej — przy długich nagraniach wybierz `medium` lub `small` |
 | Przyjmowane formaty | MP3, M4A, WAV, OGG, OPUS, WEBM, FLAC, AAC, MP4 |
 | Limit rozmiaru | 512 MB (`QUIZAPP_MAX_AUDIO_BYTES`) |
 | Formaty pobierania | PDF, TXT ze znacznikami, TXT sam tekst, Markdown |
@@ -558,14 +550,16 @@ Każdy test pracuje na własnej, tymczasowej bazie.
 │   ├── static/             # CSS, JS, zasoby zewnętrzne
 │   └── data/               # przykładowy pakiet JSON
 ├── scripts/
-│   ├── worker_transkrypcji.py     # proces transkrybujący (poza kontenerem, na GPU)
+│   ├── worker_transkrypcji.py     # proces transkrybujący (kontener lub usługa na hoście)
 │   ├── transkrypcja-worker.sh     # launcher wykrywający środowisko i biblioteki CUDA
-│   └── zainstaluj-usluge.sh       # instalacja usługi systemd (automatyczny start)
+│   └── zainstaluj-usluge.sh       # opcjonalna usługa systemd na hoście (GPU bez Dockera)
 ├── frontend/               # źródła Tailwind CSS i skrypt kopiujący zależności
 ├── tests/                  # testy pytest
 ├── data/                   # wolumen danych (baza, kopie zapasowe) — poza repozytorium
 ├── Dockerfile              # obraz wieloetapowy, użytkownik bez uprawnień root
-├── docker-compose.yml
+├── Dockerfile.transkrypcja # obraz procesu transkrybującego (faster-whisper)
+├── docker-compose.yml      # aplikacja + kontener transkrypcji
+├── docker-compose.gpu.yml  # opcjonalnie: transkrypcja na karcie NVIDIA
 ├── AI_SCHEMA.md            # specyfikacja formatu JSON i prompt dla Claude CLI
 └── README.md
 ```
@@ -627,16 +621,17 @@ Następnie zaloguj się jako `admin` / `admin` — aplikacja od razu poprosi o u
 hasła. Listę wszystkich kont pokaże `python -m app.cli konta`.
 
 **Nagrania stoją w kolejce i nic się nie dzieje.**
-Usługa transkrypcji nie działa. Sprawdź jej stan i dziennik:
+Proces transkrypcji nie działa. Sprawdź, czy kontener wstał, i zajrzyj do dziennika:
 
 ```bash
-systemctl --user status mtquiz-transkrypcja
-journalctl --user -u mtquiz-transkrypcja -n 50
+docker compose ps transkrypcja
+docker compose logs transkrypcja -n 50
 ```
 
-Jeżeli usługa nie istnieje, zainstaluj ją: `./scripts/zainstaluj-usluge.sh`.
-Najczęstsza przyczyna błędu przy starcie to brak bibliotek CUDA — launcher wypisuje wtedy
-„Biblioteki CUDA: brak", a model wczytuje się na procesorze.
+Jeżeli kontenera nie ma na liście, uruchom `docker compose up -d --build` i upewnij się, że
+w `.env` nie ma `QUIZAPP_TRANSKRYPCJA_KONTENER=0`. Przy usłudze na hoście zajrzyj do
+`journalctl --user -u mtquiz-transkrypcja -n 50`. Pierwsze nagranie czeka dłużej, bo proces
+pobiera wtedy model (kilka GB).
 
 **Kontener zatrzymuje się z komunikatem „Brak prawa zapisu do katalogu danych”.**
 Proces w kontenerze ma inne UID niż właściciel katalogu `./data`. Ustaw w pliku `.env`:

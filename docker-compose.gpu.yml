@@ -1,0 +1,18 @@
+# Transkrypcja na karcie NVIDIA — wymaga nvidia-container-toolkit na hoście.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d --build
+#
+# Albo na stałe, w pliku .env:
+#   COMPOSE_FILE=docker-compose.yml:docker-compose.gpu.yml
+services:
+  transkrypcja:
+    build:
+      args:
+        TRANSKRYPCJA_GPU: "1"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

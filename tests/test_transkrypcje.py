@@ -198,6 +198,7 @@ def test_ponowienie_wraca_do_kolejki(client, app_module):
     (katalog(app_module, identyfikator) / "stan.json").write_text(
         json.dumps({"status": "error", "blad": "awaria"}), encoding="utf-8"
     )
+    (katalog(app_module, identyfikator) / "_przejete").touch()
     assert client.get(f"/api/transkrypcje/{identyfikator}").json()["status"] == "error"
 
     odpowiedz = client.post(f"/api/transkrypcje/{identyfikator}/ponow")
@@ -205,6 +206,28 @@ def test_ponowienie_wraca_do_kolejki(client, app_module):
     assert odpowiedz.json()["status"] == "queued"
     assert odpowiedz.json()["error_message"] is None
     assert not (katalog(app_module, identyfikator) / "stan.json").exists()
+    # Blokada zdjęta — proces liczący może wziąć zadanie jeszcze raz.
+    assert not (katalog(app_module, identyfikator) / "_przejete").exists()
+
+
+def test_proces_liczacy_przejmuje_zadanie_tylko_raz(tmp_path):
+    import importlib.util
+    from pathlib import Path
+
+    sciezka = Path(__file__).resolve().parent.parent / "scripts" / "worker_transkrypcji.py"
+    spec = importlib.util.spec_from_file_location("worker_transkrypcji", sciezka)
+    worker = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(worker)
+
+    zadanie = tmp_path / "7"
+    zadanie.mkdir()
+    (zadanie / "zadanie.json").write_text("{}", encoding="utf-8")
+    assert worker.znajdz_zadania(tmp_path) == [zadanie]
+
+    # Dwa procesy sięgające po to samo nagranie — wygrywa dokładnie jeden.
+    assert worker.przejmij(zadanie) is True
+    assert worker.przejmij(zadanie) is False
+    assert worker.znajdz_zadania(tmp_path) == []
 
 
 def test_stan_procesu_liczacego(client, app_module):
@@ -361,13 +384,13 @@ def _zapisz_sygnal(app_module, **pola):
     (settings.transcripts_dir / "_worker.json").write_text(json.dumps(dane), encoding="utf-8")
 
 
-def test_brak_sygnalu_sugeruje_instalacje_uslugi(client, app_module):
+def test_brak_sygnalu_oznacza_niewystartowany_proces(client, app_module):
     register(client)
     stan = client.get("/api/transkrypcje/worker").json()
 
     assert stan["dostepny"] is False
     assert stan["tryb"] == "brak"
-    assert "nie została jeszcze zainstalowana" in stan["opis"]
+    assert "jeszcze nie wystartował" in stan["opis"]
 
 
 def test_usluga_w_spoczynku(client, app_module):

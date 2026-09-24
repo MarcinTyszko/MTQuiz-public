@@ -31,6 +31,7 @@ PLIK_STANU = "stan.json"
 PLIK_TEKSTU = "transkrypcja.txt"
 PLIK_SEGMENTOW = "transkrypcja.json"
 PLIK_SYGNALU = "_worker.json"
+PLIK_BLOKADY = "_przejete"  # zakłada proces liczący, gdy bierze zadanie
 
 # Rozszerzenia akceptowane przy wysyłce nagrania.
 DOZWOLONE_ROZSZERZENIA = {".mp3", ".m4a", ".wav", ".ogg", ".oga", ".opus", ".webm", ".flac", ".mp4", ".aac", ".wma"}
@@ -213,7 +214,7 @@ def stan_procesu() -> dict[str, Any]:
             "dostepny": False,
             "sygnal": None,
             "tryb": "brak",
-            "opis": "Usługa transkrypcji nie została jeszcze zainstalowana.",
+            "opis": "Proces transkrypcji jeszcze nie wystartował.",
         }
 
     try:

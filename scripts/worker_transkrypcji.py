@@ -24,6 +24,7 @@ import json
 import os
 import signal
 import sys
+import threading
 import time
 import traceback
 from datetime import datetime, timezone
@@ -34,6 +35,8 @@ PLIK_STANU = "stan.json"
 PLIK_TEKSTU = "transkrypcja.txt"
 PLIK_SEGMENTOW = "transkrypcja.json"
 PLIK_SYGNALU = "_worker.json"
+PLIK_BLOKADY = "_przejete"
+ODSTEP_SYGNALU = 15
 
 _zatrzymaj = False
 
@@ -71,8 +74,13 @@ def zapisz_stan(katalog: Path, **pola) -> None:
 
 
 def tryb_uruchomienia() -> str:
-    """Rozpoznaje, czy proces działa jako usługa systemd, czy uruchomiono go ręcznie."""
+    """Rozpoznaje, czy proces działa jako usługa (systemd, kontener), czy uruchomiono go ręcznie."""
+    if os.environ.get("QUIZAPP_WORKER_TRYB"):
+        return os.environ["QUIZAPP_WORKER_TRYB"]
     return "usluga" if os.environ.get("INVOCATION_ID") else "reczny"
+
+
+_ostatni_sygnal: dict = {}
 
 
 def sygnal_zycia(katalog_transkrypcji: Path, urzadzenie: str, model: str, zadanie: str | None = None) -> None:
@@ -81,6 +89,7 @@ def sygnal_zycia(katalog_transkrypcji: Path, urzadzenie: str, model: str, zadani
     Wywoływany również w trakcie długiej transkrypcji — inaczej aplikacja uznałaby
     pracujący proces za nieczynny.
     """
+    _ostatni_sygnal.update(katalog=katalog_transkrypcji, urzadzenie=urzadzenie, model=model, zadanie=zadanie)
     zapisz_atomowo(
         katalog_transkrypcji / PLIK_SYGNALU,
         json.dumps(
@@ -97,6 +106,31 @@ def sygnal_zycia(katalog_transkrypcji: Path, urzadzenie: str, model: str, zadani
     )
 
 
+def podtrzymuj_sygnal() -> None:
+    """Ponawia ostatni znak życia w tle.
+
+    Pobieranie modelu przy pierwszym nagraniu czy wczytywanie go do pamięci trwa
+    dłużej niż dopuszczalna przerwa między sygnałami, a w tym czasie główny wątek
+    jest zajęty — bez tego aplikacja pokazałaby pracujący proces jako martwy.
+    """
+    while not _zatrzymaj:
+        time.sleep(ODSTEP_SYGNALU)
+        if _ostatni_sygnal:
+            try:
+                sygnal_zycia(**_ostatni_sygnal)
+            except OSError as exc:
+                _log(f"Nie udało się zapisać sygnału życia: {exc}")
+
+
+def przejmij(katalog: Path) -> bool:
+    """Atomowo rezerwuje zadanie — dwa procesy nigdy nie wezmą tego samego nagrania."""
+    try:
+        os.close(os.open(katalog / PLIK_BLOKADY, os.O_CREAT | os.O_EXCL | os.O_WRONLY))
+    except FileExistsError:
+        return False
+    return True
+
+
 def znajdz_zadania(katalog_transkrypcji: Path) -> list[Path]:
     """Zwraca katalogi zadań czekających na transkrypcję, od najstarszego."""
     czekajace = []
@@ -104,7 +138,7 @@ def znajdz_zadania(katalog_transkrypcji: Path) -> list[Path]:
         if not katalog.is_dir() or katalog.name.startswith("_"):
             continue
         plik_zadania = katalog / PLIK_ZADANIA
-        if not plik_zadania.exists():
+        if not plik_zadania.exists() or (katalog / PLIK_BLOKADY).exists():
             continue
 
         plik_stanu = katalog / PLIK_STANU
@@ -300,7 +334,8 @@ def main() -> int:
 
     transkryptor = Transkryptor(args.model, args.cpu)
     _log(f"Nasłuchuję na {katalog_transkrypcji} (model {args.model}). Zatrzymanie: Ctrl+C.")
-    sygnal_zycia(katalog_transkrypcji, "ładowanie" if not args.cpu else "cpu", args.model)
+    sygnal_zycia(katalog_transkrypcji, "oczekiwanie", args.model)
+    threading.Thread(target=podtrzymuj_sygnal, name="sygnal-zycia", daemon=True).start()
 
     ostatni_sygnal = 0.0
     while not _zatrzymaj:
@@ -322,6 +357,8 @@ def main() -> int:
         for katalog in zadania:
             if _zatrzymaj:
                 break
+            if not przejmij(katalog):
+                continue
             try:
                 wykonaj(katalog, transkryptor, katalog_transkrypcji)
             except Exception as exc:  # noqa: BLE001 - błąd jednego zadania nie może zabić procesu

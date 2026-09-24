@@ -28,28 +28,31 @@
     <template x-if="!worker.dostepny && worker.tryb === 'brak'">
       <div class="mt-2 text-xs">
         <p>
-          Transkrypcję liczy usługa działająca poza kontenerem, tam gdzie jest karta graficzna.
-          Zainstaluj ją jednorazowo — od tej pory wystartuje sama przy każdym uruchomieniu maszyny:
+          Transkrypcję liczy osobny kontener <code class="rounded bg-ink-200 px-1 dark:bg-ink-800">transkrypcja</code>,
+          który startuje razem z aplikacją. Jeżeli go nie ma, uruchom w katalogu projektu:
         </p>
-        <pre class="mt-1.5 overflow-x-auto rounded-lg bg-ink-900 px-3 py-2 text-[11px] text-ink-100 dark:bg-ink-950"><code>./scripts/zainstaluj-usluge.sh</code></pre>
-        <p class="mt-1.5">Nagrania wysłane teraz poczekają w kolejce i ruszą, gdy usługa wystartuje.</p>
+        <pre class="mt-1.5 overflow-x-auto rounded-lg bg-ink-900 px-3 py-2 text-[11px] text-ink-100 dark:bg-ink-950"><code>docker compose up -d --build</code></pre>
+        <p class="mt-1.5">Nagrania wysłane teraz poczekają w kolejce i ruszą, gdy proces wystartuje.</p>
       </div>
     </template>
 
     <template x-if="!worker.dostepny && worker.tryb !== 'brak'">
       <div class="mt-2 text-xs">
-        <p>Usługa jest zainstalowana, ale nie odpowiada. Sprawdź jej stan i dziennik:</p>
-        <pre class="mt-1.5 overflow-x-auto rounded-lg bg-ink-900 px-3 py-2 text-[11px] text-ink-100 dark:bg-ink-950"><code>systemctl --user status mtquiz-transkrypcja
-journalctl --user -u mtquiz-transkrypcja -n 50</code></pre>
-        <p class="mt-1.5">Ponowne uruchomienie: <code class="rounded bg-ink-200 px-1 dark:bg-ink-800">systemctl --user restart mtquiz-transkrypcja</code></p>
+        <p>Proces transkrypcji nie odpowiada. Sprawdź jego dziennik i uruchom go ponownie:</p>
+        <pre class="mt-1.5 overflow-x-auto rounded-lg bg-ink-900 px-3 py-2 text-[11px] text-ink-100 dark:bg-ink-950"><code>docker compose logs transkrypcja -n 50
+docker compose restart transkrypcja</code></pre>
+        <p class="mt-1.5">
+          Przy usłudze na hoście (<code class="rounded bg-ink-200 px-1 dark:bg-ink-800">zainstaluj-usluge.sh</code>):
+          <code class="rounded bg-ink-200 px-1 dark:bg-ink-800">systemctl --user restart mtquiz-transkrypcja</code>
+        </p>
       </div>
     </template>
 
     <template x-if="worker.dostepny && worker.tryb === 'reczny'">
       <p class="mt-2 text-xs">
         Proces uruchomiono ręcznie i zakończy się wraz z zamknięciem terminala.
-        Aby startował sam, wykonaj jednorazowo
-        <code class="rounded bg-ink-200 px-1 dark:bg-ink-800">./scripts/zainstaluj-usluge.sh</code>.
+        Aby startował sam, uruchom aplikację przez
+        <code class="rounded bg-ink-200 px-1 dark:bg-ink-800">docker compose up -d</code>.
       </p>
     </template>
   </div>

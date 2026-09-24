@@ -1,0 +1,40 @@
+# syntax=docker/dockerfile:1.7
+#
+# Obraz procesu transkrybującego (scripts/worker_transkrypcji.py).
+#
+# Startuje razem z aplikacją przez `docker compose up`, nie wymaga niczego
+# instalowanego na hoście. Model Whispera pobiera się sam przy pierwszym
+# nagraniu i zostaje w ./data/modele, więc kolejne starty są szybkie.
+#
+# Domyślnie liczy na procesorze. Obsługę karty NVIDIA włącza argument
+# TRANSKRYPCJA_GPU=1 (patrz docker-compose.gpu.yml) — dokłada biblioteki CUDA.
+
+FROM python:3.12-slim
+
+ARG TRANSKRYPCJA_GPU=0
+
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PATH="/opt/venv/bin:$PATH" \
+    HF_HOME=/data/modele \
+    QUIZAPP_WORKER_TRYB=usluga
+
+# faster-whisper ma w kołach wszystko, czego potrzebuje (także dekoder audio),
+# więc obraz nie potrzebuje ffmpeg ani kompilatora.
+RUN python -m venv /opt/venv \
+ && pip install faster-whisper==1.2.1 \
+ && if [ "$TRANSKRYPCJA_GPU" = "1" ]; then \
+      pip install nvidia-cublas-cu12 "nvidia-cudnn-cu12==9.*"; \
+    fi
+
+WORKDIR /srv/worker
+COPY scripts/worker_transkrypcji.py scripts/transkrypcja-worker.sh ./scripts/
+
+# Launcher wykrywa interpreter i dokłada biblioteki CUDA do LD_LIBRARY_PATH
+# przed startem Pythona — tak samo jak przy uruchomieniu na hoście.
+ENV PYTHON_TRANSKRYPCJI=/opt/venv/bin/python \
+    QUIZAPP_DANE=/data
+
+CMD ["./scripts/transkrypcja-worker.sh"]

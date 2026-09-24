@@ -33,3 +33,28 @@ services:
       start_period: 20s
     security_opt:
       - no-new-privileges:true
+
+  # Proces transkrybujący nagrania. Startuje razem z aplikacją i wymienia się z nią
+  # plikami w ./data/transkrypcje. Model Whispera pobiera się sam przy pierwszym
+  # nagraniu do ./data/modele (kilka GB, jednorazowo).
+  # Domyślnie liczy na procesorze; kartę NVIDIA włącza docker-compose.gpu.yml.
+  transkrypcja:
+    build:
+      context: .
+      dockerfile: Dockerfile.transkrypcja
+    image: mtquiz-transkrypcja:1.0.0
+    restart: unless-stopped
+    user: "${QUIZAPP_UID:-1000}:${QUIZAPP_GID:-1000}"
+    volumes:
+      - ./data:/data
+    environment:
+      QUIZAPP_WHISPER_MODEL: ${QUIZAPP_WHISPER_MODEL:-large-v3}
+      TZ: ${TZ:-Europe/Warsaw}
+    # 0 wyłącza kontener — np. gdy transkrypcję liczy usługa systemd na hoście
+    # (scripts/zainstaluj-usluge.sh), bo Docker nie ma dostępu do karty graficznej.
+    deploy:
+      replicas: ${QUIZAPP_TRANSKRYPCJA_KONTENER:-1}
+    # Zatrzymanie czeka na koniec bieżącego fragmentu, żeby nie zostawić połowy pliku.
+    stop_grace_period: 30s
+    security_opt:
+      - no-new-privileges:true

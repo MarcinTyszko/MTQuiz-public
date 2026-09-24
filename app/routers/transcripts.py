@@ -202,7 +202,9 @@ def ponow(transcription_id: int, user: UnlockedUser, db: DbSession) -> Transcrip
     transcription.started_at = None
     transcription.finished_at = None
 
-    (transkrypcje.katalog_zadania(transcription.id) / transkrypcje.PLIK_STANU).unlink(missing_ok=True)
+    katalog = transkrypcje.katalog_zadania(transcription.id)
+    (katalog / transkrypcje.PLIK_STANU).unlink(missing_ok=True)
+    (katalog / transkrypcje.PLIK_BLOKADY).unlink(missing_ok=True)
     transkrypcje.zapisz_zadanie(transcription)
     db.commit()
     db.refresh(transcription)

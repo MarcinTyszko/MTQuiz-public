@@ -186,9 +186,9 @@ def test_strona_transkrypcji_renderuje_sie(client):
     assert response.status_code == 200
     assert "Transkrypcja AI" in response.text
     assert 'x-data="listaTranskrypcji()"' in response.text
-    # Strona ma prowadzić do instalacji usługi, a nie kazać uruchamiać nic ręcznie.
-    assert "zainstaluj-usluge.sh" in response.text
-    assert "systemctl --user restart mtquiz-transkrypcja" in response.text
+    # Proces liczący startuje razem z aplikacją — strona podpowiada docker compose, nie ręczną instalację.
+    assert "docker compose up -d --build" in response.text
+    assert "docker compose restart transkrypcja" in response.text
 
 
 def test_strona_wyniku_transkrypcji(client):
