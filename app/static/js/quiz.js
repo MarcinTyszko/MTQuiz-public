@@ -1,7 +1,7 @@
 /** Silnik quizu: tryb nauki i egzaminu, limit czasu, punktacja i omówienie. */
 (function () {
   "use strict";
-  const { api, toast, shuffle, formatDuration, readJsonScript, confirmDialog } = window.MTQuiz;
+  const { toast, shuffle, formatDuration, readJsonScript, confirmDialog, createSessionTracker } = window.MTQuiz;
 
   function quizRunner() {
     return {
@@ -19,6 +19,11 @@
       remaining: 0,
       timer: null,
       sessionSaved: false,
+      tracker: null,
+      // Zakończenie przed ostatnim pytaniem: wynik obejmuje tylko rozwiązane pytania.
+      endedEarly: false,
+      plannedCount: 0,
+      remainingQuestions: [],
 
       init() {
         const data = readJsonScript("dane-zestawu");
@@ -31,6 +36,45 @@
         // cofnęłaby wybór do pierwszej pozycji (opcje powstają dopiero z szablonu).
         this.$nextTick(() => {
           this.config.count = data.questions.length;
+        });
+        // Postęp zapisuje się po każdym pytaniu; przy zamykaniu karty dosyłamy ostatni stan.
+        const flush = () => this.tracker && this.tracker.flushOnExit();
+        window.addEventListener("pagehide", flush);
+        document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "hidden") flush();
+        });
+      },
+
+      /** Liczba pytań, na które padła odpowiedź w bieżącym podejściu. */
+      get answeredCount() {
+        return this.questions.filter((question) => this.answers[question.id]).length;
+      },
+
+      get answeredCorrect() {
+        return this.questions.filter((question) => {
+          const selected = this.answers[question.id];
+          return selected && this.isCorrect(question, selected);
+        }).length;
+      },
+
+      newTracker() {
+        this.sessionSaved = false;
+        return createSessionTracker({
+          setId: this.set.id,
+          mode: "quiz",
+          onSaved: () => {
+            this.sessionSaved = true;
+          },
+        });
+      },
+
+      /** Każde rozwiązane pytanie to punkt — zapisywany od razu, nie dopiero na końcu. */
+      syncProgress() {
+        if (!this.tracker) return;
+        this.tracker.update({
+          score: this.answeredCorrect,
+          total: this.answeredCount,
+          duration: (Date.now() - this.startedAt) / 1000,
         });
       },
 
@@ -100,12 +144,20 @@
       },
 
       start() {
-        this.questions = this.buildQuestions(this.set.questions);
+        this.begin(this.set.questions);
+      },
+
+      /** Rozpoczyna nowe podejście — każde jest osobną sesją w statystykach. */
+      begin(source) {
+        this.questions = this.buildQuestions(source);
         this.answers = {};
         this.index = 0;
         this.selection = [];
         this.revealed = false;
-        this.sessionSaved = false;
+        this.endedEarly = false;
+        this.plannedCount = 0;
+        this.remainingQuestions = [];
+        this.tracker = this.newTracker();
         this.startedAt = Date.now();
         this.elapsed = 0;
         this.remaining = this.config.minutes * 60;
@@ -180,10 +232,12 @@
           this.answers[question.id] = this.selection.slice();
           this.lastCorrect = this.isCorrect(question, this.selection);
           this.revealed = true;
+          this.syncProgress();
           return;
         }
 
         this.answers[question.id] = this.selection.slice();
+        this.syncProgress();
         if (this.index === this.questions.length - 1) {
           this.finish();
           return;
@@ -196,12 +250,15 @@
       async abort() {
         const confirmed = await confirmDialog({
           title: "Przerwać quiz?",
-          message: "Wynik tej sesji nie zostanie zapisany.",
+          message:
+            "Rozwiązane pytania są już zapisane w statystykach. Omówienia błędów nie zobaczysz — " +
+            "jeżeli go potrzebujesz, wybierz „Zakończ teraz”.",
           confirmLabel: "Przerwij",
           danger: true,
         });
         if (!confirmed) return;
         window.clearInterval(this.timer);
+        if (this.tracker) await this.tracker.flush();
         window.location.href = `/zestawy/${this.set.id}`;
       },
 
@@ -209,44 +266,62 @@
         window.clearInterval(this.timer);
         this.elapsed = Math.round((Date.now() - this.startedAt) / 1000);
         this.stage = "result";
-        this.saveSession();
+        this.syncProgress();
         window.scrollTo({ top: 0, behavior: "smooth" });
+      },
+
+      /**
+       * Kończy quiz przed ostatnim pytaniem. Wynik i omówienie obejmują tylko
+       * rozwiązane pytania; pozostałe można rozwiązać później jednym przyciskiem.
+       */
+      async finishEarly() {
+        const question = this.currentQuestion;
+        // Zaznaczona, choć jeszcze niezatwierdzona odpowiedź też się liczy.
+        if (question && this.selection.length && !this.answers[question.id]) {
+          this.answers[question.id] = this.selection.slice();
+        }
+        const answered = this.questions.filter((item) => this.answers[item.id]);
+        if (!answered.length) {
+          toast("Odpowiedz na co najmniej jedno pytanie, aby zobaczyć wynik.", "info");
+          return;
+        }
+        const left = this.questions.length - answered.length;
+        if (left > 0) {
+          const confirmed = await confirmDialog({
+            title: "Zakończyć quiz teraz?",
+            message:
+              `Wynik i omówienie obejmą ${answered.length} rozwiązanych pytań. ` +
+              `Pozostałe ${left} możesz rozwiązać później przyciskiem na ekranie wyniku.`,
+            confirmLabel: "Zakończ i pokaż wyniki",
+          });
+          if (!confirmed) return;
+        }
+
+        this.plannedCount = this.questions.length;
+        this.remainingQuestions = this.questions
+          .filter((item) => !this.answers[item.id])
+          .map((item) => this.findOriginal(item));
+        this.endedEarly = left > 0;
+        this.questions = answered;
+        this.finish();
       },
 
       retry(onlyWrong) {
         const source = onlyWrong ? this.wrongQuestions.map((question) => this.findOriginal(question)) : this.set.questions;
         this.config.count = onlyWrong ? source.length : this.config.count;
-        this.questions = this.buildQuestions(source);
-        this.answers = {};
-        this.index = 0;
-        this.selection = [];
-        this.revealed = false;
-        this.sessionSaved = false;
-        this.startedAt = Date.now();
-        this.elapsed = 0;
-        this.remaining = this.config.minutes * 60;
-        this.stage = "run";
-        this.startTimer();
+        this.begin(source);
+      },
+
+      /** Wraca do pytań pominiętych po wcześniejszym zakończeniu quizu. */
+      retryRemaining() {
+        const source = this.remainingQuestions.slice();
+        if (!source.length) return;
+        this.config.count = source.length;
+        this.begin(source);
       },
 
       findOriginal(question) {
         return this.set.questions.find((item) => item.id === question.id) || question;
-      },
-
-      async saveSession() {
-        if (this.sessionSaved) return;
-        this.sessionSaved = true;
-        try {
-          await api.post("/api/study/sessions", {
-            set_id: this.set.id,
-            mode: "quiz",
-            score: this.score,
-            total: this.questions.length,
-            duration_seconds: Math.min(this.elapsed, 86400),
-          });
-        } catch (error) {
-          toast("Nie zapisano statystyk tej sesji.", "warning", 2500);
-        }
       },
     };
   }

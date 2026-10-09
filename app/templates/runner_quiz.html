@@ -74,14 +74,21 @@
 
   <!-- Ekran pytania ----------------------------------------------------- -->
   <section x-show="stage === 'run'" x-cloak class="flex flex-1 flex-col">
-    <div class="flex items-center justify-between gap-3">
+    <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
       <span class="text-sm font-medium text-ink-700 dark:text-ink-200">
         Pytanie <span class="tabular-nums" x-text="index + 1"></span> / <span class="tabular-nums" x-text="questions.length"></span>
+        <span class="ml-1 text-xs font-normal text-ink-500 dark:text-ink-400"
+              title="Punkt za każde rozwiązane pytanie — zapisywany od razu">
+          · rozwiązane: <span class="font-semibold tabular-nums text-brand-600 dark:text-brand-400" x-text="answeredCount"></span>
+        </span>
       </span>
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2">
         <span x-show="config.timed" class="rounded-lg px-2 py-1 text-sm font-semibold tabular-nums"
               :class="remaining <= 60 ? 'bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300' : 'bg-ink-100 text-ink-700 dark:bg-ink-800 dark:text-ink-200'"
               x-text="remainingLabel"></span>
+        <button type="button" class="btn-secondary btn-sm" @click="finishEarly()"
+                :disabled="!answeredCount && !selection.length"
+                title="Zakończ teraz i zobacz wynik oraz błędy z rozwiązanych pytań">Zakończ teraz</button>
         <button type="button" class="btn-ghost btn-sm" @click="abort()">Przerwij</button>
       </div>
     </div>
@@ -130,7 +137,8 @@
   <!-- Wyniki ------------------------------------------------------------ -->
   <section x-show="stage === 'result'" x-cloak class="flex flex-1 flex-col">
     <div class="card p-6 text-center sm:p-8">
-      <p class="text-sm font-medium uppercase tracking-wide text-ink-500 dark:text-ink-400">Wynik końcowy</p>
+      <p class="text-sm font-medium uppercase tracking-wide text-ink-500 dark:text-ink-400"
+         x-text="endedEarly ? 'Wynik z rozwiązanych pytań' : 'Wynik końcowy'"></p>
       <p class="mt-3 text-5xl font-bold tabular-nums"
          :class="percentage >= 75 ? 'text-emerald-600 dark:text-emerald-400' : percentage >= 50 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400'"
          x-text="`${percentage}%`"></p>
@@ -139,11 +147,19 @@
         <span class="font-semibold tabular-nums" x-text="questions.length"></span> poprawnych odpowiedzi ·
         czas <span class="tabular-nums" x-text="elapsedLabel"></span>
       </p>
+      <p x-show="endedEarly" x-cloak class="mx-auto mt-3 max-w-md rounded-xl bg-amber-50 px-4 py-2 text-xs text-amber-900 dark:bg-amber-950/60 dark:text-amber-100">
+        Zakończono po <span class="font-semibold tabular-nums" x-text="questions.length"></span> z
+        <span class="tabular-nums" x-text="plannedCount"></span> pytań. Pominięte pytania nie obniżają wyniku —
+        możesz je rozwiązać teraz albo później.
+      </p>
 
       <div class="mt-6 flex flex-col gap-2 sm:flex-row">
-        <button type="button" class="btn-primary flex-1" @click="retry(false)">Powtórz quiz</button>
+        <button type="button" class="btn-primary flex-1" @click="retryRemaining()" x-show="remainingQuestions.length" x-cloak>
+          <span x-text="`Rozwiąż pozostałe (${remainingQuestions.length})`"></span>
+        </button>
+        <button type="button" class="flex-1" :class="remainingQuestions.length ? 'btn-secondary' : 'btn-primary'" @click="retry(false)">Powtórz quiz</button>
         <button type="button" class="btn-secondary flex-1" @click="retry(true)" :disabled="!wrongQuestions.length">
-          Popraw błędne (<span x-text="wrongQuestions.length"></span>)
+          <span x-text="`Popraw błędne (${wrongQuestions.length})`"></span>
         </button>
       </div>
       <a :href="`/zestawy/${set.id}`" class="btn-ghost mt-2 w-full">Wróć do zestawu</a>

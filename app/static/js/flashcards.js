@@ -1,7 +1,7 @@
 /** Tryb nauki fiszkami: obrót karty, nawigacja, gesty dotykowe, statystyki sesji. */
 (function () {
   "use strict";
-  const { api, toast, shuffle, formatDuration, readJsonScript, bindSwipe } = window.MTQuiz;
+  const { api, toast, shuffle, formatDuration, readJsonScript, bindSwipe, createSessionTracker } = window.MTQuiz;
 
   function flashcardRunner() {
     return {
@@ -14,6 +14,9 @@
       onlyStarred: false,
       known: [],
       review: [],
+      // Fiszki przerobione w tej sesji (odwrócone albo ocenione) — każda daje jeden punkt.
+      reviewed: [],
+      tracker: null,
       finished: false,
       startedAt: Date.now(),
       elapsed: 0,
@@ -28,6 +31,12 @@
         }
         this.set = data;
         this.queue = data.cards.slice();
+        this.tracker = this.newTracker();
+        // Postęp zapisuje się po każdej fiszce; przy zamykaniu karty dosyłamy ostatni stan.
+        window.addEventListener("pagehide", () => this.tracker.flushOnExit());
+        document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "hidden") this.tracker.flushOnExit();
+        });
         this.startTimer();
         this.bindKeyboard();
         this.$nextTick(() => this.bindGestures());
@@ -101,6 +110,37 @@
 
       flip() {
         this.flipped = !this.flipped;
+        if (this.flipped) this.countReviewed();
+      },
+
+      newTracker() {
+        this.sessionSaved = false;
+        return createSessionTracker({
+          setId: this.set.id,
+          mode: "flashcards",
+          onSaved: () => {
+            this.sessionSaved = true;
+          },
+        });
+      },
+
+      /**
+       * Zalicza bieżącą fiszkę jako przerobioną (raz na sesję) i zapisuje postęp.
+       * Samo przewinięcie bez odwrócenia ani oceny nie jest nauką i nie daje punktu.
+       */
+      countReviewed() {
+        const card = this.current;
+        if (card && !this.reviewed.includes(card.id)) this.reviewed.push(card.id);
+        this.syncProgress();
+      },
+
+      syncProgress() {
+        if (!this.reviewed.length) return;
+        this.tracker.update({
+          score: this.known.length,
+          total: this.reviewed.length,
+          duration: (Date.now() - this.startedAt) / 1000,
+        });
       },
 
       resetCardState() {
@@ -131,6 +171,7 @@
         this.review = this.review.filter((id) => id !== card.id);
         if (bucket === "known") this.known.push(card.id);
         else this.review.push(card.id);
+        this.countReviewed();
         this.next();
       },
 
@@ -166,7 +207,6 @@
         this.queue = this.shuffled ? shuffle(source) : source;
         this.index = 0;
         this.finished = false;
-        this.sessionSaved = false;
         this.resetCardState();
       },
 
@@ -181,8 +221,10 @@
         this.index = 0;
         this.known = [];
         this.review = [];
+        this.reviewed = [];
         this.finished = false;
-        this.sessionSaved = false;
+        // Każde powtórzenie to osobna sesja nauki.
+        this.tracker = this.newTracker();
         this.startedAt = Date.now();
         this.elapsed = 0;
         this.resetCardState();
@@ -196,24 +238,7 @@
       finish() {
         this.finished = true;
         this.elapsed = Math.round((Date.now() - this.startedAt) / 1000);
-        this.saveSession();
-      },
-
-      async saveSession() {
-        if (this.sessionSaved) return;
-        this.sessionSaved = true;
-        try {
-          await api.post("/api/study/sessions", {
-            set_id: this.set.id,
-            mode: "flashcards",
-            score: this.known.length,
-            total: this.queue.length,
-            duration_seconds: Math.min(this.elapsed, 86400),
-          });
-        } catch (error) {
-          // Zapis statystyk nie może przerwać nauki — informujemy dyskretnie.
-          toast("Nie zapisano statystyk tej sesji.", "warning", 2500);
-        }
+        this.syncProgress();
       },
     };
   }

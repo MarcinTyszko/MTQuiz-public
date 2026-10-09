@@ -112,7 +112,13 @@ od razu zmienić) · gotowe materiały do testów: [`przyklady/`](przyklady/).
   według liczby przerobionych fiszek i pytań, bieżąca i najdłuższa seria dni nauki.
 - **Ranking** (`/ranking`): tygodniowy (od poniedziałku 00:00, zeruje się co tydzień) oraz
   ogólny. Podium, pozycja zalogowanego konta, podział punktów na quiz i fiszki.
-  Punkt to jedno rozwiązane pytanie albo jedna przejrzana fiszka.
+  Punkt to jedno rozwiązane pytanie albo jedna przerobiona (odwrócona lub oceniona) fiszka.
+- **Punkty od razu, nie po ukończeniu sesji.** Postęp zapisuje się po każdej fiszce
+  i każdym pytaniu, więc 80 przerobionych fiszek z 200 liczy się do rankingu, kalendarza
+  i serii także wtedy, gdy zamkniesz kartę w połowie.
+- **„Zakończ teraz” w quizie** — wynik i omówienie błędów z rozwiązanych pytań oraz
+  przycisk „Rozwiąż pozostałe”, żeby wrócić do reszty później. W fiszkach „Zakończ sesję”
+  pokazuje podsumowanie w dowolnym momencie.
 
 **Silnik importu AI**
 - Wgranie pliku `.json` (przeciągnij i upuść) albo wklejenie treści.
@@ -616,6 +622,7 @@ sesji albo nagłówkiem `Authorization: Bearer <token>`.
 | `POST` | `/api/import/upload` | Walidacja przesłanego pliku |
 | `POST` | `/api/import/commit` | Walidacja i zapis zestawu |
 | `POST` `GET` | `/api/study/sessions` | Zapis i historia sesji nauki |
+| `PATCH` | `/api/study/sessions/{id}` | Postęp trwającej sesji (po każdym elemencie, do 24 h od startu) |
 | `GET` | `/api/study/stats` | Statystyki pulpitu |
 | `GET` | `/api/activity/heatmap?weeks=` | Kalendarz aktywności (4–53 tygodnie) |
 | `GET` | `/api/activity/leaderboard?period=` | Ranking: `week` (domyślnie) albo `all` |

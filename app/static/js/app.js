@@ -375,7 +375,89 @@
     };
   }
 
+  /* ----------------------------------------------------------------------- */
+  /* Zapis postępu sesji nauki na bieżąco                                     */
+  /* ----------------------------------------------------------------------- */
+  /**
+   * Zapisuje postęp sesji po każdym przerobionym elemencie. Pierwszy element
+   * zakłada sesję na serwerze, kolejne aktualizują ją w miejscu — punkty,
+   * kalendarz aktywności i seria rosną z każdym kliknięciem, a przerwana
+   * nauka nie przepada.
+   *
+   * Wysyłany jest zawsze pełny stan (nie przyrost), a w danej chwili trwa
+   * najwyżej jedno żądanie: szybkie kliknięcia scalają się w jeden zapis.
+   */
+  function createSessionTracker({ setId, mode, onSaved } = {}) {
+    let sessionId = null;
+    let latest = null;
+    let sentKey = null;
+    let running = null;
+    let warned = false;
+
+    const keyOf = (state) => (state ? `${state.score}/${state.total}/${state.duration_seconds}` : null);
+
+    async function sync() {
+      while (latest && keyOf(latest) !== sentKey) {
+        const snapshot = latest;
+        if (sessionId === null) {
+          const created = await api.post("/api/study/sessions", { set_id: setId, mode, ...snapshot });
+          sessionId = created.id;
+        } else {
+          await api.patch(`/api/study/sessions/${sessionId}`, snapshot);
+        }
+        sentKey = keyOf(snapshot);
+        if (onSaved) onSaved(snapshot);
+      }
+    }
+
+    function schedule() {
+      if (running) return running;
+      running = sync()
+        .catch(() => {
+          // Zapis statystyk nie może przerywać nauki — kolejny element ponowi próbę.
+          if (!warned) toast("Nie udało się zapisać postępu — kolejna odpowiedź ponowi próbę.", "warning", 3000);
+          warned = true;
+        })
+        .finally(() => {
+          running = null;
+        });
+      return running;
+    }
+
+    return {
+      /** Aktualny stan sesji: liczba przerobionych elementów, poprawnych i czas. */
+      update({ score = 0, total = 0, duration = 0 } = {}) {
+        if (!total) return Promise.resolve();
+        latest = { score, total, duration_seconds: Math.max(0, Math.min(Math.round(duration), 86400)) };
+        return schedule();
+      },
+
+      /** Czeka na zapis wszystkich zgłoszonych zmian. */
+      async flush() {
+        while (running) await running;
+        if (latest && keyOf(latest) !== sentKey) await schedule();
+      },
+
+      /** Ostatnia szansa przy zamykaniu karty — żądanie przeżyje zamknięcie strony. */
+      flushOnExit() {
+        if (!latest || keyOf(latest) === sentKey) return;
+        // Zakładanie sesji wciąż trwa — drugie POST utworzyłoby duplikat.
+        if (sessionId === null && running) return;
+        const options = {
+          method: sessionId === null ? "POST" : "PATCH",
+          credentials: "same-origin",
+          keepalive: true,
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify(sessionId === null ? { set_id: setId, mode, ...latest } : latest),
+        };
+        fetch(sessionId === null ? "/api/study/sessions" : `/api/study/sessions/${sessionId}`, options).catch(() => {});
+        sentKey = keyOf(latest);
+      },
+    };
+  }
+
   window.MTQuiz = {
+    createSessionTracker,
     api,
     ApiError,
     toast,

@@ -15,14 +15,15 @@
       <a :href="`/zestawy/${set.id}`" class="text-xs text-ink-500 hover:underline dark:text-ink-400">← Wróć do zestawu</a>
       <h1 class="truncate text-lg font-semibold text-ink-900 dark:text-white" x-text="set.title"></h1>
     </div>
-    <div class="flex items-center gap-2">
+    <div class="flex flex-wrap items-center gap-2 [&>button]:whitespace-nowrap">
       <button type="button" class="btn-ghost btn-sm" @click="toggleShuffle()" :class="shuffled && 'text-brand-600 dark:text-brand-400'">
         <span x-text="shuffled ? 'Kolejność losowa' : 'Kolejność oryginalna'"></span>
       </button>
       <button type="button" class="btn-ghost btn-sm" @click="onlyStarred = !onlyStarred; rebuild()"
               :class="onlyStarred && 'text-amber-600 dark:text-amber-400'" :disabled="!starredCount && !onlyStarred">
-        Tylko trudne (<span x-text="starredCount"></span>)
+        <span x-text="`Tylko trudne (${starredCount})`"></span>
       </button>
+      <button type="button" class="btn-secondary btn-sm" x-show="!finished" @click="finish()">Zakończ sesję</button>
     </div>
   </div>
 
@@ -30,7 +31,10 @@
   <div class="mt-3">
     <div class="flex items-center justify-between text-xs text-ink-500 dark:text-ink-400">
       <span>Fiszka <span class="tabular-nums" x-text="index + 1"></span> z <span class="tabular-nums" x-text="queue.length"></span></span>
-      <span class="tabular-nums">Umiem: <span x-text="known.length"></span> · Do powtórki: <span x-text="review.length"></span></span>
+      <span class="tabular-nums">
+        <span title="Punkt za każdą odwróconą lub ocenioną fiszkę — zapisywany od razu">Przerobione: <span class="font-semibold text-brand-600 dark:text-brand-400" x-text="reviewed.length"></span></span> ·
+        Umiem: <span x-text="known.length"></span> · Do powtórki: <span x-text="review.length"></span>
+      </span>
     </div>
     <div class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-ink-200 dark:bg-ink-800">
       <div class="h-full rounded-full bg-brand-600 transition-all duration-300" :style="`width: ${progress}%`"></div>
@@ -98,14 +102,21 @@
   <div x-show="finished" x-cloak class="mt-6 flex flex-1 flex-col items-center justify-center">
     <div class="card w-full max-w-lg p-8 text-center">
       <p class="text-sm font-medium uppercase tracking-wide text-ink-500 dark:text-ink-400">Sesja zakończona</p>
-      <p class="mt-3 text-5xl font-bold tabular-nums text-brand-600 dark:text-brand-400" x-text="`${known.length}/${queue.length}`"></p>
+      <p class="mt-3 text-5xl font-bold tabular-nums text-brand-600 dark:text-brand-400" x-text="reviewed.length"></p>
       <p class="mt-1 text-sm text-ink-600 dark:text-ink-300">
-        fiszek oznaczonych jako opanowane · czas nauki <span class="tabular-nums" x-text="elapsedLabel"></span>
+        przerobionych fiszek z <span class="tabular-nums" x-text="queue.length"></span> ·
+        czas nauki <span class="tabular-nums" x-text="elapsedLabel"></span>
       </p>
+      <p class="mt-1 text-sm text-ink-600 dark:text-ink-300">
+        Umiem: <span class="font-semibold tabular-nums" x-text="known.length"></span> ·
+        do powtórki: <span class="font-semibold tabular-nums" x-text="review.length"></span>
+      </p>
+      <p class="mt-2 text-xs text-ink-500 dark:text-ink-400"
+         x-text="reviewed.length ? 'Postęp zapisany — każda fiszka liczy się do rankingu i kalendarza.' : 'Żadna fiszka nie została odwrócona ani oceniona, więc sesja nie trafiła do statystyk.'"></p>
       <div class="mt-6 flex flex-col gap-2 sm:flex-row">
         <button type="button" class="btn-primary flex-1" @click="restart(false)">Powtórz cały zestaw</button>
         <button type="button" class="btn-secondary flex-1" @click="restart(true)" :disabled="!review.length">
-          Powtórz trudne (<span x-text="review.length"></span>)
+          <span x-text="`Powtórz trudne (${review.length})`"></span>
         </button>
       </div>
       <a :href="`/zestawy/${set.id}`" class="btn-ghost mt-2 w-full">Wróć do zestawu</a>

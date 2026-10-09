@@ -270,6 +270,24 @@ class StudySessionIn(BaseModel):
         return self
 
 
+class StudySessionProgress(BaseModel):
+    """Bieżący stan trwającej sesji — wartości bezwzględne, nie przyrosty.
+
+    Klient wysyła cały stan po każdym przerobionym elemencie, więc powtórzone
+    lub zgubione żądanie nie zawyża ani nie zaniża wyniku.
+    """
+
+    score: int = Field(default=0, ge=0, le=MAX_SESSION_ITEMS)
+    total: int = Field(default=0, ge=0, le=MAX_SESSION_ITEMS)
+    duration_seconds: int = Field(default=0, ge=0, le=60 * 60 * 24)
+
+    @model_validator(mode="after")
+    def _score_within_total(self) -> "StudySessionProgress":
+        if self.score > self.total:
+            raise ValueError("Liczba poprawnych odpowiedzi nie może przekraczać liczby pytań.")
+        return self
+
+
 class StudySessionOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
