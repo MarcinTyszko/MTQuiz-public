@@ -30,6 +30,7 @@ from ..schemas import (
     StudySetSummary,
     UserAdminOut,
 )
+from ..permissions import role_label
 from ..security import hash_password, validate_password_strength
 from ..services import counts_for_sets, log_action, set_query_with_relations, to_summary
 
@@ -49,6 +50,7 @@ def stats(admin: AdminUser, db: DbSession) -> AdminStats:
         users_total=db.scalar(select(func.count(User.id))) or 0,
         users_active=db.scalar(select(func.count(User.id)).where(User.is_active.is_(True))) or 0,
         admins=db.scalar(select(func.count(User.id)).where(User.role == UserRole.ADMIN)) or 0,
+        medical_students=db.scalar(select(func.count(User.id)).where(User.role == UserRole.MEDICAL_STUDENT)) or 0,
         sets_total=db.scalar(select(func.count(StudySet.id))) or 0,
         sets_public=db.scalar(
             select(func.count(StudySet.id)).where(
@@ -143,11 +145,19 @@ def update_user(user_id: int, payload: AdminUserUpdate, admin: AdminUser, db: Db
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Nie możesz odebrać uprawnień samemu sobie."
             )
-        if user.role == UserRole.ADMIN and payload.role == UserRole.USER and _count_admins(db) <= 1:
+        # Każda ranga poza administratorem odbiera panel — także „student medycyny”.
+        if user.role == UserRole.ADMIN and payload.role != UserRole.ADMIN and _count_admins(db) <= 1:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="W systemie musi pozostać co najmniej jeden administrator.",
             )
+        log_action(
+            db,
+            admin,
+            "admin.user_role",
+            f"Zmieniono rangę konta {user.username} (#{user.id}): "
+            f"{role_label(user.role)} → {role_label(payload.role)}.",
+        )
         user.role = payload.role
 
     if payload.must_change_password is not None:

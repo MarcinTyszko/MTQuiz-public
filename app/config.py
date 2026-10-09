@@ -1,6 +1,7 @@
 """Konfiguracja aplikacji odczytywana ze zmiennych środowiskowych."""
 from __future__ import annotations
 
+import os
 import secrets
 from functools import lru_cache
 from pathlib import Path
@@ -51,6 +52,10 @@ class Settings(BaseSettings):
     whisper_language: str = "pl"
     # Po ilu sekundach bez sygnału uznajemy proces transkrybujący za nieczynny.
     worker_heartbeat_timeout: int = 90
+
+    # Strefa czasowa kalendarza aktywności i rankingu tygodniowego (granice dni
+    # i tygodni). Bez QUIZAPP_TIMEZONE używana jest zmienna TZ kontenera.
+    timezone: str = Field(default_factory=lambda: os.environ.get("TZ") or "Europe/Warsaw")
 
     @field_validator("data_dir", mode="before")
     @classmethod

@@ -4,6 +4,7 @@ Użycie w kontenerze:
 
     docker compose exec mtquiz python -m app.cli konta
     docker compose exec mtquiz python -m app.cli reset-admina
+    docker compose exec mtquiz python -m app.cli rola jan medical_student
     docker compose exec mtquiz python -m app.cli kopia-zapasowa
 """
 from __future__ import annotations
@@ -16,6 +17,7 @@ from sqlalchemy import func, select
 
 from .database import create_all, session_scope
 from .models import StudySet, User, UserRole
+from .permissions import role_label
 from .security import hash_password, validate_password_strength, validate_username
 from .services import log_action
 
@@ -33,15 +35,15 @@ def _tabela_kont() -> int:
             ).all()
         )
 
-        print(f"{'ID':>3}  {'Login':<24} {'Rola':<14} {'Stan':<12} {'Zestawy':>7}  Ostatnie logowanie")
-        print("-" * 92)
+        print(f"{'ID':>3}  {'Login':<24} {'Rola':<18} {'Stan':<12} {'Zestawy':>7}  Ostatnie logowanie")
+        print("-" * 96)
         for konto in konta:
             stan = "aktywne" if konto.is_active else "zablokowane"
             if konto.must_change_password:
                 stan += "*"
             ostatnie = konto.last_login_at.strftime("%d.%m.%Y %H:%M") if konto.last_login_at else "—"
-            rola = "administrator" if konto.is_admin else "użytkownik"
-            print(f"{konto.id:>3}  {konto.username:<24} {rola:<14} {stan:<12} {zestawy.get(konto.id, 0):>7}  {ostatnie}")
+            rola = role_label(konto.role).lower()
+            print(f"{konto.id:>3}  {konto.username:<24} {rola:<18} {stan:<12} {zestawy.get(konto.id, 0):>7}  {ostatnie}")
         print("\n* konto musi ustawić nowe hasło przy najbliższym logowaniu")
     return 0
 
@@ -105,6 +107,40 @@ def _utworz_admina(login: str, haslo: str | None) -> int:
     return 0
 
 
+def _ustaw_role(login: str, rola: str) -> int:
+    """Nadaje kontu rangę, pilnując, by w systemie został aktywny administrator."""
+    nowa = UserRole(rola)
+    with session_scope() as db:
+        konto = db.scalar(select(User).where(func.lower(User.username) == login.lower()))
+        if konto is None:
+            print(f"Nie znaleziono konta „{login}”. Dostępne konta wypisze polecenie: konta", file=sys.stderr)
+            return 1
+        if konto.role == nowa:
+            print(f"Konto „{konto.username}” ma już rangę: {role_label(nowa)}.")
+            return 0
+
+        if konto.role == UserRole.ADMIN and nowa != UserRole.ADMIN:
+            pozostali = db.scalar(
+                select(func.count(User.id)).where(
+                    User.role == UserRole.ADMIN, User.is_active.is_(True), User.id != konto.id
+                )
+            )
+            if not pozostali:
+                print("Błąd: to jedyny aktywny administrator — najpierw nadaj tę rangę innemu kontu.", file=sys.stderr)
+                return 1
+
+        poprzednia = konto.role
+        konto.role = nowa
+        log_action(
+            db,
+            None,
+            "cli.rola",
+            f"Zmieniono rangę konta {konto.username} z wiersza poleceń: {role_label(poprzednia)} → {role_label(nowa)}.",
+        )
+        print(f"Konto „{konto.username}”: {role_label(poprzednia)} → {role_label(nowa)}.")
+    return 0
+
+
 def _kopia_zapasowa() -> int:
     from .backup import create_backup_archive
 
@@ -141,6 +177,10 @@ def main(argv: list[str] | None = None) -> int:
     utworz.add_argument("login", help="login nowego konta")
     utworz.add_argument("--haslo", default=None, help="hasło; pominięte generuje losowe")
 
+    rola = podpolecenia.add_parser("rola", help="nadaje kontu rangę (np. student medycyny)")
+    rola.add_argument("login", help="login konta")
+    rola.add_argument("rola", choices=[pozycja.value for pozycja in UserRole], help="nowa ranga konta")
+
     podpolecenia.add_parser("kopia-zapasowa", help="tworzy archiwum ZIP z kopią bazy danych")
 
     args = parser.parse_args(argv)
@@ -152,6 +192,8 @@ def main(argv: list[str] | None = None) -> int:
         return _reset_admina(args.login, args.haslo, args.bez_wymuszania)
     if args.polecenie == "utworz-admina":
         return _utworz_admina(args.login, args.haslo)
+    if args.polecenie == "rola":
+        return _ustaw_role(args.login, args.rola)
     if args.polecenie == "kopia-zapasowa":
         return _kopia_zapasowa()
     return 1

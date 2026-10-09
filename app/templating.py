@@ -8,6 +8,8 @@ from fastapi.templating import Jinja2Templates
 from markupsafe import Markup, escape
 
 from .config import STATIC_DIR, TEMPLATES_DIR, settings
+from .permissions import has_permission, role_label
+from .prompts import available_modes
 
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
@@ -90,6 +92,11 @@ def plural_pl(count: int, one: str, few: str, many: str) -> str:
     return many
 
 
+def format_number(value: int | float | None) -> str:
+    """Liczba z polskim separatorem tysięcy (twarda spacja), np. „13 508”."""
+    return f"{value or 0:,}".replace(",", " ")
+
+
 _static_versions: dict[str, str] = {}
 
 
@@ -115,6 +122,7 @@ def static_url(path: str) -> str:
 templates.env.filters["dt"] = format_datetime
 templates.env.filters["relative"] = relative_time
 templates.env.filters["bytes"] = format_bytes
+templates.env.filters["num"] = format_number
 templates.env.filters["tojson_safe"] = to_json
 templates.env.filters["tojson_attr"] = to_json_attr
 templates.env.globals["plural_pl"] = plural_pl
@@ -123,3 +131,7 @@ templates.env.globals["app_name"] = settings.app_name
 templates.env.globals["current_year"] = current_year
 templates.env.globals["app_tagline"] = settings.app_tagline
 templates.env.globals["allow_registration"] = settings.allow_registration
+# Kontrola uprawnień w szablonach: {% if can(user, 'prompts.medical') %}
+templates.env.globals["can"] = has_permission
+templates.env.globals["role_label"] = role_label
+templates.env.globals["prompt_modes_for"] = available_modes

@@ -31,15 +31,23 @@
   <section x-show="tab === 'users'" class="mt-5">
     <div class="flex flex-wrap items-center gap-2">
       <input class="input max-w-xs" placeholder="Szukaj konta…" x-model="userQuery" @input.debounce.300ms="loadUsers()">
+      <select class="input !w-auto" x-model="roleFilter" aria-label="Filtruj według rangi">
+        <option value="">Wszystkie rangi</option>
+        {% for role in roles %}<option value="{{ role.value }}">{{ role.label }}</option>{% endfor %}
+      </select>
       <button type="button" class="btn-ghost btn-sm" @click="loadUsers()">Odśwież</button>
     </div>
+    <p class="hint mt-2">
+      Ranga <span class="font-medium">Student medycyny</span> odblokowuje tryby LEK, Anatomia oraz Skrypt i synteza
+      w generatorze promptu. Administrator ma dostęp do wszystkich funkcji.
+    </p>
 
     <div class="card mt-4 overflow-x-auto">
       <table class="w-full min-w-[46rem] text-sm">
         <thead class="border-b border-ink-200 text-left text-xs uppercase tracking-wide text-ink-500 dark:border-ink-800 dark:text-ink-400">
           <tr>
             <th class="px-4 py-3 font-medium">Użytkownik</th>
-            <th class="px-4 py-3 font-medium">Rola</th>
+            <th class="px-4 py-3 font-medium">Ranga</th>
             <th class="px-4 py-3 font-medium">Status</th>
             <th class="px-4 py-3 font-medium">Zestawy</th>
             <th class="px-4 py-3 font-medium">Ostatnie logowanie</th>
@@ -47,16 +55,16 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-ink-100 dark:divide-ink-800">
-          <template x-for="item in users" :key="item.id">
+          <template x-for="item in filteredUsers" :key="item.id">
             <tr>
               <td class="px-4 py-3">
                 <p class="font-medium text-ink-900 dark:text-white" x-text="item.username"></p>
                 <p class="text-xs text-ink-500 dark:text-ink-400" x-text="item.email || '—'"></p>
               </td>
               <td class="px-4 py-3">
-                <select class="input !min-h-0 !w-auto py-1 text-xs" :value="item.role" @change="setRole(item, $event.target.value)">
-                  <option value="user">Użytkownik</option>
-                  <option value="admin">Administrator</option>
+                <select class="input !min-h-0 !w-auto py-1 text-xs" :value="item.role" @change="setRole(item, $event.target.value)"
+                        :aria-label="`Ranga konta ${item.username}`">
+                  {% for role in roles %}<option value="{{ role.value }}">{{ role.label }}</option>{% endfor %}
                 </select>
               </td>
               <td class="px-4 py-3">
@@ -78,7 +86,7 @@
               </td>
             </tr>
           </template>
-          <tr x-show="!users.length">
+          <tr x-show="!filteredUsers.length">
             <td colspan="6" class="px-4 py-8 text-center text-sm text-ink-500 dark:text-ink-400">Brak kont spełniających kryteria.</td>
           </tr>
         </tbody>

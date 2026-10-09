@@ -103,4 +103,18 @@ def create_all() -> None:
     """Tworzy schemat bazy danych (idempotentnie)."""
     from . import models  # noqa: F401  - rejestracja modeli w metadanych
 
-    Base.metadata.create_all(bind=get_engine())
+    engine = get_engine()
+    Base.metadata.create_all(bind=engine)
+    ensure_indexes(engine)
+
+
+def ensure_indexes(engine: Engine) -> None:
+    """Dokłada indeksy dodane w nowszych wersjach do tabel z istniejącej bazy.
+
+    ``create_all`` pomija istniejące tabele razem z ich indeksami, więc indeks
+    zdefiniowany po pierwszym uruchomieniu nie powstałby nigdy. Operacja jest
+    addytywna i idempotentna — nie zmienia danych ani kolumn.
+    """
+    for table in Base.metadata.sorted_tables:
+        for index in table.indexes:
+            index.create(bind=engine, checkfirst=True)

@@ -1,0 +1,109 @@
+{# Komponenty rankingu: podium, wiersz tabeli i karta pozycji konta. #}
+
+{% set medal_styles = {
+  1: {'ring': 'ring-amber-400', 'badge': 'bg-amber-400 text-amber-950', 'step': 'h-28 bg-amber-100 dark:bg-amber-400/20', 'label': '1. miejsce'},
+  2: {'ring': 'ring-ink-300 dark:ring-ink-500', 'badge': 'bg-ink-300 text-ink-900', 'step': 'h-20 bg-ink-100 dark:bg-ink-700/60', 'label': '2. miejsce'},
+  3: {'ring': 'ring-orange-300 dark:ring-orange-400', 'badge': 'bg-orange-300 text-orange-950', 'step': 'h-14 bg-orange-50 dark:bg-orange-400/15', 'label': '3. miejsce'},
+} %}
+
+{% macro points_label(points) -%}
+{{ points | num }} {{ plural_pl(points, 'punkt', 'punkty', 'punktów') }}
+{%- endmacro %}
+
+{% macro breakdown(entry) -%}
+{{ entry.quiz_items }} {{ plural_pl(entry.quiz_items, 'pytanie', 'pytania', 'pytań') }} · {{ entry.card_items }} {{ plural_pl(entry.card_items, 'fiszka', 'fiszki', 'fiszek') }}
+{%- endmacro %}
+
+{% macro podium(board) %}
+{% set top = board.podium %}
+{# Kolejność wizualna: 2. – 1. – 3., jak na prawdziwym podium. #}
+{% set order = [1, 0, 2] %}
+<div class="grid grid-cols-3 items-end gap-2 sm:gap-4">
+  {% for index in order %}
+  {% if top | length > index %}
+  {% set entry = top[index] %}
+  {% set style = medal_styles.get(entry.rank, medal_styles[3]) %}
+  <div class="flex min-w-0 flex-col items-center text-center">
+    <span class="relative grid h-12 w-12 place-items-center rounded-full bg-brand-600 text-lg font-bold text-white ring-4 sm:h-14 sm:w-14 {{ style.ring }}">
+      {{ entry.initial }}
+      <span class="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full text-xs font-bold {{ style.badge }}" aria-label="{{ style.label }}">{{ entry.rank }}</span>
+    </span>
+    {# Odznaka „Ty” stoi poza obcinanym tekstem — przy długim imieniu nie znika na telefonie. #}
+    <p class="mt-2 flex w-full items-center justify-center gap-1 text-sm font-semibold text-ink-900 dark:text-white">
+      <span class="min-w-0 truncate">{{ entry.label }}</span>
+      {% if entry.is_viewer %}<span class="badge-brand shrink-0">Ty</span>{% endif %}
+    </p>
+    <p class="text-xs tabular-nums text-ink-500 dark:text-ink-400">{{ points_label(entry.points) }}</p>
+    <div class="mt-2 w-full rounded-t-xl {{ style.step }}"></div>
+  </div>
+  {% else %}
+  <div></div>
+  {% endif %}
+  {% endfor %}
+</div>
+{% endmacro %}
+
+{% macro entry_row(entry) %}
+<li class="flex items-center gap-3 px-4 py-3 {{ 'bg-brand-50 dark:bg-brand-950/40' if entry.is_viewer else '' }}"
+    {% if entry.is_viewer %}aria-current="true"{% endif %}>
+  <span class="w-8 shrink-0 text-center text-sm font-semibold tabular-nums text-ink-500 dark:text-ink-400">{{ entry.rank }}.</span>
+  <span class="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-ink-200 text-xs font-bold text-ink-700 dark:bg-ink-700 dark:text-ink-100">{{ entry.initial }}</span>
+  <div class="min-w-0 flex-1">
+    <p class="flex items-center gap-1 text-sm font-medium text-ink-900 dark:text-white">
+      <span class="min-w-0 truncate">{{ entry.label }}</span>
+      {% if entry.is_viewer %}<span class="badge-brand shrink-0">Ty</span>{% endif %}
+    </p>
+    <p class="truncate text-xs text-ink-500 dark:text-ink-400">
+      {{ breakdown(entry) }}{% if entry.quiz_accuracy is not none %}<span class="hidden sm:inline"> · skuteczność quizów {{ entry.quiz_accuracy }}%</span>{% endif %}
+    </p>
+  </div>
+  <span class="shrink-0 text-sm font-semibold tabular-nums text-ink-900 dark:text-white">{{ entry.points | num }}</span>
+</li>
+{% endmacro %}
+
+{% macro board_panel(board) %}
+<div class="space-y-6">
+  <div class="flex flex-wrap items-baseline justify-between gap-2 text-sm text-ink-600 dark:text-ink-300">
+    {% if board.week %}
+    <p>
+      Tydzień <span class="font-semibold text-ink-900 dark:text-white">{{ board.week.label }}</span>
+      {% set left = board.week.days_left() %}
+      · reset za {{ left }} {{ plural_pl(left, 'dzień', 'dni', 'dni') }}
+    </p>
+    {% else %}
+    <p>Wszystkie sesje od początku istnienia konta.</p>
+    {% endif %}
+    <p>{{ board.participants }} {{ plural_pl(board.participants, 'uczestnik', 'uczestników', 'uczestników') }} · {{ points_label(board.total_points) }} łącznie</p>
+  </div>
+
+  {% if board.entries %}
+  <div class="card px-4 pb-0 pt-6 sm:px-8">{{ podium(board) }}</div>
+
+  {% if board.entries | length > 3 %}
+  <ol class="card divide-y divide-ink-100 overflow-hidden dark:divide-ink-800">
+    {% for entry in board.entries[3:] %}{{ entry_row(entry) }}{% endfor %}
+  </ol>
+  {% endif %}
+
+  {% if board.viewer_outside_list %}
+  <div>
+    <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-400">Twoja pozycja</p>
+    <ol class="card overflow-hidden">{{ entry_row(board.viewer) }}</ol>
+  </div>
+  {% elif board.viewer is none %}
+  <p class="rounded-xl border border-dashed border-ink-300 px-4 py-3 text-sm text-ink-600 dark:border-ink-700 dark:text-ink-300">
+    {% if board.week %}W tym tygodniu nie masz jeszcze punktów.{% else %}Nie masz jeszcze punktów.{% endif %}
+    Rozwiąż quiz albo przejrzyj fiszki, aby pojawić się w rankingu.
+  </p>
+  {% endif %}
+  {% else %}
+  <div class="card flex flex-col items-center gap-2 px-6 py-12 text-center">
+    <p class="text-base font-semibold text-ink-900 dark:text-white">Ranking jest jeszcze pusty</p>
+    <p class="max-w-md text-sm text-ink-600 dark:text-ink-300">
+      {% if board.week %}Nowy tydzień — pierwsza ukończona sesja nauki zajmie pierwsze miejsce.{% else %}Pierwsza ukończona sesja nauki otworzy ranking.{% endif %}
+    </p>
+    <a href="/pulpit" class="btn-primary mt-2">Wybierz zestaw do nauki</a>
+  </div>
+  {% endif %}
+</div>
+{% endmacro %}

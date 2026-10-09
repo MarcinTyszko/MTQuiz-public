@@ -97,6 +97,22 @@ od razu zmienić) · gotowe materiały do testów: [`przyklady/`](przyklady/).
   i oznaczeń, wymóg pomijania zagadnień niepewnych, opcjonalne wskazanie źródła w każdej fiszce.
   Profile dokładają zasady branżowe — stan prawny, wersję oprogramowania, jednostki wielkości,
   rejestr językowy czy oddzielenie faktu od interpretacji.
+- **Tryby medyczne** dla rangi *Student medycyny* (i administratora) — wyłącznie pytania
+  zamknięte ABCD z jedną odpowiedzią najlepszą:
+  - **LEK i egzaminy kliniczne** — winiety kliniczne w standardzie Lekarskiego Egzaminu
+    Końcowego, kolokwiów i seminariów, uzasadnienie z „perłą” do zapamiętania;
+  - **Anatomia** — topografia, rzuty, unaczynienie, unerwienie, relacje i korelacja kliniczna;
+  - **Skrypt i synteza** — wklejony fragment podręcznika zamieniony w esencję high-yield
+    z mnemotechnikami i ściągą w opisie zestawu.
+  Tryby otwierasz z menu **Dodaj zestaw** albo adresem `/generator-promptu?tryb=lek`
+  (`anatomia`, `synteza`). Bez rangi treść trybów w ogóle nie trafia do przeglądarki.
+
+**Aktywność i ranking**
+- **Kalendarz aktywności** na pulpicie w stylu GitHuba: ostatnie 12 miesięcy, intensywność
+  według liczby przerobionych fiszek i pytań, bieżąca i najdłuższa seria dni nauki.
+- **Ranking** (`/ranking`): tygodniowy (od poniedziałku 00:00, zeruje się co tydzień) oraz
+  ogólny. Podium, pozycja zalogowanego konta, podział punktów na quiz i fiszki.
+  Punkt to jedno rozwiązane pytanie albo jedna przejrzana fiszka.
 
 **Silnik importu AI**
 - Wgranie pliku `.json` (przeciągnij i upuść) albo wklejenie treści.
@@ -114,8 +130,9 @@ od razu zmienić) · gotowe materiały do testów: [`przyklady/`](przyklady/).
 
 **Konta i administracja**
 - Uwierzytelnianie sesyjne (JWT w ciasteczku `HttpOnly`), hasła hashowane Argon2id.
-- Role `user` i `admin`; zmiana hasła unieważnia wszystkie wcześniejsze sesje.
-- Panel administratora: statystyki instancji, zarządzanie kontami (blokada, rola,
+- Rangi `user`, `medical_student` (*Student medycyny*) i `admin`; uprawnienia przypisane
+  do rang opisuje `app/permissions.py`. Zmiana hasła unieważnia wszystkie wcześniejsze sesje.
+- Panel administratora: statystyki instancji, zarządzanie kontami (blokada, ranga,
   reset hasła, usunięcie), moderacja bazy publicznej, dziennik zdarzeń.
 - Kopie zapasowe: pobranie archiwum ZIP jednym kliknięciem oraz przywrócenie bazy
   z automatyczną kopią bezpieczeństwa stanu sprzed operacji.
@@ -226,6 +243,7 @@ Wszystkie ustawienia przekazywane są zmiennymi środowiskowymi z przedrostkiem
 | `QUIZAPP_WHISPER_MODEL` | `large-v3` | Model używany przez proces transkrybujący. |
 | `QUIZAPP_WHISPER_LANGUAGE` | `pl` | Domyślny język nagrań. |
 | `QUIZAPP_APP_NAME` | `MTQuiz` | Nazwa instancji w interfejsie. |
+| `QUIZAPP_TIMEZONE` | wartość `TZ` albo `Europe/Warsaw` | Strefa wyznaczająca granice dni w kalendarzu aktywności i początek tygodnia rankingowego. |
 
 ### Praca za odwrotnym proxy
 
@@ -484,6 +502,9 @@ docker compose exec mtquiz python -m app.cli reset-admina --login marcin
 # nowe konto administratora z losowym hasłem
 docker compose exec mtquiz python -m app.cli utworz-admina zapasowy
 
+# nadanie rangi: user, medical_student albo admin
+docker compose exec mtquiz python -m app.cli rola kasia medical_student
+
 # kopia zapasowa do ./data/backups
 docker compose exec mtquiz python -m app.cli kopia-zapasowa
 ```
@@ -538,6 +559,10 @@ Każdy test pracuje na własnej, tymczasowej bazie.
 │   ├── schemas.py          # walidacja wejścia i serializacja (Pydantic)
 │   ├── security.py         # Argon2id, tokeny sesji JWT
 │   ├── deps.py             # zależności FastAPI, kontrola ról, ciasteczko sesji
+│   ├── permissions.py      # rangi kont i przypisane do nich uprawnienia (RBAC)
+│   ├── prompts/            # tryby generatora promptu; medical.py — LEK, anatomia, synteza
+│   ├── activity.py         # kalendarz aktywności i serie dni nauki
+│   ├── leaderboard.py      # rankingi tygodniowy i ogólny
 │   ├── services.py         # logika biznesowa zestawów, tagi, statystyki
 │   ├── importer.py         # uniwersalny parser pakietów JSON
 │   ├── transkrypcje.py     # kolejka transkrypcji, stan zadań i eksport wyników
@@ -545,7 +570,7 @@ Każdy test pracuje na własnej, tymczasowej bazie.
 │   ├── bootstrap.py        # konto startowe i zestaw pokazowy
 │   ├── cli.py              # narzędzia administracyjne wiersza poleceń
 │   ├── templating.py       # Jinja2: filtry, wersjonowanie zasobów
-│   ├── routers/            # auth, sets, study, admin, pages
+│   ├── routers/            # auth, sets, study, prompts, activity, admin, pages
 │   ├── templates/          # widoki HTML
 │   ├── static/             # CSS, JS, zasoby zewnętrzne
 │   └── data/               # przykładowy pakiet JSON
@@ -592,6 +617,9 @@ sesji albo nagłówkiem `Authorization: Bearer <token>`.
 | `POST` | `/api/import/commit` | Walidacja i zapis zestawu |
 | `POST` `GET` | `/api/study/sessions` | Zapis i historia sesji nauki |
 | `GET` | `/api/study/stats` | Statystyki pulpitu |
+| `GET` | `/api/activity/heatmap?weeks=` | Kalendarz aktywności (4–53 tygodnie) |
+| `GET` | `/api/activity/leaderboard?period=` | Ranking: `week` (domyślnie) albo `all` |
+| `GET` | `/api/prompts/modes[/{klucz}]` | Tryby generatora dostępne dla rangi konta |
 | `GET` `POST` | `/api/transkrypcje` | Lista transkrypcji i zgłoszenie nagrania |
 | `GET` | `/api/transkrypcje/worker` | Stan procesu transkrybującego |
 | `GET` `PATCH` `DELETE` | `/api/transkrypcje/{id}` | Szczegóły, zmiana nazwy, usunięcie |

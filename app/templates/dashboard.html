@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "partials/macros.html" import set_card, stat_tile, empty_state %}
+{% from "partials/activity.html" import activity_heatmap %}
 {% block title %}Moje zestawy — {{ app_name }}{% endblock %}
 
 {% block content %}
@@ -21,6 +22,39 @@
   {{ stat_tile('Pytania quizowe', stats.questions_total) }}
   {{ stat_tile('Skuteczność 30 dni', stats.average_accuracy ~ '%', stats.sessions_last_30_days ~ ' ' ~ plural_pl(stats.sessions_last_30_days, 'sesja', 'sesje', 'sesji')) }}
 </section>
+
+<div class="mt-8 grid gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
+  {{ activity_heatmap(heatmap) }}
+
+  <section class="card flex flex-col p-5" aria-labelledby="ranking-tygodnia">
+    <div class="flex items-baseline justify-between gap-2">
+      <h2 id="ranking-tygodnia" class="section-title">Ranking tygodnia</h2>
+      <span class="text-xs text-ink-500 dark:text-ink-400">{{ weekly.week.label }}</span>
+    </div>
+    {% if weekly.entries %}
+    <ol class="mt-3 space-y-2">
+      {% for entry in weekly.entries %}
+      <li class="flex items-center gap-3 rounded-xl px-2 py-1.5 text-sm {{ 'bg-brand-50 dark:bg-brand-950/40' if entry.is_viewer else '' }}">
+        <span class="w-5 text-center font-semibold tabular-nums text-ink-500 dark:text-ink-400">{{ entry.rank }}</span>
+        <span class="min-w-0 flex-1 truncate font-medium text-ink-800 dark:text-ink-100">{{ entry.label }}</span>
+        <span class="tabular-nums text-ink-600 dark:text-ink-300">{{ entry.points }}</span>
+      </li>
+      {% endfor %}
+    </ol>
+    {% else %}
+    <p class="mt-3 text-sm text-ink-600 dark:text-ink-300">Nowy tydzień, czysta karta — pierwsza sesja nauki daje prowadzenie.</p>
+    {% endif %}
+    <p class="mt-3 text-sm text-ink-600 dark:text-ink-300">
+      {% if weekly.viewer %}
+      Twoje miejsce: <span class="font-semibold text-ink-900 dark:text-white">{{ weekly.viewer.rank }}</span>
+      z {{ weekly.participants }} · {{ weekly.viewer.points }} {{ plural_pl(weekly.viewer.points, 'punkt', 'punkty', 'punktów') }}
+      {% else %}
+      W tym tygodniu nie masz jeszcze punktów.
+      {% endif %}
+    </p>
+    <div class="mt-auto pt-4"><a href="/ranking" class="btn-secondary btn-sm">Pełny ranking</a></div>
+  </section>
+</div>
 
 {% if recent %}
 <section class="mt-8">

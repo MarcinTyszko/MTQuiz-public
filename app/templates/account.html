@@ -10,7 +10,7 @@
   <dl class="grid gap-4 p-5 sm:grid-cols-2">
     <div><dt class="text-xs uppercase tracking-wide text-ink-500 dark:text-ink-400">Nazwa użytkownika</dt><dd class="mt-1 font-medium text-ink-900 dark:text-white">{{ user.username }}</dd></div>
     <div><dt class="text-xs uppercase tracking-wide text-ink-500 dark:text-ink-400">Adres e-mail</dt><dd class="mt-1 font-medium text-ink-900 dark:text-white">{{ user.email or '—' }}</dd></div>
-    <div><dt class="text-xs uppercase tracking-wide text-ink-500 dark:text-ink-400">Rola</dt><dd class="mt-1"><span class="{{ 'badge-brand' if user.is_admin else 'badge-neutral' }}">{{ 'Administrator' if user.is_admin else 'Użytkownik' }}</span></dd></div>
+    <div><dt class="text-xs uppercase tracking-wide text-ink-500 dark:text-ink-400">Rola</dt><dd class="mt-1"><span class="{{ 'badge-neutral' if user.role.value == 'user' else 'badge-brand' }}">{{ role_label(user.role) }}</span></dd></div>
     <div><dt class="text-xs uppercase tracking-wide text-ink-500 dark:text-ink-400">Konto utworzono</dt><dd class="mt-1 font-medium text-ink-900 dark:text-white">{{ user.created_at | dt }}</dd></div>
     <div><dt class="text-xs uppercase tracking-wide text-ink-500 dark:text-ink-400">Ostatnie logowanie</dt><dd class="mt-1 font-medium text-ink-900 dark:text-white">{{ user.last_login_at | dt }}</dd></div>
   </dl>

@@ -27,7 +27,14 @@ def utcnow() -> datetime:
 
 
 class UserRole(str, enum.Enum):
+    """Ranga konta. Uprawnienia przypisane do rang opisuje ``app.permissions``.
+
+    Kolumna przechowuje nazwę członu (``USER``, ``ADMIN``…) jako tekst bez
+    ograniczenia CHECK, więc nowa ranga nie wymaga migracji schematu.
+    """
+
     USER = "user"
+    MEDICAL_STUDENT = "medical_student"
     ADMIN = "admin"
 
 
@@ -343,6 +350,16 @@ class AuditLog(Base):
 Index("ix_study_sets_public_feed", StudySet.visibility, StudySet.is_published, StudySet.updated_at)
 Index("ix_flashcards_set_position", Flashcard.set_id, Flashcard.position)
 Index("ix_questions_set_position", Question.set_id, Question.position)
+# Indeks pokrywający dla kalendarza aktywności i rankingów: oba zapytania czytają
+# wyłącznie indeks, bez losowych odczytów wierszy tabeli.
+Index(
+    "ix_study_sessions_activity",
+    StudySession.user_id,
+    StudySession.created_at,
+    StudySession.total,
+    StudySession.score,
+    StudySession.mode,
+)
 
 __all__ = [
     "AnswerOption",

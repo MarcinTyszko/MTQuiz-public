@@ -3,6 +3,7 @@
 {% block head_scripts %}<script defer src="{{ static_url('js/prompt_generator.js') }}"></script>{% endblock %}
 
 {% block content %}
+<script type="application/json" id="konfiguracja-generatora">{{ prompt_config | tojson_safe }}</script>
 <div x-data="promptGenerator()" x-init="init()" x-cloak>
   <div class="max-w-3xl">
     <h1 class="text-2xl font-bold tracking-tight text-ink-900 dark:text-white">Generator promptu AI</h1>
@@ -16,7 +17,7 @@
     </p>
   </div>
 
-  <div class="mt-8 grid gap-6 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-start">
+  <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:items-start">
 
     <!-- Konfiguracja ---------------------------------------------------- -->
     <div class="space-y-5 lg:sticky lg:top-24">
@@ -40,7 +41,60 @@
         </section>
       </template>
 
-      <section class="card p-5">
+      <template x-if="tryby.length">
+        <section class="card p-5">
+          <div class="flex items-center justify-between gap-3">
+            <h2 class="section-title">Tryb generowania</h2>
+            <span class="badge-brand" x-text="tryby[0].odznaka || 'Tryby dziedzinowe'"></span>
+          </div>
+          <p class="hint mb-3">
+            Tryb dziedzinowy dokłada do promptu własną rolę modelu, wymagania i przykład.
+            Pytania powstają zawsze jako zamknięte ABCD z jedną poprawną odpowiedzią.
+          </p>
+          <div class="space-y-2" role="radiogroup" aria-label="Tryb generowania">
+            <label class="flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors"
+                   :class="!tryb ? 'border-brand-500 bg-brand-50 dark:bg-brand-950/40' : 'border-ink-200 dark:border-ink-700'">
+              <input type="radio" name="tryb-generowania" value="" :checked="!tryb" @change="wybierzTryb('')"
+                     class="mt-0.5 h-4 w-4 text-brand-600 focus:ring-brand-500">
+              <span>
+                <span class="block text-sm font-medium text-ink-900 dark:text-white">Standardowy</span>
+                <span class="block text-xs text-ink-500 dark:text-ink-400">Dowolna dziedzina, profil i szablony poniżej.</span>
+              </span>
+            </label>
+            <template x-for="pozycja in tryby" :key="pozycja.klucz">
+              <label class="flex cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors"
+                     :class="tryb === pozycja.klucz ? 'border-brand-500 bg-brand-50 dark:bg-brand-950/40' : 'border-ink-200 dark:border-ink-700'">
+                <input type="radio" name="tryb-generowania" :value="pozycja.klucz" :checked="tryb === pozycja.klucz"
+                       @change="wybierzTryb(pozycja.klucz)" class="mt-0.5 h-4 w-4 text-brand-600 focus:ring-brand-500">
+                <span>
+                  <span class="block text-sm font-medium text-ink-900 dark:text-white" x-text="pozycja.etykieta"></span>
+                  <span class="block text-xs text-ink-500 dark:text-ink-400" x-text="pozycja.opis"></span>
+                </span>
+              </label>
+            </template>
+          </div>
+        </section>
+      </template>
+
+      <template x-if="specyfikacjaFragmentu">
+        <section class="card space-y-2 p-5">
+          <label class="section-title block" for="fragment" x-text="specyfikacjaFragmentu.etykieta"></label>
+          <textarea id="fragment" class="input font-mono text-xs" rows="10" x-model="fragment"
+                    :placeholder="specyfikacjaFragmentu.podpowiedz"></textarea>
+          <p class="hint">
+            <span x-text="znakowFragmentu.toLocaleString('pl-PL')"></span> znaków —
+            tekst zostanie doklejony na końcu promptu.
+            <span x-show="brakujeFragmentu" class="text-amber-700 dark:text-amber-300">
+              Wklej co najmniej <span x-text="specyfikacjaFragmentu.minZnakow"></span> znaków.
+            </span>
+            <span x-show="material && dolaczMaterial" class="text-brand-700 dark:text-brand-300">
+              Dołączona transkrypcja też może posłużyć za materiał.
+            </span>
+          </p>
+        </section>
+      </template>
+
+      <section class="card p-5" x-show="!trybAktywny">
         <h2 class="section-title">Szybki start</h2>
         <p class="hint mb-3">Wczytaj przykładowe ustawienia i dostosuj je do siebie.</p>
         <div class="flex flex-wrap gap-2">
@@ -53,15 +107,19 @@
       <section class="card space-y-4 p-5">
         <h2 class="section-title">Parametry materiału</h2>
 
-        <div>
+        <div x-show="!trybAktywny">
           <label class="label" for="profil">Profil dziedziny</label>
           <select id="profil" class="input" x-model="profil">
             <template x-for="pozycja in profile" :key="pozycja.klucz">
-              <option :value="pozycja.klucz" x-text="pozycja.etykieta"></option>
+              <option :value="pozycja.klucz" :selected="pozycja.klucz === profil" x-text="pozycja.etykieta"></option>
             </template>
           </select>
           <p class="hint">Dobiera listę wiarygodnych źródeł, dodatkowe zasady rygoru i przykład w prompcie.</p>
         </div>
+        <p x-show="trybAktywny" class="rounded-xl bg-brand-50 px-3 py-2 text-xs text-brand-900 dark:bg-brand-950/60 dark:text-brand-100">
+          Źródła, zasady rygoru i przykład dobiera tryb
+          <span class="font-semibold" x-text="trybAktywny ? trybAktywny.etykieta : ''"></span>.
+        </p>
 
         <div>
           <label class="label" for="dziedzina">Dziedzina lub przedmiot <span class="text-rose-500">*</span></label>
@@ -114,7 +172,7 @@
           <label class="label" for="poziom">Poziom odbiorcy</label>
           <select id="poziom" class="input" x-model="poziom">
             <template x-for="pozycja in poziomy" :key="pozycja.klucz">
-              <option :value="pozycja.klucz" x-text="pozycja.etykieta"></option>
+              <option :value="pozycja.klucz" :selected="pozycja.klucz === poziom" x-text="pozycja.etykieta"></option>
             </template>
           </select>
         </div>
@@ -123,7 +181,7 @@
           <label class="label" for="jezyki">Języki w fiszkach</label>
           <select id="jezyki" class="input" x-model="jezyki">
             <template x-for="pozycja in jezykiOpcje" :key="pozycja.klucz">
-              <option :value="pozycja.klucz" x-text="pozycja.etykieta"></option>
+              <option :value="pozycja.klucz" :selected="pozycja.klucz === jezyki" x-text="pozycja.etykieta"></option>
             </template>
           </select>
           <p class="hint">Wariant trójjęzyczny narzuca układ rewersu: „polski: …” i „angielski: …”.</p>
@@ -132,7 +190,7 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="label" for="fiszki">Liczba fiszek</label>
-            <input id="fiszki" type="number" min="1" max="300" class="input" x-model.number="fiszki">
+            <input id="fiszki" type="number" min="0" max="300" class="input" x-model.number="fiszki">
           </div>
           <div>
             <label class="label" for="pytania">Liczba pytań</label>
@@ -145,9 +203,14 @@
             <input type="checkbox" class="mt-0.5 h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500" x-model="wymagajZrodel">
             <span>Wymagaj wskazania źródła w notatce każdej fiszki</span>
           </label>
-          <label class="flex cursor-pointer items-start gap-2 text-sm text-ink-700 dark:text-ink-300">
-            <input type="checkbox" class="mt-0.5 h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500" x-model="wielokrotnyWybor">
-            <span>Pozwól na pytania wielokrotnego wyboru</span>
+          <label class="flex items-start gap-2 text-sm text-ink-700 dark:text-ink-300"
+                 :class="trybAktywny ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'">
+            <input type="checkbox" class="mt-0.5 h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500"
+                   x-model="wielokrotnyWybor" :disabled="!!trybAktywny">
+            <span>
+              Pozwól na pytania wielokrotnego wyboru
+              <span x-show="trybAktywny" class="block text-xs text-ink-500 dark:text-ink-400">Tryb dziedzinowy wymaga formatu ABCD z jedną poprawną odpowiedzią.</span>
+            </span>
           </label>
         </div>
 
@@ -178,8 +241,18 @@
           </div>
         </div>
 
+        <div x-show="trybAktywny" class="flex items-center gap-2 border-b border-ink-200 bg-brand-50 px-4 py-2 text-xs text-brand-900 dark:border-ink-800 dark:bg-brand-950/50 dark:text-brand-100">
+          <span class="badge-brand" x-text="trybAktywny ? trybAktywny.etykieta : ''"></span>
+          <span>Prompt zawiera wymagania tego trybu i pytania wyłącznie w formacie ABCD.</span>
+        </div>
         <div x-show="brakujeDanych" class="border-b border-amber-300 bg-amber-50 px-4 py-2.5 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
           Uzupełnij dziedzinę i temat — dopóki pola są puste, prompt zawiera miejsca do wypełnienia ręcznego.
+        </div>
+        <div x-show="brakujeFragmentu" class="border-b border-amber-300 bg-amber-50 px-4 py-2.5 text-xs text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100">
+          Ten tryb pracuje na wklejonym tekście — wklej fragment podręcznika w polu po lewej stronie.
+        </div>
+        <div x-show="brakTresci" class="border-b border-rose-300 bg-rose-50 px-4 py-2.5 text-xs text-rose-900 dark:border-rose-800 dark:bg-rose-950 dark:text-rose-100">
+          Zamów co najmniej jedną fiszkę albo jedno pytanie — pusty pakiet nie przejdzie importu.
         </div>
 
         <div x-show="podglad">

@@ -10,6 +10,13 @@
     </a>
 
     {% if user %}
+    {% set tryby_dziedzinowe = prompt_modes_for(user) %}
+    {% set ikony_trybow = {
+      'lek': 'M6 3v5a4 4 0 0 0 8 0V3m-4 9v2a5 5 0 0 0 10 0v-1m0 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM5 3h2m6 0h2',
+      'anatomia': 'M12 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6Zm0 6v12m-6-9 6-2 6 2M8 21l4-6 4 6',
+      'synteza': 'M12 3 3 8l9 5 9-5-9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5',
+      'domyslna': 'M12 5v14M5 12h14'
+    } %}
     <div class="ml-2 hidden items-center gap-1 md:flex">
       <a href="/pulpit" class="btn-ghost btn-sm">Moje zestawy</a>
       <a href="/baza-publiczna" class="btn-ghost btn-sm">Baza publiczna</a>
@@ -66,9 +73,30 @@
               <span class="block text-xs text-ink-500 dark:text-ink-400">Wgraj gotowy pakiet i sprawdź przed zapisem</span>
             </span>
           </a>
+
+          {# Tryby dziedzinowe — widoczne wyłącznie dla kont z odpowiednią rangą. #}
+          {% for grupa, tryby in tryby_dziedzinowe | groupby('group') %}
+          <div class="mt-1 border-t border-ink-100 pt-1.5 dark:border-ink-800">
+            <p class="flex items-center justify-between gap-2 px-3 pb-1 pt-1 text-[11px] font-semibold uppercase tracking-wide text-ink-400">
+              {{ grupa }}<span class="badge-brand normal-case tracking-normal">{{ tryby[0].badge }}</span>
+            </p>
+            {% for tryb in tryby %}
+            <a href="/generator-promptu?tryb={{ tryb.key }}" class="flex gap-3 rounded-lg px-3 py-2 hover:bg-ink-100 dark:hover:bg-ink-800">
+              <span class="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="{{ ikony_trybow.get(tryb.key, ikony_trybow['domyslna']) }}" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+              <span class="min-w-0">
+                <span class="block text-sm font-medium text-ink-900 dark:text-white">{{ tryb.label }}</span>
+                <span class="line-clamp-2 text-xs text-ink-500 dark:text-ink-400">{{ tryb.summary }}</span>
+              </span>
+            </a>
+            {% endfor %}
+          </div>
+          {% endfor %}
         </div>
       </div>
 
+      <a href="/ranking" class="btn-ghost btn-sm">Ranking</a>
       {% if user.is_admin %}<a href="/panel" class="btn-ghost btn-sm">Panel</a>{% endif %}
     </div>
     {% else %}
@@ -151,6 +179,13 @@
       <a href="/zestawy/nowy" class="btn-ghost justify-start">Edytor ręczny</a>
       <a href="/generator-promptu" class="btn-ghost justify-start">Generator promptu AI</a>
       <a href="/zestawy/import" class="btn-ghost justify-start">Import pliku JSON</a>
+      {% for grupa, tryby in tryby_dziedzinowe | groupby('group') %}
+      <p class="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-ink-400">{{ grupa }}</p>
+      {% for tryb in tryby %}<a href="/generator-promptu?tryb={{ tryb.key }}" class="btn-ghost justify-start">{{ tryb.label }}</a>{% endfor %}
+      {% endfor %}
+
+      <p class="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-ink-400">Nauka</p>
+      <a href="/ranking" class="btn-ghost justify-start">Ranking</a>
 
       <p class="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-ink-400">Konto</p>
       <a href="/konto" class="btn-ghost justify-start">Moje konto</a>

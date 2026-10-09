@@ -17,6 +17,7 @@
       sets: [],
       audit: [],
       userQuery: "",
+      roleFilter: "",
       setQuery: "",
       onlyPublic: false,
       onlyHidden: false,
@@ -32,10 +33,18 @@
         this.loadAudit();
       },
 
+      get filteredUsers() {
+        return this.roleFilter ? this.users.filter((item) => item.role === this.roleFilter) : this.users;
+      },
+
       get tiles() {
         const s = this.stats;
         return [
-          { label: "Konta", value: s.users_total ?? 0, hint: `${s.users_active ?? 0} aktywnych · ${s.admins ?? 0} adm.` },
+          {
+            label: "Konta",
+            value: s.users_total ?? 0,
+            hint: `${s.users_active ?? 0} aktywnych · ${s.admins ?? 0} adm. · ${s.medical_students ?? 0} stud. med.`,
+          },
           { label: "Zestawy", value: s.sets_total ?? 0, hint: `${s.sets_public ?? 0} publicznych` },
           { label: "Treść", value: (s.cards_total ?? 0) + (s.questions_total ?? 0), hint: `${s.cards_total ?? 0} fiszek · ${s.questions_total ?? 0} pytań` },
           { label: "Sesje nauki", value: s.sessions_total ?? 0, hint: `Baza: ${this.formatBytes(s.database_size_bytes)}` },
@@ -118,7 +127,7 @@
 
       setRole(item, role) {
         if (role === item.role) return;
-        this.patchUser(item, { role }, "Zmieniono uprawnienia konta.");
+        this.patchUser(item, { role }, "Zmieniono rangę konta.");
       },
 
       async resetPassword(item) {

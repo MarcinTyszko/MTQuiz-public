@@ -19,6 +19,10 @@ from ..services import (
     to_summary,
 )
 from .. import transkrypcje
+from ..activity import build_heatmap
+from ..leaderboard import Period, build_leaderboard
+from ..permissions import role_choices
+from ..prompts import available_modes, can_use_mode, get_mode
 from ..templating import templates
 
 router = APIRouter(include_in_schema=False)
@@ -145,6 +149,24 @@ def dashboard(request: Request, user: OptionalUser, db: DbSession):
             "stats": dashboard_stats(db, user),
             "recent": recent,
             "recent_titles": titles,
+            "heatmap": build_heatmap(db, user),
+            "weekly": build_leaderboard(db, Period.WEEK, user, limit=3),
+        },
+    )
+
+
+@router.get("/ranking", response_class=HTMLResponse)
+def leaderboard_page(request: Request, user: OptionalUser, db: DbSession):
+    """Rankingi: tygodniowy (od poniedziałku) i ogólny, z podium i pozycją konta."""
+    guard = _require_user(user, request)
+    if guard is not None:
+        return guard
+    return _render(
+        request,
+        "leaderboard.html",
+        {
+            "user": user,
+            "boards": [build_leaderboard(db, period, user) for period in (Period.WEEK, Period.ALL)],
         },
     )
 
@@ -184,12 +206,32 @@ def import_page(request: Request, user: OptionalUser):
 
 
 @router.get("/generator-promptu", response_class=HTMLResponse)
-def prompt_generator_page(request: Request, user: OptionalUser):
-    """Kreator promptu dla modeli językowych (Claude, ChatGPT, Gemini i inne)."""
+def prompt_generator_page(
+    request: Request,
+    user: OptionalUser,
+    tryb: str = Query(default="", max_length=40),
+):
+    """Kreator promptu dla modeli językowych (Claude, ChatGPT, Gemini i inne).
+
+    Parametr ``tryb`` otwiera generator od razu w trybie dziedzinowym. Do strony
+    trafiają wyłącznie tryby, do których konto ma uprawnienia.
+    """
     guard = _require_user(user, request)
     if guard is not None:
         return guard
-    return _render(request, "prompt_generator.html", {"user": user})
+
+    modes = available_modes(user)
+    requested = get_mode(tryb) if tryb else None
+    allowed = requested is not None and can_use_mode(user, requested)
+    config = {
+        "tryby": [mode.to_client() for mode in modes],
+        "startowy": requested.key if allowed else None,
+        # Link do trybu bez uprawnień — generator wyjaśni, czego brakuje.
+        "odrzucony": {"etykieta": requested.label, "odznaka": requested.badge}
+        if requested is not None and not allowed
+        else None,
+    }
+    return _render(request, "prompt_generator.html", {"user": user, "prompt_config": config})
 
 
 @router.get("/transkrypcje", response_class=HTMLResponse)
@@ -354,7 +396,7 @@ def admin_page(request: Request, user: OptionalUser):
     assert user is not None
     if not user.is_admin:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Wymagane uprawnienia administratora.")
-    return _render(request, "admin.html", {"user": user})
+    return _render(request, "admin.html", {"user": user, "roles": role_choices()})
 
 
 @router.get("/konto", response_class=HTMLResponse)

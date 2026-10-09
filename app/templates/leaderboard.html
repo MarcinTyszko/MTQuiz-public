@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% from "partials/leaderboard.html" import board_panel %}
+{% block title %}Ranking — {{ app_name }}{% endblock %}
+{% block main_class %}mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 lg:py-10{% endblock %}
+
+{% block content %}
+<div x-data="{ zakladka: 'week' }">
+  <h1 class="text-2xl font-bold tracking-tight text-ink-900 dark:text-white">Ranking</h1>
+  <p class="mt-1 text-sm text-ink-600 dark:text-ink-300">
+    Punkt to jedno rozwiązane pytanie quizu albo jedna przejrzana fiszka.
+    Ranking tygodniowy zeruje się w każdy poniedziałek o północy.
+  </p>
+
+  <div class="mt-6 flex gap-1 border-b border-ink-200 dark:border-ink-800" role="tablist">
+    {% for board in boards %}
+    <button type="button" role="tab" class="shrink-0 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors"
+            :aria-selected="zakladka === '{{ board.period.value }}'"
+            :class="zakladka === '{{ board.period.value }}' ? 'border-brand-600 text-brand-700 dark:text-brand-400' : 'border-transparent text-ink-500 hover:text-ink-800 dark:hover:text-ink-200'"
+            @click="zakladka = '{{ board.period.value }}'">
+      {{ board.label }}
+      {% if board.viewer %}<span class="ml-1 text-xs text-ink-400">#{{ board.viewer.rank }}</span>{% endif %}
+    </button>
+    {% endfor %}
+  </div>
+
+  {% for board in boards %}
+  <section class="mt-6" role="tabpanel" {% if not loop.first %}x-cloak{% endif %} x-show="zakladka === '{{ board.period.value }}'">
+    {{ board_panel(board) }}
+  </section>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from .config import settings
 from .database import get_db
 from .models import User
+from .permissions import Permission, has_permission
 from .security import create_session_token, decode_session_token, token_version_for
 
 DbSession = Annotated[Session, Depends(get_db)]
@@ -90,6 +91,23 @@ def get_admin_user(user: UnlockedUser) -> User:
 
 
 AdminUser = Annotated[User, Depends(get_admin_user)]
+
+
+def require_permission(permission: Permission):
+    """Fabryka zależności przepuszczającej wyłącznie konta z danym uprawnieniem.
+
+    Użycie: ``user: Annotated[User, Depends(require_permission(Permission.X))]``.
+    """
+
+    def dependency(user: UnlockedUser) -> User:
+        if not has_permission(user, permission):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Ta funkcja wymaga wyższej rangi konta. Poproś administratora o jej nadanie.",
+            )
+        return user
+
+    return dependency
 
 
 def issue_session_cookie(response: Response, user: User, *, remember: bool = True) -> str:

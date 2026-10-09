@@ -1,0 +1,97 @@
+{# Kalendarz aktywności nauki w stylu GitHuba — renderowany po stronie serwera. #}
+
+{% set heatmap_levels = [
+  'bg-ink-100 dark:bg-ink-800',
+  'bg-brand-200 dark:bg-brand-900',
+  'bg-brand-400 dark:bg-brand-700',
+  'bg-brand-600 dark:bg-brand-500',
+  'bg-brand-800 dark:bg-brand-300',
+] %}
+
+{% macro day_title(day) -%}
+{%- if day.sessions -%}
+{{ day.date_label }}: {{ day.items }} {{ plural_pl(day.items, 'element', 'elementy', 'elementów') }} ({{ day.sessions }} {{ plural_pl(day.sessions, 'sesja', 'sesje', 'sesji') }})
+{%- else -%}
+{{ day.date_label }}: brak nauki
+{%- endif -%}
+{%- endmacro %}
+
+{% macro activity_heatmap(heatmap) %}
+<section class="card p-5" aria-labelledby="aktywnosc-naglowek">
+  <div class="flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <h2 id="aktywnosc-naglowek" class="section-title">Aktywność nauki</h2>
+      <p class="hint">
+        {{ heatmap.total_items | num }} {{ plural_pl(heatmap.total_items, 'przerobiony element', 'przerobione elementy', 'przerobionych elementów') }}
+        w {{ heatmap.active_days }} {{ plural_pl(heatmap.active_days, 'dniu', 'dniach', 'dniach') }} — ostatnie 12 miesięcy
+      </p>
+    </div>
+    <dl class="flex gap-5 text-right">
+      <div>
+        <dt class="text-xs text-ink-500 dark:text-ink-400">Seria</dt>
+        <dd class="text-xl font-semibold tabular-nums text-ink-900 dark:text-white">
+          {{ heatmap.current_streak }} <span class="text-sm font-normal text-ink-500 dark:text-ink-400">{{ plural_pl(heatmap.current_streak, 'dzień', 'dni', 'dni') }}</span>
+        </dd>
+      </div>
+      <div>
+        <dt class="text-xs text-ink-500 dark:text-ink-400">Najdłuższa seria</dt>
+        <dd class="text-xl font-semibold tabular-nums text-ink-900 dark:text-white">
+          {{ heatmap.longest_streak }} <span class="text-sm font-normal text-ink-500 dark:text-ink-400">{{ plural_pl(heatmap.longest_streak, 'dzień', 'dni', 'dni') }}</span>
+        </dd>
+      </div>
+    </dl>
+  </div>
+
+  {# Kalendarz przewija się w poziomie na wąskich ekranach — start od najnowszych tygodni. #}
+  <div class="scrollbar-thin mt-4 overflow-x-auto pb-1" x-data x-init="$el.scrollLeft = $el.scrollWidth">
+    <div class="inline-flex gap-2"
+         role="img"
+         aria-label="Kalendarz aktywności: {{ heatmap.active_days }} dni nauki w ostatnich 12 miesiącach, bieżąca seria {{ heatmap.current_streak }} dni.">
+      <div class="grid shrink-0 gap-[3px] pt-5 text-[10px] leading-[11px] text-ink-400" style="grid-template-rows: repeat(7, 11px);" aria-hidden="true">
+        {% for name in heatmap.weekdays %}<span>{{ name if loop.index0 in (0, 2, 4) else '' }}</span>{% endfor %}
+      </div>
+      <div>
+        <div class="flex h-5 gap-[3px] text-[10px] text-ink-500 dark:text-ink-400" aria-hidden="true">
+          {% for label in heatmap.month_labels %}
+          <span class="relative w-[11px] shrink-0"><span class="absolute left-0 top-0 whitespace-nowrap">{{ label }}</span></span>
+          {% endfor %}
+        </div>
+        <div class="flex gap-[3px]">
+          {% for week in heatmap.weeks %}
+          <div class="grid gap-[3px]" style="grid-template-rows: repeat(7, 11px);">
+            {% for day in week %}
+            {% if day.is_future %}
+            <span class="h-[11px] w-[11px]"></span>
+            {% else %}
+            <span class="h-[11px] w-[11px] rounded-[3px] {{ heatmap_levels[day.level] }}{% if day.day == heatmap.end %} ring-1 ring-ink-500 ring-offset-1 ring-offset-white dark:ring-ink-300 dark:ring-offset-ink-900{% endif %}"
+                  title="{{ day_title(day) }}"></span>
+            {% endif %}
+            {% endfor %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-3 flex flex-wrap items-center justify-between gap-3 text-xs text-ink-500 dark:text-ink-400">
+    <p>
+      {% if heatmap.studied_today %}
+      <span class="font-medium text-emerald-600 dark:text-emerald-400">Dzisiejsza nauka zaliczona.</span>
+      {% elif heatmap.current_streak %}
+      <span class="font-medium text-amber-600 dark:text-amber-400">Dziś jeszcze bez nauki — jedna sesja podtrzyma serię.</span>
+      {% else %}
+      Jedna sesja dziennie buduje serię.
+      {% endif %}
+      {% if heatmap.best_day %}
+      Najlepszy dzień: {{ heatmap.best_day.date_label }} ({{ heatmap.best_day.items }}).
+      {% endif %}
+    </p>
+    <div class="flex items-center gap-1" aria-hidden="true">
+      <span>Mniej</span>
+      {% for level_class in heatmap_levels %}<span class="h-[11px] w-[11px] rounded-[3px] {{ level_class }}"></span>{% endfor %}
+      <span>Więcej</span>
+    </div>
+  </div>
+</section>
+{% endmacro %}

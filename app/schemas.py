@@ -1,6 +1,7 @@
 """Schematy Pydantic: walidacja wejścia API i serializacja odpowiedzi."""
 from __future__ import annotations
 
+from datetime import date as date_type
 from datetime import datetime
 from typing import Annotated, Literal
 
@@ -9,6 +10,9 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, mo
 from .models import StudyMode, TranscriptionStatus, UserRole, Visibility
 
 NonEmptyStr = Annotated[str, Field(min_length=1)]
+
+# Najwięcej elementów, które da się przerobić w jednej sesji nauki.
+MAX_SESSION_ITEMS = 5000
 
 
 # --------------------------------------------------------------------------- #
@@ -253,8 +257,10 @@ class StudySetDetail(StudySetSummary):
 class StudySessionIn(BaseModel):
     set_id: int
     mode: StudyMode
-    score: int = Field(default=0, ge=0)
-    total: int = Field(default=0, ge=0)
+    # Górna granica odpowiada limitowi treści zestawu — chroni ranking przed
+    # sztucznie zawyżonymi wynikami wysyłanymi z pominięciem interfejsu.
+    score: int = Field(default=0, ge=0, le=MAX_SESSION_ITEMS)
+    total: int = Field(default=0, ge=0, le=MAX_SESSION_ITEMS)
     duration_seconds: int = Field(default=0, ge=0, le=60 * 60 * 24)
 
     @model_validator(mode="after")
@@ -288,6 +294,50 @@ class DashboardStats(BaseModel):
     starred_cards: int = 0
 
 
+class HeatmapDayOut(BaseModel):
+    date: date_type
+    items: int
+    sessions: int
+    level: int = Field(ge=0, le=4)
+
+
+class HeatmapOut(BaseModel):
+    start: date_type
+    end: date_type
+    timezone: str
+    total_items: int
+    total_sessions: int
+    active_days: int
+    current_streak: int
+    longest_streak: int
+    studied_today: bool
+    days: list[HeatmapDayOut]
+
+
+class LeaderboardEntryOut(BaseModel):
+    rank: int
+    user_id: int
+    username: str
+    label: str
+    points: int
+    quiz_items: int
+    card_items: int
+    sessions: int
+    quiz_accuracy: float | None = None
+    is_viewer: bool = False
+
+
+class LeaderboardOut(BaseModel):
+    period: Literal["week", "all"]
+    participants: int
+    total_points: int
+    week_start: date_type | None = None
+    week_end: date_type | None = None
+    resets_at: datetime | None = None
+    entries: list[LeaderboardEntryOut]
+    viewer: LeaderboardEntryOut | None = None
+
+
 # --------------------------------------------------------------------------- #
 # Administracja
 # --------------------------------------------------------------------------- #
@@ -312,6 +362,7 @@ class AdminStats(BaseModel):
     users_total: int = 0
     users_active: int = 0
     admins: int = 0
+    medical_students: int = 0
     sets_total: int = 0
     sets_public: int = 0
     sets_unpublished: int = 0

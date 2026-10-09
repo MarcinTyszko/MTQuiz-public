@@ -5,10 +5,15 @@
  * JSON przyjmowanego przez import oraz narzuca rygor merytoryczny. Prompt jest
  * neutralny wobec dziedziny i dostawcy modelu — działa tak samo dla anatomii,
  * prawa, programowania czy nauki języka, w Claude, ChatGPT i Gemini.
+ *
+ * Tryby dziedzinowe (np. LEK, anatomia) nie są zapisane w tym pliku: serwer
+ * przekazuje w bloku #konfiguracja-generatora wyłącznie tryby dozwolone dla
+ * konta (app/prompts/). Aktywny tryb podmienia rolę, źródła, rygor dziedzinowy
+ * i przykład, a także dokłada własną sekcję wymagań.
  */
 (function () {
   "use strict";
-  const { copyToClipboard, downloadText, toast } = window.MTQuiz;
+  const { copyToClipboard, downloadText, readJsonScript, toast } = window.MTQuiz;
 
   /* ------------------------------------------------------------------ */
   /* Przykłady pokazujące modelowi oczekiwany kształt pliku              */
@@ -426,11 +431,17 @@
       // Materiał źródłowy przekazany z transkrypcji
       material: null,
       dolaczMaterial: true,
+      // Tryby dziedzinowe dozwolone dla konta oraz tekst wklejony do trybu, który go wymaga
+      tryby: [],
+      tryb: "",
+      fragment: "",
+      wielokrotnyPrzedTrybem: true,
       // Interfejs
       zakladka: "claude",
       podglad: true,
 
       init() {
+        this.wczytajTryby();
         const material = this.odczytajMaterial();
         if (!material) return;
         this.material = material;
@@ -457,6 +468,80 @@
         this.dolaczMaterial = true;
       },
 
+      /** Odbiera tryby przekazane przez serwer i otwiera tryb wskazany w adresie. */
+      wczytajTryby() {
+        const konfiguracja = readJsonScript("konfiguracja-generatora") || {};
+        this.tryby = Array.isArray(konfiguracja.tryby) ? konfiguracja.tryby : [];
+        if (konfiguracja.startowy) this.wybierzTryb(konfiguracja.startowy, { cicho: true });
+        if (konfiguracja.odrzucony) {
+          const { etykieta, odznaka } = konfiguracja.odrzucony;
+          toast(
+            `Tryb „${etykieta}” wymaga rangi ${odznaka || "nadawanej przez administratora"}. ` +
+              "Otwarto generator w trybie standardowym.",
+            "warning",
+            6000,
+          );
+        }
+      },
+
+      get trybAktywny() {
+        return this.tryby.find((pozycja) => pozycja.klucz === this.tryb) || null;
+      },
+
+      /**
+       * Włącza tryb i wczytuje jego ustawienia startowe. Pola wpisane już przez
+       * użytkownika (dziedzina, temat) zostają nietknięte.
+       */
+      wybierzTryb(klucz, { cicho = false } = {}) {
+        const poprzedni = this.trybAktywny;
+        const tryb = this.tryby.find((pozycja) => pozycja.klucz === klucz) || null;
+        // Dziedzina podstawiona przez poprzedni tryb zmienia się razem z trybem;
+        // wpisana ręcznie przez użytkownika zostaje.
+        const dziedzinaPoprzedniego = (poprzedni && poprzedni.ustawienia && poprzedni.ustawienia.dziedzina) || "";
+        const dziedzinaOdTrybu = Boolean(dziedzinaPoprzedniego) && this.dziedzina === dziedzinaPoprzedniego;
+        // Ustawienie wielokrotnego wyboru z trybu standardowego wraca po wyjściu z trybu.
+        if (!poprzedni) this.wielokrotnyPrzedTrybem = this.wielokrotnyWybor;
+
+        this.tryb = tryb ? tryb.klucz : "";
+        if (!tryb) {
+          if (dziedzinaOdTrybu) this.dziedzina = "";
+          if (poprzedni) this.wielokrotnyWybor = this.wielokrotnyPrzedTrybem;
+          if (!cicho) toast("Przywrócono tryb standardowy.", "info", 2000);
+          return;
+        }
+
+        const ustawienia = tryb.ustawienia || {};
+        for (const pole of ["poziom", "jezyki", "fiszki", "pytania", "zrodlo", "wymagajZrodel"]) {
+          if (ustawienia[pole] !== undefined) this[pole] = ustawienia[pole];
+        }
+        if (!this.dziedzina.trim() || dziedzinaOdTrybu) this.dziedzina = ustawienia.dziedzina || "";
+        if (tryb.jednokrotnyWybor) this.wielokrotnyWybor = false;
+        // Materiał z transkrypcji ma pierwszeństwo przed domyślnym źródłem trybu.
+        if (this.material) this.zrodlo = "wlasne";
+        if (!cicho) toast(`Włączono tryb: ${tryb.etykieta}`, "success", 2200);
+      },
+
+      /** Wielokrotny wybór jest niedostępny, gdy tryb narzuca format ABCD. */
+      get pozwolWielokrotny() {
+        return this.wielokrotnyWybor && !(this.trybAktywny && this.trybAktywny.jednokrotnyWybor);
+      },
+
+      get specyfikacjaFragmentu() {
+        return (this.trybAktywny && this.trybAktywny.material) || null;
+      },
+
+      get znakowFragmentu() {
+        return this.fragment.trim().length;
+      },
+
+      /** Tryb oczekuje wklejonego tekstu, a nie ma go ani w polu, ani z transkrypcji. */
+      get brakujeFragmentu() {
+        const spec = this.specyfikacjaFragmentu;
+        if (!spec) return false;
+        if (this.material && this.dolaczMaterial) return false;
+        return this.znakowFragmentu < (spec.minZnakow || 1);
+      },
+
       get znakowMaterialu() {
         return this.material ? this.material.tekst.length : 0;
       },
@@ -480,6 +565,8 @@
       zastosujSzablon(klucz) {
         const szablon = SZABLONY[klucz];
         if (!szablon) return;
+        // Szablony opisują tryb standardowy — wczytanie szablonu wyłącza tryb dziedzinowy.
+        this.wybierzTryb("", { cicho: true });
         this.profil = szablon.profil;
         this.dziedzina = szablon.dziedzina;
         this.temat = szablon.temat;
@@ -498,13 +585,17 @@
         return this.temat.trim() || "<WPISZ TEMAT LUB ZAKRES MATERIAŁU>";
       },
       get liczbaFiszek() {
-        return Math.max(1, Math.min(300, Number(this.fiszki) || 1));
+        return Math.max(0, Math.min(300, Number(this.fiszki) || 0));
       },
       get liczbaPytan() {
         return Math.max(0, Math.min(150, Number(this.pytania) || 0));
       },
       get brakujeDanych() {
         return !this.dziedzina.trim() || !this.temat.trim();
+      },
+      /** Import wymaga co najmniej jednej fiszki albo jednego pytania. */
+      get brakTresci() {
+        return this.liczbaFiszek === 0 && this.liczbaPytan === 0;
       },
 
       /** Sekcja opisująca dopuszczalne źródła wiedzy. */
@@ -530,9 +621,11 @@
           return wiersze.join("\n");
         }
 
+        // Tryb dziedzinowy ma własną listę źródeł; poza nim decyduje profil.
+        const domyslne = this.trybAktywny ? this.trybAktywny.zrodla : this.aktywnyProfil.zrodla;
         const zrodla = this.wlasneZrodla.trim()
           ? this.wlasneZrodla.trim().split("\n").map((linia) => linia.trim())
-          : this.aktywnyProfil.zrodla;
+          : domyslne;
 
         return [
           "## ŹRÓDŁO WIEDZY — sprawdzone opracowania z danej dziedziny",
@@ -581,7 +674,7 @@
             "Pomijaj treści organizacyjne.",
             "Plan zajęć, spis literatury, podziękowania i dane kontaktowe nie są materiałem do nauki.",
           ],
-          ...this.aktywnyProfil.rygor,
+          ...(this.trybAktywny ? this.trybAktywny.rygor : this.aktywnyProfil.rygor),
         ];
 
         if (this.wymagajZrodel) {
@@ -630,7 +723,7 @@
           "### Pytania testowe",
           '- "prompt": konkretna sytuacja albo precyzyjne pytanie o fakt. Dokładnie jeden problem.',
           "- Dokładnie 4 warianty odpowiedzi.",
-          this.wielokrotnyWybor
+          this.pozwolWielokrotny
             ? "- Domyślnie jedna odpowiedź poprawna. Jeżeli zagadnienie wymaga kilku, napisz w treści\n  „Zaznacz wszystkie prawidłowe” i ustaw is_correct: true przy każdym poprawnym wariancie."
             : "- Zawsze dokładnie jedna odpowiedź poprawna. Nie twórz pytań wielokrotnego wyboru.",
           "- Dystraktory muszą być prawdopodobne i pochodzić z tej samej kategorii pojęciowej",
@@ -645,7 +738,8 @@
           `- ${jezyk.instrukcja}`,
         ];
 
-        const wskazowki = this.aktywnyProfil.wskazowki;
+        // Wskazówki profilu zastępuje w trybie dziedzinowym osobna sekcja wymagań.
+        const wskazowki = this.trybAktywny ? [] : this.aktywnyProfil.wskazowki;
         if (wskazowki.length) {
           wiersze.push("", `### Specyfika dziedziny (${this.aktywnyProfil.etykieta})`, ...wskazowki.map((w) => `- ${w}`));
         }
@@ -716,6 +810,17 @@
       },
 
       get sekcjaPrzykladu() {
+        if (this.trybAktywny) {
+          return [
+            "## PRZYKŁAD POPRAWNEJ ODPOWIEDZI (skrócony)",
+            "",
+            this.trybAktywny.podpisPrzykladu,
+            "",
+            "```json",
+            JSON.stringify(this.trybAktywny.przyklad, null, 2),
+            "```",
+          ].join("\n");
+        }
         const przyklad = PRZYKLADY[this.aktywnyProfil.przyklad] || PRZYKLADY.ogolny;
         return [
           "## PRZYKŁAD POPRAWNEJ ODPOWIEDZI (skrócony)",
@@ -743,7 +848,7 @@
           "",
           "- [ ] JSON jest składniowo poprawny i domyka wszystkie nawiasy.",
           "- [ ] Każda fiszka ma niepuste `front` i `back`.",
-          "- [ ] Każde pytanie ma 4 warianty i co najmniej jeden `is_correct: true`.",
+          `- [ ] Każde pytanie ma 4 warianty i ${this.pozwolWielokrotny ? "co najmniej jeden" : "dokładnie jeden"} \`is_correct: true\`.`,
           "- [ ] Żaden wariant odpowiedzi nie zaczyna się od „A) ”, „B) ” i podobnych.",
           "- [ ] Nie ma pola `multiple` ani żadnego pola spoza specyfikacji.",
           "- [ ] Każdy fakt jest zgodny ze wskazanym źródłem wiedzy; nic nie zostało zmyślone.",
@@ -766,39 +871,64 @@
         ].join("\n");
       },
 
+      /** Wymagania aktywnego trybu dziedzinowego — gotowa sekcja z serwera. */
+      get sekcjaTrybu() {
+        return this.trybAktywny ? this.trybAktywny.instrukcje : null;
+      },
+
+      /** Tekst wklejony w polu trybu (np. fragment podręcznika do syntezy). */
+      get sekcjaFragmentu() {
+        const spec = this.specyfikacjaFragmentu;
+        if (!spec || !this.fragment.trim()) return null;
+        return [
+          spec.naglowek,
+          "",
+          spec.wstep,
+          "",
+          "--- POCZĄTEK FRAGMENTU ---",
+          this.fragment.trim(),
+          "--- KONIEC FRAGMENTU ---",
+        ].join("\n");
+      },
+
       /** Składa kompletny prompt z wszystkich sekcji. */
       get promptTekst() {
         const poziom = POZIOMY[this.poziom];
+        const tryb = this.trybAktywny;
+        const rola = tryb
+          ? [...tryb.rola, `Obszar tego zestawu: ${this.dziedzinaDoPromptu}.`]
+          : [
+              "Jesteś doświadczonym dydaktykiem i redaktorem materiałów do nauki.",
+              `Specjalizujesz się w dziedzinie: ${this.dziedzinaDoPromptu}.`,
+            ];
         const naglowek = [
           "# ROLA",
           "",
-          "Jesteś doświadczonym dydaktykiem i redaktorem materiałów do nauki.",
-          `Specjalizujesz się w dziedzinie: ${this.dziedzinaDoPromptu}.`,
+          ...rola,
           "Twoim zadaniem jest przygotowanie pakietu fiszek i pytań testowych w formacie JSON,",
           "który zostanie zaimportowany do aplikacji MTQuiz.",
           "",
           "# ZADANIE",
           "",
+          ...(tryb ? [`Tryb generowania: ${tryb.etykieta}`] : []),
           `Dziedzina: ${this.dziedzinaDoPromptu}`,
           `Temat / zakres materiału: ${this.tematDoPromptu}`,
           `Poziom odbiorcy: ${poziom.etykieta}`,
-          `Liczba fiszek: ${this.liczbaFiszek}`,
+          this.liczbaFiszek > 0
+            ? `Liczba fiszek: ${this.liczbaFiszek}`
+            : "Fiszki: nie twórz ich, przygotuj wyłącznie pytania testowe.",
           this.liczbaPytan > 0
             ? `Liczba pytań testowych: ${this.liczbaPytan}`
             : "Pytania testowe: nie twórz ich, przygotuj wyłącznie fiszki.",
         ].join("\n");
 
-        const sekcje = [
-          naglowek,
-          this.sekcjaZrodel,
-          this.sekcjaRygoru,
-          this.sekcjaTresci,
-          this.sekcjaSchematu,
-          this.sekcjaPrzykladu,
-          this.sekcjaFormatu,
-        ];
+        const sekcje = [naglowek, this.sekcjaZrodel, this.sekcjaRygoru, this.sekcjaTresci];
+        if (this.sekcjaTrybu) sekcje.push(this.sekcjaTrybu);
+        sekcje.push(this.sekcjaSchematu, this.sekcjaPrzykladu, this.sekcjaFormatu);
         const material = this.sekcjaMaterialu;
         if (material) sekcje.push(material);
+        const fragment = this.sekcjaFragmentu;
+        if (fragment) sekcje.push(fragment);
         return sekcje.join("\n\n---\n\n");
       },
 
