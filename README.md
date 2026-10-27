@@ -12,14 +12,14 @@
   <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white">
   <img alt="Docker" src="https://img.shields.io/badge/Docker-compose-2496ED?logo=docker&logoColor=white">
   <img alt="Licencja MIT" src="https://img.shields.io/badge/licencja-MIT-green">
-  <img alt="Testy" src="https://img.shields.io/badge/testy-158%20pytest-brightgreen">
+  <img alt="Testy" src="https://img.shields.io/badge/testy-268%20pytest-brightgreen">
 </p>
 
 ---
 
 Alternatywa dla Quizleta, którą uruchamiasz na własnym serwerze. Tworzysz zestawy fiszek
 i pytań testowych — ręcznie w edytorze albo generując je modelem językowym z własnych
-notatek i plików PDF. Nadaje się tak samo do anatomii, prawa cywilnego, Kubernetesa,
+notatek i plików PDF — a uczysz się w rytmie Pomodoro z powiadomieniami i statystykami. Nadaje się tak samo do anatomii, prawa cywilnego, Kubernetesa,
 historii i nauki języka obcego. Dane nie opuszczają Twojej maszyny.
 
 ```
@@ -46,15 +46,16 @@ od razu zmienić) · gotowe materiały do testów: [`przyklady/`](przyklady/).
 3. [Pierwsze logowanie](#pierwsze-logowanie)
 4. [Konfiguracja](#konfiguracja)
 5. [Transkrypcja nagrań](#transkrypcja-nagrań)
-6. [Generowanie materiału modelem językowym](#generowanie-materiału-modelem-językowym)
-7. [Kopie zapasowe — instrukcja operacyjna](#kopie-zapasowe--instrukcja-operacyjna)
-8. [Narzędzia administracyjne (wiersz poleceń)](#narzędzia-administracyjne-wiersz-poleceń)
-9. [Praca nad kodem](#praca-nad-kodem)
-10. [Struktura projektu](#struktura-projektu)
-11. [API](#api)
-12. [Rozwiązywanie problemów](#rozwiązywanie-problemów)
-13. [Współpraca](#współpraca)
-14. [Licencja](#licencja)
+6. [Pomodoro i skupienie](#pomodoro-i-skupienie)
+7. [Generowanie materiału modelem językowym](#generowanie-materiału-modelem-językowym)
+8. [Kopie zapasowe — instrukcja operacyjna](#kopie-zapasowe--instrukcja-operacyjna)
+9. [Narzędzia administracyjne (wiersz poleceń)](#narzędzia-administracyjne-wiersz-poleceń)
+10. [Praca nad kodem](#praca-nad-kodem)
+11. [Struktura projektu](#struktura-projektu)
+12. [API](#api)
+13. [Rozwiązywanie problemów](#rozwiązywanie-problemów)
+14. [Współpraca](#współpraca)
+15. [Licencja](#licencja)
 
 ---
 
@@ -67,6 +68,18 @@ od razu zmienić) · gotowe materiały do testów: [`przyklady/`](przyklady/).
 - **Tryb quizu** — wybór liczby pytań, tryb *Nauka* (odpowiedź sprawdzana natychmiast,
   z wyjaśnieniem) albo *Egzamin* (wynik na końcu), opcjonalny limit czasu, losowanie
   pytań i wariantów, wynik procentowy, szczegółowe omówienie i powtórka samych błędów.
+- **Skróty klawiaturowe:**
+
+  | Gdzie | Klawisz | Działanie |
+  |---|---|---|
+  | Fiszki | `Spacja`, `↑`, `↓` | odwrócenie karty |
+  | Fiszki | `←` `→` | poprzednia / następna fiszka |
+  | Fiszki | `S` · `1` · `2` | oznacz trudną · do powtórki · umiem |
+  | Quiz | `1`–`9` albo `A`–`J` | wybór wariantu odpowiedzi |
+  | Quiz | `Enter` | sprawdź / następne pytanie |
+  | Pomodoro | `Spacja` | start, pauza i wznowienie |
+
+  Skróty milkną w polach tekstowych i nie przechwytują skrótów przeglądarki (`Alt+←`, `Ctrl+S`).
 - Pytania jednokrotnego i wielokrotnego wyboru, komentarz do każdego wariantu odpowiedzi.
 
 **Zestawy („teczki nauki”)**
@@ -84,9 +97,28 @@ od razu zmienić) · gotowe materiały do testów: [`przyklady/`](przyklady/).
 - Liczenie wykonuje osobny kontener `transkrypcja`, który startuje razem z aplikacją i sam
   pobiera model Whispera — na procesorze albo, jeśli jest, na karcie NVIDIA.
 
+**Pomodoro**
+- Zakładka **Pomodoro**: serie typu 25/5 × 4 (albo własne — długość skupienia, przerwy,
+  liczba rund, długa przerwa na koniec), gotowe presety, automatyczny start przerw i rund.
+- **Minutnik żyje na całej stronie**: na komputerze pływająca karta w lewym dolnym rogu
+  (ile zostało, faza, pauza, +5 min, pomiń, stop), na telefonie pigułka z czasem w nagłówku,
+  a w tytule karty przeglądarki odliczanie. Seria trwa dalej przy przechodzeniu między
+  fiszkami, quizem i zestawami — i jest ta sama na komputerze i telefonie.
+- **Powiadomienia** o końcu skupienia i przerwy — także przy zamkniętej karcie
+  i zablokowanym telefonie (Web Push; na iPhonie po dodaniu MTQuiz do ekranu początkowego).
+- **Pełne statystyki**: dzień, tydzień, miesiąc, rok, z wykresem, porównaniem do poprzedniego
+  okresu („+50%”), najlepszym fragmentem, godziną startu i tematami, nad którymi pracowano.
+- **Grywalizacja**: dzienny cel, seria dni, 10 poziomów i 14 odznak.
+- **Dźwięki tła** (włączane w *Moje konto*): szum biały, różowy i brązowy, czysty ton oraz
+  rytmy binauralne i izochroniczne z regulacją częstotliwości w Hz.
+
 **Generator promptu AI**
 - Kreator w zakładce **Prompt AI**: ustawiasz dziedzinę, temat, poziom odbiorcy, liczbę fiszek
   i pytań, układ językowy oraz rygor źródeł, a aplikacja składa gotowe do wklejenia polecenie.
+- **Wynik jako gotowy plik `.json` do pobrania.** Prompt każe modelowi zapisać pakiet do pliku
+  (artefakt, załącznik, wykonanie kodu) zamiast wypisywać JSON w rozmowie — a gdy model nie umie
+  tworzyć plików, oddać jeden czysty blok `json`. Przełącznik w kreatorze wraca do
+  dawnego trybu (np. przy przekierowaniu wyniku `claude -p … > pakiet.json`).
 - **Niezależny od dziedziny.** Siedem profili — uniwersalny, nauki ścisłe, medycyna, prawo,
   technologia i IT, języki obce, humanistyka — dobiera listę wiarygodnych źródeł, dodatkowe
   zasady rygoru oraz przykład w prompcie. Listę źródeł możesz nadpisać własną.
@@ -119,6 +151,9 @@ od razu zmienić) · gotowe materiały do testów: [`przyklady/`](przyklady/).
 - **„Zakończ teraz” w quizie** — wynik i omówienie błędów z rozwiązanych pytań oraz
   przycisk „Rozwiąż pozostałe”, żeby wrócić do reszty później. W fiszkach „Zakończ sesję”
   pokazuje podsumowanie w dowolnym momencie.
+- **Ostatnia aktywność** na pulpicie: trzy najnowsze sesje, strzałka rozwija kolejne,
+  a **Zobacz wszystkie** prowadzi do **Historii nauki** (`/historia`) — wszystkie sesje
+  pogrupowane według dni, z filtrem fiszki / quizy i podsumowaniem czasu nauki.
 
 **Silnik importu AI**
 - Wgranie pliku `.json` (przeciągnij i upuść) albo wklejenie treści.
@@ -148,6 +183,8 @@ od razu zmienić) · gotowe materiały do testów: [`przyklady/`](przyklady/).
   ustawieniem systemowym.
 - Pełna responsywność: przyklejone paski akcji i powiększone obszary dotyku na
   telefonie, układ wielokolumnowy na tablecie i komputerze.
+- Instalacja na ekranie telefonu (manifest aplikacji, ikony) — MTQuiz otwiera się wtedy
+  jak osobna aplikacja, bez paska przeglądarki.
 - Obsługa klawiatury i czytników ekranu, poszanowanie `prefers-reduced-motion`.
 
 ---
@@ -249,7 +286,9 @@ Wszystkie ustawienia przekazywane są zmiennymi środowiskowymi z przedrostkiem
 | `QUIZAPP_WHISPER_MODEL` | `large-v3` | Model używany przez proces transkrybujący. |
 | `QUIZAPP_WHISPER_LANGUAGE` | `pl` | Domyślny język nagrań. |
 | `QUIZAPP_APP_NAME` | `MTQuiz` | Nazwa instancji w interfejsie. |
-| `QUIZAPP_TIMEZONE` | wartość `TZ` albo `Europe/Warsaw` | Strefa wyznaczająca granice dni w kalendarzu aktywności i początek tygodnia rankingowego. |
+| `QUIZAPP_TIMEZONE` | wartość `TZ` albo `Europe/Warsaw` | Strefa wyznaczająca granice dni w kalendarzu aktywności, statystykach Pomodoro i początek tygodnia rankingowego. |
+| `QUIZAPP_PUSH_CONTACT` | `mailto:admin@mtquiz.app` | Kontakt do operatora przekazywany usługom push (Apple, Google, Mozilla) — wpisz własny `mailto:` albo adres `https://` instancji. |
+| `QUIZAPP_PUSH_DISPATCHER` | `true` | Wysyłka zaplanowanych powiadomień Pomodoro w procesie aplikacji. |
 
 ### Praca za odwrotnym proxy
 
@@ -270,7 +309,9 @@ server {
 }
 ```
 
-Przy HTTPS ustaw dodatkowo `QUIZAPP_COOKIE_SECURE=true`.
+Przy HTTPS ustaw dodatkowo `QUIZAPP_COOKIE_SECURE=true`. HTTPS jest też warunkiem
+powiadomień Pomodoro — przeglądarki pozwalają na nie wyłącznie na stronach szyfrowanych
+(oraz na `localhost`).
 
 ---
 
@@ -371,6 +412,90 @@ masz prawo.
 
 Przy wdrożeniu za odwrotnym proxy pamiętaj o `client_max_body_size` — wysyłka nagrania
 przechodzi przez ten sam limit co przywracanie kopii zapasowej.
+
+## Pomodoro i skupienie
+
+Zakładka **Pomodoro** (`/pomodoro`) to minutnik serii skupienia z przerwami. Ustawiasz długość
+bloku skupienia, krótkiej przerwy, liczbę rund i długą przerwę kończącą serię — np. **25/5 × 3**
+to trzy bloki po 25 minut z dwiema pięciominutowymi przerwami. Presety: *Klasyk* (25/5 × 4,
+długa przerwa 15 min), *Krótka seria*, *Sprint*, *Głęboka praca* (50/10 × 3) i *Flow* (90/20 × 2).
+Ustawienia są zapisane na koncie, więc obowiązują na każdym urządzeniu.
+
+Pole „Nad czym pracujesz?” jest opcjonalne — wpisany temat trafia do statystyk („najwięcej
+czasu skupienia”). Przyciski: **+5 min** wydłuża bieżącą fazę, **Pomiń** kończy ją i zaczyna
+następną, **Stop** przerywa serię (rozpoczęte skupienie dłuższe niż minuta liczy się do
+statystyk jako blok przerwany).
+
+### Minutnik na każdej stronie
+
+Gdy seria trwa, minutnik jest widoczny wszędzie:
+
+- **komputer** — karta w lewym dolnym rogu: faza, pozostały czas, pasek postępu, pauza, +5 min,
+  pomiń i stop; strzałka zwija ją do małej pigułki z pierścieniem postępu;
+- **telefon i tablet** — pigułka z czasem w nagłówku, obok przełącznika motywu;
+- **karta przeglądarki** — odliczanie w tytule, np. `12:34 · Skupienie — MTQuiz`.
+
+Stan serii to kilka znaczników czasu zapisanych w przeglądarce i na serwerze, więc minutnik nie
+gubi się przy przechodzeniu między stronami, w kilku kartach naraz ani po powrocie po godzinie —
+fazy, które w tym czasie minęły, zostają rozliczone. Seria uruchomiona na komputerze pojawia się
+też na telefonie. Pływający minutnik wyłączysz w **Moje konto → Pomodoro i skupienie**.
+
+### Powiadomienia
+
+Przycisk **Włącz powiadomienia** na stronie Pomodoro prosi przeglądarkę o zgodę i rejestruje
+urządzenie. Od tej chwili serwer wysyła powiadomienie o końcu każdej fazy przez usługę push
+przeglądarki — dociera ono także przy zamkniętej karcie i zablokowanym ekranie. Przycisk
+**Wyślij próbne** sprawdza całą drogę.
+
+| Urządzenie | Co trzeba zrobić |
+|---|---|
+| Komputer (Chrome, Edge, Firefox, Safari) | Zezwolić na powiadomienia przy pierwszym włączeniu. |
+| Android (Chrome) | Jak wyżej; instalacja na ekranie głównym nie jest wymagana. |
+| **iPhone / iPad (iOS 16.4+)** | W Safari: **Udostępnij → Do ekranu początkowego**, otworzyć MTQuiz z ikony i dopiero tam włączyć powiadomienia. Tak Apple dopuszcza powiadomienia stron. |
+
+Warunki: instancja musi działać po **HTTPS** (patrz [Praca za odwrotnym proxy](#praca-za-odwrotnym-proxy))
+i mieć dostęp do internetu (usługi push Google, Mozilli i Apple). Bez zgody na powiadomienia
+minutnik i tak da znać dźwiękiem, wibracją (Android) i komunikatem na stronie.
+
+Klucz serwera powiadomień (VAPID) powstaje sam przy pierwszym starcie w
+`./data/.vapid_private.pem`. Trzymaj go razem z bazą — po jego utracie urządzenia trzeba
+zarejestrować ponownie (jeden klik na stronie Pomodoro).
+
+### Statystyki i grywalizacja
+
+- **Okresy**: dzień (wykres godzinowy), tydzień, miesiąc i rok — strzałkami przechodzisz do
+  okresów wcześniejszych.
+- **Porównanie**: czas skupienia i liczba ukończonych pomidorów względem poprzedniego okresu.
+  Bieżący okres porównywany jest uczciwie — do tego samego momentu (środa ze środą), a zakończony
+  w całości.
+- Średnia na dzień nauki, odsetek dokończonych bloków, najlepszy fragment okresu, typowa godzina
+  startu, tematy z największą liczbą minut i lista ostatnich bloków (z możliwością usunięcia
+  błędnego wpisu).
+- **Dzienny cel** (domyślnie 8 pomidorów), **seria dni** z ukończonym pomidorem, **10 poziomów**
+  (od *Nasionka* do *Legendy Pomodoro*, według łącznych minut skupienia) i **14 odznak** —
+  m.in. *Maraton* (8 pomidorów dziennie), *Tydzień w rytmie*, *Głęboka praca* (blok 50+ min),
+  *Ranny ptaszek*, *Setka*, *100 godzin*.
+
+Statystyki Pomodoro są osobne od rankingu nauki — ranking dalej liczy przerobione fiszki
+i pytania.
+
+### Dźwięki tła
+
+Domyślnie ukryte, żeby nie zaśmiecały interfejsu. Włączasz je w **Moje konto → Dźwięki tła**;
+pojawiają się wtedy na stronie Pomodoro i w pływającym minutniku.
+
+- **Szum**: biały (jasny, maskuje rozmowy), różowy (łagodniejszy) i brązowy (głęboki, jak deszcz).
+- **Częstotliwość**: czysty ton 40–1000 Hz, **rytm binauralny** (różnica 0,5–40 Hz między uszami,
+  wymaga słuchawek) albo **izochroniczny** (pulsowanie, działa z głośników) — z gotowymi
+  ustawieniami *Skupienie β 14 Hz*, *Relaks α 10 Hz*, *Gamma 40 Hz*.
+- Osobna głośność szumu i tonu, opcja „graj w czasie skupienia, milknij w przerwach”.
+
+Dźwięk powstaje w przeglądarce (bez pobierania plików) jako pętla odtwarzana elementem audio,
+dzięki czemu na iPhonie gra dalej po zablokowaniu ekranu i ma przyciski na ekranie blokady.
+Po przejściu na inną stronę wznawia się sam albo po pierwszym kliknięciu — przeglądarki nie
+pozwalają stronie zacząć grać bez gestu użytkownika.
+
+---
 
 ## Generowanie materiału modelem językowym
 
@@ -548,7 +673,9 @@ cd frontend && npm run watch:css
 
 Zestaw obejmuje uwierzytelnianie i role, wymuszoną zmianę hasła, operacje na
 zestawach i kontrolę widoczności, odporność parsera JSON na odstępstwa formatu,
-sesje nauki i statystyki, moderację, a także pełny cykl kopia zapasowa → przywrócenie.
+sesje nauki i statystyki, moderację, Pomodoro (stan minutnika, statystyki, odznaki,
+szyfrowanie powiadomień push sprawdzane wektorem testowym z RFC 8291), a także pełny cykl
+kopia zapasowa → przywrócenie.
 Każdy test pracuje na własnej, tymczasowej bazie.
 
 ---
@@ -568,6 +695,9 @@ Każdy test pracuje na własnej, tymczasowej bazie.
 │   ├── permissions.py      # rangi kont i przypisane do nich uprawnienia (RBAC)
 │   ├── prompts/            # tryby generatora promptu; medical.py — LEK, anatomia, synteza
 │   ├── activity.py         # kalendarz aktywności i serie dni nauki
+│   ├── pomodoro.py         # statystyki Pomodoro, poziomy i odznaki
+│   ├── preferences.py      # ustawienia konta (konfiguracja Pomodoro, funkcje opcjonalne)
+│   ├── push.py             # powiadomienia Web Push: VAPID, szyfrowanie RFC 8291, wysyłka
 │   ├── leaderboard.py      # rankingi tygodniowy i ogólny
 │   ├── services.py         # logika biznesowa zestawów, tagi, statystyki
 │   ├── importer.py         # uniwersalny parser pakietów JSON
@@ -576,9 +706,9 @@ Każdy test pracuje na własnej, tymczasowej bazie.
 │   ├── bootstrap.py        # konto startowe i zestaw pokazowy
 │   ├── cli.py              # narzędzia administracyjne wiersza poleceń
 │   ├── templating.py       # Jinja2: filtry, wersjonowanie zasobów
-│   ├── routers/            # auth, sets, study, prompts, activity, admin, pages
+│   ├── routers/            # auth, sets, study, prompts, activity, pomodoro, admin, pages
 │   ├── templates/          # widoki HTML
-│   ├── static/             # CSS, JS, zasoby zewnętrzne
+│   ├── static/             # CSS, JS (m.in. pomodoro.js), service worker, manifest, ikony
 │   └── data/               # przykładowy pakiet JSON
 ├── scripts/
 │   ├── worker_transkrypcji.py     # proces transkrybujący (kontener lub usługa na hoście)
@@ -627,6 +757,15 @@ sesji albo nagłówkiem `Authorization: Bearer <token>`.
 | `GET` | `/api/activity/heatmap?weeks=` | Kalendarz aktywności (4–53 tygodnie) |
 | `GET` | `/api/activity/leaderboard?period=` | Ranking: `week` (domyślnie) albo `all` |
 | `GET` | `/api/prompts/modes[/{klucz}]` | Tryby generatora dostępne dla rangi konta |
+| `GET` `PATCH` | `/api/preferences` | Ustawienia konta (Pomodoro, pływający minutnik, dźwięki tła) |
+| `GET` `PUT` | `/api/pomodoro/state` | Stan minutnika (z numerem rewizji) i plan powiadomień |
+| `GET` `POST` | `/api/pomodoro/entries` | Zakończone fazy (zapis idempotentny po `client_key`) |
+| `DELETE` | `/api/pomodoro/entries/{id}` | Usunięcie wpisu ze statystyk |
+| `GET` | `/api/pomodoro/stats?period=&offset=` | Statystyki `day`, `week`, `month`, `year` z porównaniem |
+| `GET` | `/api/pomodoro/summary` | Cel dnia, seria, poziom, rekordy i odznaki |
+| `GET` | `/api/push/key` | Klucz publiczny VAPID |
+| `POST` `DELETE` | `/api/push/subscriptions` | Rejestracja i wyrejestrowanie urządzenia |
+| `POST` | `/api/push/test` | Powiadomienie próbne na urządzenia konta |
 | `GET` `POST` | `/api/transkrypcje` | Lista transkrypcji i zgłoszenie nagrania |
 | `GET` | `/api/transkrypcje/worker` | Stan procesu transkrybującego |
 | `GET` `PATCH` `DELETE` | `/api/transkrypcje/{id}` | Szczegóły, zmiana nazwy, usunięcie |
@@ -654,6 +793,29 @@ docker compose exec mtquiz python -m app.cli reset-admina
 
 Następnie zaloguj się jako `admin` / `admin` — aplikacja od razu poprosi o ustawienie własnego
 hasła. Listę wszystkich kont pokaże `python -m app.cli konta`.
+
+**Transkrypcja kończy się błędem „open() got an unexpected keyword argument 'metadata_errors'”.**
+To niezgodność bibliotek, nie sterowników ani karty graficznej: PyAV 19 (dekoder audio,
+instalowany automatycznie razem z `faster-whisper`) usunął parametr, którego używa
+`faster-whisper` 1.2.1. Obraz `Dockerfile.transkrypcja` przypina teraz PyAV poniżej 19,
+a proces roboczy ma dodatkowo nakładkę zgodności. Wystarczy przebudować kontener:
+
+```bash
+git pull
+docker compose up -d --build transkrypcja
+```
+
+Przy usłudze na hoście: `pip --python ./.venv-transkrypcja/bin/python install "av<19"`
+i `systemctl --user restart mtquiz-transkrypcja`. Nagrania, które wcześniej się nie powiodły,
+uruchomisz ponownie przyciskiem **Ponów próbę** na stronie transkrypcji — bez ponownego
+wysyłania pliku.
+
+**Powiadomienia Pomodoro nie przychodzą.**
+Sprawdź kolejno: instancja działa po HTTPS (na zwykłym `http://` przeglądarki blokują
+powiadomienia), przeglądarka ma zgodę dla strony (ikona kłódki przy adresie), a przycisk
+**Wyślij próbne** na stronie Pomodoro kończy się sukcesem. Na iPhonie powiadomienia działają
+tylko w MTQuiz otwartym z ikony na ekranie początkowym (iOS 16.4+), a tryb skupienia iOS
+może je wyciszać. Serwer musi mieć dostęp do internetu.
 
 **Nagrania stoją w kolejce i nic się nie dzieje.**
 Proces transkrypcji nie działa. Sprawdź, czy kontener wstał, i zajrzyj do dziennika:
