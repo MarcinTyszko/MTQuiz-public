@@ -23,8 +23,12 @@ ENV PYTHONUNBUFFERED=1 \
 
 # faster-whisper ma w kołach wszystko, czego potrzebuje (także dekoder audio),
 # więc obraz nie potrzebuje ffmpeg ani kompilatora.
+#
+# PyAV (dekoder audio) przypięty poniżej 19: wersja 19 usunęła parametr
+# `metadata_errors`, którego używa faster-whisper 1.2.1 — bez przypięcia każda
+# transkrypcja kończy się błędem „open() got an unexpected keyword argument”.
 RUN python -m venv /opt/venv \
- && pip install faster-whisper==1.2.1 \
+ && pip install faster-whisper==1.2.1 "av>=11,<19" \
  && if [ "$TRANSKRYPCJA_GPU" = "1" ]; then \
       pip install nvidia-cublas-cu12 "nvidia-cudnn-cu12==9.*"; \
     fi

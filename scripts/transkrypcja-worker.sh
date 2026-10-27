@@ -40,7 +40,7 @@ Nie znalazłem interpretera Pythona z pakietem faster-whisper.
 
 Przygotuj środowisko jednorazowo:
 
-    pip --python ./.venv-transkrypcja/bin/python install faster-whisper
+    pip --python ./.venv-transkrypcja/bin/python install faster-whisper "av<19"
     # albo wskaż istniejące środowisko:
     export PYTHON_TRANSKRYPCJI=/sciezka/do/.venv/bin/python
 

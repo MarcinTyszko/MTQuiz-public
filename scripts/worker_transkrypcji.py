@@ -154,6 +154,37 @@ def znajdz_zadania(katalog_transkrypcji: Path) -> list[Path]:
     return sorted(czekajace, key=lambda k: k.stat().st_mtime)
 
 
+def zgodnosc_pyav() -> None:
+    """Godzi faster-whisper 1.2.1 z PyAV 19 i nowszym.
+
+    faster-whisper otwiera nagranie wywołaniem ``av.open(..., metadata_errors="ignore")``,
+    a PyAV 19 usunął ten parametr — każda transkrypcja kończyła się wtedy błędem
+    „open() got an unexpected keyword argument 'metadata_errors'”. Obraz Dockera
+    przypina PyAV poniżej 19, ale środowisko na hoście (usługa systemd) mogło
+    dostać najnowszą wersję, więc przy PyAV 19+ nakładka pomija ten parametr.
+    """
+    try:
+        import av
+    except ImportError:
+        return
+    oryginal = av.open
+    if getattr(oryginal, "_mtquiz_zgodnosc", False):
+        return
+    try:
+        glowna = int(str(av.__version__).split(".")[0])
+    except ValueError:
+        return
+    if glowna < 19:
+        return
+
+    def otworz(*args, metadata_errors=None, **kwargs):  # noqa: ARG001 - parametr usunięty w PyAV 19
+        return oryginal(*args, **kwargs)
+
+    otworz._mtquiz_zgodnosc = True
+    av.open = otworz
+    _log(f"PyAV {av.__version__}: włączono zgodność z faster-whisper (parametr metadata_errors).")
+
+
 class Transkryptor:
     """Leniwie ładowany model Whispera wraz z wyborem urządzenia."""
 
@@ -186,6 +217,7 @@ class Transkryptor:
 
         from faster_whisper import WhisperModel
 
+        zgodnosc_pyav()
         if not self.wymus_cpu:
             self._biblioteki_cuda()
 

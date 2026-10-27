@@ -1,0 +1,3 @@
+# Skrypty powłoki muszą mieć końce wierszy LF także po pobraniu na Windows —
+# z CRLF kontener transkrypcji nie wystartuje („bad interpreter”).
+*.sh text eol=lf
