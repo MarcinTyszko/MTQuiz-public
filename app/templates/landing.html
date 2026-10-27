@@ -55,7 +55,7 @@
     <h2 class="section-title">Najnowsze zestawy publiczne</h2>
     <a href="/baza-publiczna" class="link text-sm">Zobacz wszystkie</a>
   </div>
-  <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+  <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
     {% for item in featured %}
       <div class="relative">{{ set_card(item) }}</div>
     {% endfor %}

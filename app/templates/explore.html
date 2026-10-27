@@ -50,7 +50,7 @@
     </div>
   </div>
 
-  <div x-show="loading" class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+  <div x-show="loading" class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
     <template x-for="index in 6" :key="index">
       <div class="card h-48 animate-pulse bg-ink-100 dark:bg-ink-800"></div>
     </template>
@@ -63,7 +63,7 @@
     </p>
   </div>
 
-  <div x-show="!loading && items.length" x-cloak class="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+  <div x-show="!loading && items.length" x-cloak class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
     <template x-for="item in items" :key="item.id">
       <article class="card flex h-full flex-col p-5">
         <div class="flex items-start justify-between gap-3">

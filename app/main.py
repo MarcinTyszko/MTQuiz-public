@@ -1,18 +1,20 @@
 """Punkt wejścia aplikacji FastAPI — montowanie routerów i obsługa błędów."""
 from __future__ import annotations
 
+import asyncio
 import logging
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, suppress
 
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from . import push
 from .bootstrap import initialise
 from .config import STATIC_DIR, settings
-from .routers import activity, admin, auth, pages, prompts, sets, study, transcripts
+from .routers import activity, admin, auth, pages, pomodoro, prompts, sets, study, transcripts
 from .templating import templates
 
 logger = logging.getLogger("mtquiz")
@@ -23,7 +25,14 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 async def lifespan(app: FastAPI):
     initialise()
     logger.info("Baza danych: %s", settings.database_path)
-    yield
+    dispatcher = asyncio.create_task(push.run_dispatcher()) if settings.push_dispatcher else None
+    try:
+        yield
+    finally:
+        if dispatcher is not None:
+            dispatcher.cancel()
+            with suppress(asyncio.CancelledError):
+                await dispatcher
 
 
 app = FastAPI(
@@ -44,6 +53,7 @@ app.include_router(study.router)
 app.include_router(transcripts.router)
 app.include_router(prompts.router)
 app.include_router(activity.router)
+app.include_router(pomodoro.router)
 app.include_router(admin.router)
 app.include_router(pages.router)
 
@@ -96,6 +106,26 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             "detail": "Dane formularza są nieprawidłowe: " + "; ".join(messages[:6]),
             "errors": details[:20],
         },
+    )
+
+
+@app.get("/sw.js", include_in_schema=False)
+async def service_worker() -> FileResponse:
+    """Service worker z katalogu głównego — tylko stamtąd obejmuje wszystkie strony aplikacji."""
+    return FileResponse(
+        STATIC_DIR / "sw.js",
+        media_type="text/javascript",
+        headers={"Cache-Control": "no-cache", "Service-Worker-Allowed": "/"},
+    )
+
+
+@app.get("/manifest.webmanifest", include_in_schema=False)
+async def web_manifest() -> FileResponse:
+    """Manifest aplikacji: instalacja na ekranie telefonu i powiadomienia na iPhonie."""
+    return FileResponse(
+        STATIC_DIR / "manifest.webmanifest",
+        media_type="application/manifest+json",
+        headers={"Cache-Control": "public, max-age=3600"},
     )
 
 

@@ -208,3 +208,13 @@ def test_prompt_wymaga_czystego_json_na_wyjsciu(kod):
     assert "WYŁĄCZNIE obiektem JSON" in fragment
     assert "LISTA KONTROLNA" in fragment
     assert "UTF-8" in fragment
+
+
+def test_prompt_prosi_o_gotowy_plik_json_do_pobrania(kod):
+    fragment = kod[kod.index("get sekcjaFormatu()") : kod.index("get promptTekst()")]
+
+    assert "plikJson: true" in kod
+    assert "gotowy plik .json do pobrania" in fragment
+    assert "ensure_ascii=False" in fragment
+    # Gdy model nie umie tworzyć plików — jeden blok kodu bez otoczki tekstu.
+    assert "```json" in fragment

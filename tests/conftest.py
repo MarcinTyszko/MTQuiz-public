@@ -21,6 +21,8 @@ def app_module(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("QUIZAPP_DATA_DIR", str(data_dir))
     monkeypatch.setenv("QUIZAPP_SECRET_KEY", "testowy-klucz-podpisu-sesji-0123456789")
     monkeypatch.setenv("QUIZAPP_ALLOW_REGISTRATION", "true")
+    # Pętla wysyłki powiadomień push nie jest potrzebna testom (wysyłkę testują wprost).
+    monkeypatch.setenv("QUIZAPP_PUSH_DISPATCHER", "false")
     # Domyślnie bez zestawu pokazowego — testy startują z pustą bazą treści.
     monkeypatch.setenv("QUIZAPP_SEED_EXAMPLE_SET", os.environ.get("QUIZAPP_SEED_EXAMPLE_SET", "false"))
 

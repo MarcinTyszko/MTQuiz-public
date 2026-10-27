@@ -4,7 +4,7 @@
 
 {% block content %}
 <script type="application/json" id="konfiguracja-generatora">{{ prompt_config | tojson_safe }}</script>
-<div x-data="promptGenerator()" x-init="init()" x-cloak>
+<div x-data="promptGenerator()" x-cloak>
   <div class="max-w-3xl">
     <h1 class="text-2xl font-bold tracking-tight text-ink-900 dark:text-white">Generator promptu AI</h1>
     <p class="mt-2 text-sm text-ink-600 dark:text-ink-300">
@@ -212,6 +212,13 @@
               <span x-show="trybAktywny" class="block text-xs text-ink-500 dark:text-ink-400">Tryb dziedzinowy wymaga formatu ABCD z jedną poprawną odpowiedzią.</span>
             </span>
           </label>
+          <label class="flex cursor-pointer items-start gap-2 text-sm text-ink-700 dark:text-ink-300">
+            <input type="checkbox" class="mt-0.5 h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500" x-model="plikJson">
+            <span>
+              Poproś o gotowy plik <code class="rounded bg-ink-200 px-1 text-xs dark:bg-ink-800" x-text="`${nazwaPliku}.json`"></code> do pobrania
+              <span class="block text-xs text-ink-500 dark:text-ink-400">Model zapisze pakiet jako plik zamiast wypisywać JSON w rozmowie. Wyłącz przy przekierowaniu wyniku w terminalu.</span>
+            </span>
+          </label>
         </div>
 
         <div>
@@ -279,7 +286,14 @@
         <div class="p-5 text-sm text-ink-700 dark:text-ink-200">
           <div x-show="zakladka === 'claude'" class="space-y-3">
             <p>Prompt trafia do <code class="rounded bg-ink-200 px-1 dark:bg-ink-800">stdin</code>, a ścieżkę do materiału podajesz w treści polecenia.</p>
-            <pre class="overflow-x-auto rounded-xl bg-ink-900 p-3 text-xs text-ink-100 dark:bg-ink-950"><code># zapisz prompt przyciskiem „Pobierz .txt”, a następnie:
+            <pre x-show="plikJson" class="overflow-x-auto rounded-xl bg-ink-900 p-3 text-xs text-ink-100 dark:bg-ink-950"><code># zapisz prompt przyciskiem „Pobierz .txt”, a następnie:
+claude -p "$(cat prompt.txt)
+
+Przetwórz plik ./materialy/wyklad-03.pdf" --allowedTools "Read,Write"
+
+# Claude zapisze wynik jako <span x-text="`${nazwaPliku}.json`"></span> — szybka kontrola składni:
+python3 -m json.tool <span x-text="`${nazwaPliku}.json`"></span> > /dev/null && echo "JSON poprawny"</code></pre>
+            <pre x-show="!plikJson" class="overflow-x-auto rounded-xl bg-ink-900 p-3 text-xs text-ink-100 dark:bg-ink-950"><code># zapisz prompt przyciskiem „Pobierz .txt”, a następnie:
 claude -p "$(cat prompt.txt)
 
 Przetwórz plik ./materialy/wyklad-03.pdf" > pakiet.json
@@ -297,7 +311,8 @@ python3 -m json.tool pakiet.json > /dev/null && echo "JSON poprawny"</code></pre
               <li>Załóż nową rozmowę, żeby wcześniejszy kontekst nie zniekształcił odpowiedzi.</li>
               <li>Dołącz materiał (PDF lub zdjęcia notatek) jako załącznik.</li>
               <li>Wklej prompt i wyślij.</li>
-              <li>Skopiuj całą odpowiedź — łącznie z blokiem <code class="rounded bg-ink-200 px-1 dark:bg-ink-800">```json</code>, import sam go usunie.</li>
+              <li x-show="plikJson">Pobierz plik <code class="rounded bg-ink-200 px-1 dark:bg-ink-800">.json</code> z odpowiedzi (artefakt lub załącznik) i wgraj go w zakładce Import. Gdy model wypisze JSON w treści, skopiuj go łącznie z blokiem <code class="rounded bg-ink-200 px-1 dark:bg-ink-800">```json</code> — import sam usunie otoczkę.</li>
+              <li x-show="!plikJson">Skopiuj całą odpowiedź — łącznie z blokiem <code class="rounded bg-ink-200 px-1 dark:bg-ink-800">```json</code>, import sam go usunie.</li>
             </ol>
             <p class="text-xs text-ink-500 dark:text-ink-400">
               Jeżeli odpowiedź się urwie, napisz „kontynuuj od ostatniego kompletnego obiektu” i sklej fragmenty,
@@ -310,7 +325,8 @@ python3 -m json.tool pakiet.json > /dev/null && echo "JSON poprawny"</code></pre
               <li>Wybierz model rozumujący (na przykład tryb „Thinking”) — daje wyraźnie mniej błędów merytorycznych.</li>
               <li>Dołącz PDF przyciskiem spinacza, poczekaj, aż plik się wczyta.</li>
               <li>Wklej prompt i wyślij.</li>
-              <li>Skopiuj odpowiedź do pliku <code class="rounded bg-ink-200 px-1 dark:bg-ink-800">.json</code> albo wklej ją wprost w zakładce Import AI.</li>
+              <li x-show="plikJson">Pobierz plik <code class="rounded bg-ink-200 px-1 dark:bg-ink-800">.json</code> z linku w odpowiedzi i wgraj go w zakładce Import AI.</li>
+              <li x-show="!plikJson">Skopiuj odpowiedź do pliku <code class="rounded bg-ink-200 px-1 dark:bg-ink-800">.json</code> albo wklej ją wprost w zakładce Import AI.</li>
             </ol>
             <p class="text-xs text-ink-500 dark:text-ink-400">
               Gdy model uparcie dopisuje komentarz przed JSON-em, dopisz na końcu promptu:

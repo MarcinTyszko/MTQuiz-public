@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% from "partials/macros.html" import activity_row, stat_tile, empty_state %}
+{% block title %}Historia nauki — {{ app_name }}{% endblock %}
+{% block main_class %}mx-auto w-full max-w-4xl px-4 py-6 sm:px-6 lg:py-10{% endblock %}
+
+{% block content %}
+<a href="/pulpit" class="text-xs text-ink-500 hover:underline dark:text-ink-400">← Wróć do pulpitu</a>
+<div class="mt-1 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+  <div>
+    <h1 class="text-2xl font-bold tracking-tight text-ink-900 dark:text-white">Historia nauki</h1>
+    <p class="mt-1 text-sm text-ink-600 dark:text-ink-300">Każda sesja fiszek i quizu, od najnowszej.</p>
+  </div>
+  <nav class="inline-flex rounded-xl border border-ink-200 bg-white p-1 text-xs font-medium dark:border-ink-700 dark:bg-ink-900" aria-label="Filtr trybu">
+    {% for value, label in [('', 'Wszystko'), ('flashcards', 'Fiszki'), ('quiz', 'Quizy')] %}
+    <a href="/historia{{ '?tryb=' ~ value if value else '' }}"
+       class="rounded-lg px-3 py-1.5 transition-colors {{ 'bg-brand-600 text-white' if mode == value else 'text-ink-600 hover:bg-ink-100 dark:text-ink-300 dark:hover:bg-ink-800' }}"
+       {% if mode == value %}aria-current="page"{% endif %}>{{ label }}</a>
+    {% endfor %}
+  </nav>
+</div>
+
+<section class="mt-6 grid grid-cols-3 gap-3 sm:gap-4">
+  {{ stat_tile('Sesje', summary.sessions | num) }}
+  {{ stat_tile('Przerobione elementy', summary.elements | num) }}
+  {{ stat_tile('Czas nauki', summary.seconds | duration) }}
+</section>
+
+{% if days %}
+<div class="mt-8 space-y-6">
+  {% for group in days %}
+  <section>
+    <h2 class="flex items-baseline justify-between gap-3 px-1 text-sm font-semibold text-ink-700 dark:text-ink-200">
+      {{ group.label }}
+      <span class="text-xs font-normal text-ink-500 dark:text-ink-400">
+        {{ group['items'] | length }} {{ plural_pl(group['items'] | length, 'sesja', 'sesje', 'sesji') }}
+      </span>
+    </h2>
+    <div class="card mt-2 divide-y divide-ink-100 overflow-hidden dark:divide-ink-800">
+      {% for item in group['items'] %}{{ activity_row(item, titles.get(item.set_id), show_time=true) }}{% endfor %}
+    </div>
+  </section>
+  {% endfor %}
+</div>
+
+{% if pages > 1 %}
+{% set query = '&tryb=' ~ mode if mode else '' %}
+<nav class="mt-8 flex items-center justify-between gap-3" aria-label="Strony historii">
+  {% if page > 1 %}
+  <a href="/historia?strona={{ page - 1 }}{{ query }}" class="btn-secondary btn-sm">← Nowsze</a>
+  {% else %}<span></span>{% endif %}
+  <span class="text-xs tabular-nums text-ink-500 dark:text-ink-400">Strona {{ page }} z {{ pages }}</span>
+  {% if page < pages %}
+  <a href="/historia?strona={{ page + 1 }}{{ query }}" class="btn-secondary btn-sm">Starsze →</a>
+  {% else %}<span></span>{% endif %}
+</nav>
+{% endif %}
+{% else %}
+<div class="mt-8">
+  {{ empty_state('Brak sesji nauki',
+                 'Otwórz dowolny zestaw i przerób kilka fiszek albo pytań — każda sesja pojawi się tutaj.',
+                 '/pulpit', 'Przejdź do zestawów') }}
+</div>
+{% endif %}
+{% endblock %}

@@ -24,6 +24,8 @@ services:
       QUIZAPP_COOKIE_SECURE: ${QUIZAPP_COOKIE_SECURE:-false}
       # Wyłącz samodzielną rejestrację kont, aby instancja pozostała zamknięta.
       QUIZAPP_ALLOW_REGISTRATION: ${QUIZAPP_ALLOW_REGISTRATION:-true}
+      # Kontakt do operatora dla usług push (powiadomienia Pomodoro).
+      QUIZAPP_PUSH_CONTACT: ${QUIZAPP_PUSH_CONTACT:-mailto:admin@mtquiz.app}
       TZ: ${TZ:-Europe/Warsaw}
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=4).status == 200 else 1)"]

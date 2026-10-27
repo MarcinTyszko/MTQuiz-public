@@ -133,7 +133,7 @@
     post: (url, body) => request(url, { method: "POST", body }),
     put: (url, body) => request(url, { method: "PUT", body }),
     patch: (url, body) => request(url, { method: "PATCH", body }),
-    delete: (url) => request(url, { method: "DELETE" }),
+    delete: (url, body) => request(url, { method: "DELETE", body }),
     upload: (url, formData) => request(url, { method: "POST", body: formData }),
   };
 
@@ -328,6 +328,17 @@
     return many;
   }
 
+  /** Czy zdarzenie klawiatury trafia do pola, w którym użytkownik pisze — wtedy skróty milkną. */
+  function isTypingTarget(target) {
+    if (!target || !target.tagName) return false;
+    if (target.isContentEditable) return true;
+    const tag = target.tagName.toLowerCase();
+    if (tag === "textarea" || tag === "select") return true;
+    if (tag !== "input") return false;
+    // Suwak i pole wyboru same obsługują strzałki i spację; tylko przycisk-input jest zwykłym przyciskiem.
+    return !["button", "submit", "reset"].includes((target.type || "").toLowerCase());
+  }
+
   function readJsonScript(id) {
     const node = document.getElementById(id);
     if (!node) return null;
@@ -465,6 +476,7 @@
     shuffle,
     formatDuration,
     plural,
+    isTypingTarget,
     readJsonScript,
     bindSwipe,
     confirmDialog,

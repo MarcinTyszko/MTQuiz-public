@@ -53,6 +53,12 @@ class Settings(BaseSettings):
     # Po ilu sekundach bez sygnału uznajemy proces transkrybujący za nieczynny.
     worker_heartbeat_timeout: int = 90
 
+    # Powiadomienia push (koniec fazy Pomodoro). Usługi push — szczególnie Apple —
+    # wymagają kontaktu do operatora serwera: adresu "mailto:" albo strony "https://".
+    push_contact: str = "mailto:admin@mtquiz.app"
+    # Pętla wysyłająca zaplanowane powiadomienia w procesie aplikacji.
+    push_dispatcher: bool = True
+
     # Strefa czasowa kalendarza aktywności i rankingu tygodniowego (granice dni
     # i tygodni). Bez QUIZAPP_TIMEZONE używana jest zmienna TZ kontenera.
     timezone: str = Field(default_factory=lambda: os.environ.get("TZ") or "Europe/Warsaw")

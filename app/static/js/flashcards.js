@@ -1,7 +1,8 @@
 /** Tryb nauki fiszkami: obrót karty, nawigacja, gesty dotykowe, statystyki sesji. */
 (function () {
   "use strict";
-  const { api, toast, shuffle, formatDuration, readJsonScript, bindSwipe, createSessionTracker } = window.MTQuiz;
+  const { api, toast, shuffle, formatDuration, readJsonScript, bindSwipe, createSessionTracker, isTypingTarget } =
+    window.MTQuiz;
 
   function flashcardRunner() {
     return {
@@ -74,15 +75,25 @@
 
       bindKeyboard() {
         document.addEventListener("keydown", (event) => {
-          if (this.finished) return;
-          const tag = (event.target.tagName || "").toLowerCase();
-          if (tag === "input" || tag === "textarea" || tag === "select") return;
+          if (this.finished || event.defaultPrevented) return;
+          // Skróty przeglądarki (Alt+← to „wstecz”, Ctrl+S to zapis strony) zostają nietknięte.
+          if (event.ctrlKey || event.metaKey || event.altKey) return;
+          if (isTypingTarget(event.target) || document.querySelector('[role="dialog"][aria-modal="true"]')) return;
+
+          // Przycisk kliknięty myszą zachowuje fokus, a spacja „kliknęłaby” go
+          // po raz drugi — np. „Następna” zamiast odwrócenia karty.
+          const focused = document.activeElement;
+          if (focused && focused !== document.body && focused.matches("button, a, [role='button']")) {
+            if (event.key === " " || event.key === "Spacebar") focused.blur();
+          }
 
           switch (event.key) {
             case " ":
             case "Spacebar":
+            case "ArrowUp":
+            case "ArrowDown":
               event.preventDefault();
-              this.flip();
+              if (!event.repeat) this.flip();
               break;
             case "ArrowRight":
               event.preventDefault();
@@ -94,13 +105,13 @@
               break;
             case "s":
             case "S":
-              this.toggleStar();
+              if (!event.repeat) this.toggleStar();
               break;
             case "1":
-              this.mark("review");
+              if (!event.repeat) this.mark("review");
               break;
             case "2":
-              this.mark("known");
+              if (!event.repeat) this.mark("known");
               break;
             default:
               break;

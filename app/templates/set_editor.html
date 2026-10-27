@@ -4,7 +4,7 @@
 {% block main_class %}mx-auto w-full max-w-5xl flex-1 px-4 pb-28 pt-6 sm:px-6 lg:pb-10 lg:pt-8{% endblock %}
 
 {% block content %}
-<div x-data="setEditor({{ {'mode': mode, 'data': set_data} | tojson_attr }})" x-init="init()" x-cloak>
+<div x-data="setEditor({{ {'mode': mode, 'data': set_data} | tojson_attr }})" x-cloak>
 
   <div class="flex flex-wrap items-center justify-between gap-3">
     <div>
@@ -36,7 +36,7 @@
   <!-- Metadane --------------------------------------------------------- -->
   <section class="card mt-6 space-y-4 p-5">
     <h2 class="section-title">Informacje o zestawie</h2>
-    <div class="grid gap-4 sm:grid-cols-2">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <div class="sm:col-span-2">
         <label class="label" for="set-title">Tytuł <span class="text-rose-500">*</span></label>
         <input id="set-title" class="input" x-model="meta.title" maxlength="200" placeholder="np. Prawo cywilne — wady oświadczenia woli">
@@ -110,7 +110,7 @@
             <button type="button" class="btn-ghost btn-sm !px-2 text-rose-600 dark:text-rose-400" @click="cards.splice(index, 1)" aria-label="Usuń fiszkę">✕</button>
           </div>
         </div>
-        <div class="mt-3 grid gap-3 sm:grid-cols-2">
+        <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <label class="label">Awers — pojęcie / pytanie <span class="text-rose-500">*</span></label>
             <textarea class="input" rows="3" x-model="card.front" placeholder="np. Czym jest wada oświadczenia woli"></textarea>
@@ -120,7 +120,7 @@
             <textarea class="input" rows="3" x-model="card.back" placeholder="Pełna odpowiedź, którą chcesz pamiętać"></textarea>
           </div>
         </div>
-        <div class="mt-3 grid gap-3 sm:grid-cols-2" x-show="!collapsed">
+        <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2" x-show="!collapsed">
           <div>
             <label class="label">Wskazówka <span class="font-normal text-ink-400">(opcjonalnie)</span></label>
             <input class="input" x-model="card.hint" placeholder="Podpowiedź wyświetlana na życzenie">

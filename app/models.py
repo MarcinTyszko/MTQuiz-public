@@ -334,6 +334,95 @@ class Transcription(Base):
         return len(self.text.split()) if self.text else 0
 
 
+class UserPreferences(Base):
+    """Ustawienia konta zapisane jako JSON (Pomodoro, funkcje opcjonalne).
+
+    Jeden wiersz na konto i jedna kolumna z dokumentem: nowe ustawienie nie
+    wymaga migracji schematu, a brakujące klucze uzupełniają wartości domyślne
+    z ``app.preferences``.
+    """
+
+    __tablename__ = "user_preferences"
+
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    data: Mapped[str] = mapped_column(Text, default="{}", nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False)
+
+
+class PomodoroTimer(Base):
+    """Bieżący stan minutnika Pomodoro — ten sam na każdym urządzeniu konta.
+
+    Stan liczy przeglądarka; serwer przechowuje go, żeby minutnik uruchomiony na
+    komputerze był widoczny na telefonie. ``revision`` rośnie z każdą zmianą —
+    starszy zapis (np. z karty zamkniętej offline) nie nadpisze nowszego.
+    """
+
+    __tablename__ = "pomodoro_timers"
+
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    state: Mapped[str] = mapped_column(Text, default="{}", nullable=False)
+    revision: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow, nullable=False)
+
+
+class PomodoroEntry(Base):
+    """Zakończona faza Pomodoro: blok skupienia albo przerwa.
+
+    ``client_key`` identyfikuje fazę po stronie przeglądarki (seria + numer fazy),
+    więc kilka otwartych kart zgłaszających ten sam koniec fazy daje jeden wpis.
+    """
+
+    __tablename__ = "pomodoro_entries"
+    __table_args__ = (UniqueConstraint("user_id", "client_key", name="uq_pomodoro_entry"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False)
+    client_key: Mapped[str] = mapped_column(String(64), nullable=False)
+    # focus | short_break | long_break
+    kind: Mapped[str] = mapped_column(String(16), nullable=False)
+    planned_seconds: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    actual_seconds: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    # Faza dobiegła końca (a nie została przerwana lub pominięta).
+    completed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    label: Mapped[str] = mapped_column(String(120), default="", nullable=False)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    ended_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+
+
+class PushSubscription(Base):
+    """Subskrypcja Web Push jednej przeglądarki (komputer, Android, iPhone z aplikacją na ekranie)."""
+
+    __tablename__ = "push_subscriptions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False)
+    endpoint: Mapped[str] = mapped_column(Text, unique=True, nullable=False)
+    p256dh: Mapped[str] = mapped_column(String(200), nullable=False)
+    auth: Mapped[str] = mapped_column(String(100), nullable=False)
+    user_agent: Mapped[str] = mapped_column(String(255), default="", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, nullable=False)
+    last_success_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ScheduledPush(Base):
+    """Powiadomienie zaplanowane na koniec fazy Pomodoro.
+
+    Wysyła je serwer, bo telefon z zablokowanym ekranem nie wykona JavaScriptu
+    strony — tylko push dociera wtedy na czas.
+    """
+
+    __tablename__ = "scheduled_pushes"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False)
+    fire_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True, nullable=False)
+    title: Mapped[str] = mapped_column(String(120), nullable=False)
+    body: Mapped[str] = mapped_column(String(255), default="", nullable=False)
+    url: Mapped[str] = mapped_column(String(255), default="/pomodoro", nullable=False)
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
 class AuditLog(Base):
     """Dziennik działań administracyjnych (moderacja, kopie zapasowe, konta)."""
 
@@ -360,6 +449,7 @@ Index(
     StudySession.score,
     StudySession.mode,
 )
+Index("ix_pomodoro_entries_user_ended", PomodoroEntry.user_id, PomodoroEntry.ended_at)
 
 __all__ = [
     "AnswerOption",
@@ -368,7 +458,11 @@ __all__ = [
     "CardStar",
     "Favorite",
     "Flashcard",
+    "PomodoroEntry",
+    "PomodoroTimer",
+    "PushSubscription",
     "Question",
+    "ScheduledPush",
     "SetTag",
     "StudyMode",
     "StudySession",
@@ -377,6 +471,7 @@ __all__ = [
     "Transcription",
     "TranscriptionStatus",
     "User",
+    "UserPreferences",
     "UserRole",
     "Visibility",
     "utcnow",

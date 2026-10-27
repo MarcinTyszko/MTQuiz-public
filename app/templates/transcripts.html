@@ -4,7 +4,7 @@
 {% block main_class %}mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-6 lg:py-10{% endblock %}
 
 {% block content %}
-<div x-data="listaTranskrypcji()" x-init="init()" x-cloak>
+<div x-data="listaTranskrypcji()" x-cloak>
   <h1 class="text-2xl font-bold tracking-tight text-ink-900 dark:text-white">Transkrypcja AI</h1>
   <p class="mt-2 max-w-3xl text-sm text-ink-600 dark:text-ink-300">
     Wgraj nagranie wykładu, podcastu albo ścieżkę dźwiękową z filmu, a otrzymasz zapis tekstowy
@@ -73,7 +73,7 @@ docker compose restart transkrypcja</code></pre>
       <input type="file" accept="audio/*,video/mp4,.mp3,.m4a,.wav,.ogg,.oga,.opus,.webm,.flac,.aac,.wma" class="sr-only" @change="onPlik($event)">
     </label>
 
-    <div class="mt-4 grid gap-4 sm:grid-cols-3">
+    <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
       <div class="sm:col-span-2">
         <label class="label" for="tytul">Nazwa</label>
         <input id="tytul" class="input" x-model="tytul" maxlength="200" placeholder="np. Wykład 3 — układ krążenia">

@@ -228,3 +228,51 @@ def test_nawigacja_zawiera_transkrypcje(client):
     html = client.get("/pulpit").text
     assert "/transkrypcje" in html
     assert "Transkrypcja nagrania" in html
+
+
+def _sesja(client, set_id: int, mode: str = "quiz") -> None:
+    response = client.post(
+        "/api/study/sessions", json={"set_id": set_id, "mode": mode, "score": 1, "total": 2, "duration_seconds": 90}
+    )
+    assert response.status_code == 201, response.text
+
+
+def test_pulpit_pokazuje_trzy_ostatnie_sesje_i_rozwijanie(client):
+    register(client)
+    set_id = client.post("/api/sets", json=SAMPLE_SET).json()["id"]
+    for _ in range(5):
+        _sesja(client, set_id)
+    html = client.get("/pulpit").text
+
+    assert 'href="/historia"' in html
+    assert "Pokaż więcej (2)" in html
+    assert 'id="aktywnosc-wiecej"' in html
+
+
+def test_historia_nauki_grupuje_dni_i_filtruje_tryb(client):
+    assert client.get("/historia", follow_redirects=False).status_code == 303
+    register(client)
+    set_id = client.post("/api/sets", json=SAMPLE_SET).json()["id"]
+    _sesja(client, set_id, "quiz")
+    _sesja(client, set_id, "flashcards")
+
+    html = client.get("/historia").text
+    assert "Dziś" in html
+    assert html.count(f'href="/zestawy/{set_id}"') == 2
+
+    tylko_quizy = client.get("/historia?tryb=quiz").text
+    assert tylko_quizy.count(f'href="/zestawy/{set_id}"') == 1
+
+
+def test_historia_bez_sesji(client):
+    register(client)
+    assert "Brak sesji nauki" in client.get("/historia").text
+
+
+def test_komponenty_alpine_nie_wywoluja_init_dwa_razy():
+    """Alpine sam wywołuje metodę ``init()`` — dodatkowe ``x-init="init()"`` podpinało
+    klawiaturę dwa razy (spacja odwracała fiszkę tam i z powrotem, strzałki skakały o dwie)."""
+    from pathlib import Path
+
+    for template in (Path(__file__).resolve().parent.parent / "app" / "templates").rglob("*.html"):
+        assert 'x-init="init()"' not in template.read_text(encoding="utf-8"), template.name

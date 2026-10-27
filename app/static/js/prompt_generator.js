@@ -427,6 +427,8 @@
       pytania: 12,
       wymagajZrodel: true,
       wielokrotnyWybor: true,
+      // Model ma oddać gotowy plik .json do pobrania zamiast wypisywać JSON w treści rozmowy.
+      plikJson: true,
       dodatkowe: "",
       // Materiał źródłowy przekazany z transkrypcji
       material: null,
@@ -833,12 +835,48 @@
         ].join("\n");
       },
 
+      /** Nazwa pliku wyniku proponowana modelowi — z tematu albo dziedziny. */
+      get nazwaPliku() {
+        const nazwa = (this.temat.trim() || this.dziedzina.trim() || "pakiet-mtquiz")
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[̀-ͯ]/g, "")
+          .replace(/ł/g, "l")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-+|-+$/g, "")
+          .slice(0, 60);
+        return nazwa || "pakiet-mtquiz";
+      },
+
       get sekcjaFormatu() {
+        const plik = `${this.nazwaPliku}.json`;
+        const wydanie = this.plikJson
+          ? [
+              "## FORMAT ODPOWIEDZI — gotowy plik .json do pobrania",
+              "",
+              `- Wynikiem Twojej pracy jest PLIK \`${plik}\` gotowy do pobrania, a nie JSON wypisany`,
+              "  w treści rozmowy. Użytkownik wgra ten plik bezpośrednio do aplikacji.",
+              "- Jeżeli masz narzędzie do tworzenia plików (wykonywanie kodu, analiza danych, artefakty,",
+              `  canvas, zapis na dysk) — użyj go: zapisz pakiet jako \`${plik}\` i udostępnij plik do pobrania.`,
+              "- Tworząc plik kodem, zapisz go w UTF-8 ze znakami diakrytycznymi wprost (np. w Pythonie",
+              "  `json.dump(..., ensure_ascii=False, indent=2)`), a przed udostępnieniem wczytaj go ponownie,",
+              "  żeby potwierdzić poprawność składni.",
+              "- Plik zawiera WYŁĄCZNIE obiekt JSON: pierwszy znak to `{`, ostatni to `}`. Bez komentarzy",
+              "  i bez otoczki ```.",
+              "- Obok pliku napisz najwyżej jedno zdanie: nazwę pliku oraz liczbę fiszek i pytań.",
+              "  Nie przepisuj zawartości pliku do rozmowy.",
+              "- Tylko jeżeli naprawdę nie możesz tworzyć plików: odpowiedz WYŁĄCZNIE obiektem JSON",
+              "  w jednym bloku kodu ```json — bez zdania wstępu i bez podsumowania — tak, żeby całość",
+              `  dało się skopiować jednym kliknięciem i zapisać jako \`${plik}\`.`,
+            ]
+          : [
+              "## FORMAT ODPOWIEDZI",
+              "",
+              "- Odpowiedz WYŁĄCZNIE obiektem JSON. Bez zdania wstępu, bez podsumowania, bez komentarzy.",
+              "- Pierwszy znak odpowiedzi to `{`, ostatni to `}`.",
+            ];
         return [
-          "## FORMAT ODPOWIEDZI",
-          "",
-          "- Odpowiedz WYŁĄCZNIE obiektem JSON. Bez zdania wstępu, bez podsumowania, bez komentarzy.",
-          "- Pierwszy znak odpowiedzi to `{`, ostatni to `}`.",
+          ...wydanie,
           "- Kodowanie UTF-8, znaki diakrytyczne zapisane wprost (nie `\\u0105`).",
           "- Nie stosuj przecinków wiszących przed `}` ani `]`.",
           "- Jeżeli materiał jest zbyt obszerny, żeby zmieścić go w jednej odpowiedzi, przygotuj",
@@ -852,7 +890,9 @@
           "- [ ] Żaden wariant odpowiedzi nie zaczyna się od „A) ”, „B) ” i podobnych.",
           "- [ ] Nie ma pola `multiple` ani żadnego pola spoza specyfikacji.",
           "- [ ] Każdy fakt jest zgodny ze wskazanym źródłem wiedzy; nic nie zostało zmyślone.",
-          "- [ ] Odpowiedź nie zawiera nic poza obiektem JSON.",
+          this.plikJson
+            ? `- [ ] Pakiet jest udostępniony jako plik \`${plik}\` do pobrania (a gdy nie możesz tworzyć plików — jako jeden blok \`\`\`json bez innego tekstu).`
+            : "- [ ] Odpowiedź nie zawiera nic poza obiektem JSON.",
         ].join("\n");
       },
 
@@ -905,8 +945,12 @@
           "# ROLA",
           "",
           ...rola,
-          "Twoim zadaniem jest przygotowanie pakietu fiszek i pytań testowych w formacie JSON,",
-          "który zostanie zaimportowany do aplikacji MTQuiz.",
+          this.plikJson
+            ? "Twoim zadaniem jest przygotowanie pakietu fiszek i pytań testowych jako gotowego do pobrania"
+            : "Twoim zadaniem jest przygotowanie pakietu fiszek i pytań testowych w formacie JSON,",
+          this.plikJson
+            ? `pliku \`${this.nazwaPliku}.json\`, który zostanie zaimportowany do aplikacji MTQuiz.`
+            : "który zostanie zaimportowany do aplikacji MTQuiz.",
           "",
           "# ZADANIE",
           "",
@@ -948,15 +992,8 @@
       },
 
       pobierz() {
-        const nazwa = (this.temat.trim() || this.dziedzina.trim() || "prompt-mtquiz")
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[̀-ͯ]/g, "")
-          .replace(/ł/g, "l")
-          .replace(/[^a-z0-9]+/g, "-")
-          .replace(/^-+|-+$/g, "")
-          .slice(0, 60);
-        downloadText(`${nazwa || "prompt-mtquiz"}.txt`, this.promptTekst);
+        const nazwa = this.temat.trim() || this.dziedzina.trim() ? this.nazwaPliku : "prompt-mtquiz";
+        downloadText(`${nazwa}.txt`, this.promptTekst);
         toast("Plik z promptem został pobrany.", "success", 2400);
       },
     };

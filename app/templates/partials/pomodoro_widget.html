@@ -1,0 +1,93 @@
+{# Pływający minutnik Pomodoro: lewy dolny róg na komputerze, widoczny na każdej stronie, gdy seria trwa.
+   Na telefonie i tablecie zastępuje go pigułka w nagłówku (partials/nav.html). #}
+<div x-data="pomodoroWidget()" x-cloak x-show="widoczny"
+     x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0"
+     class="fixed bottom-4 left-4 z-[45] hidden lg:block" role="region" aria-label="Minutnik Pomodoro">
+
+  {# Zwinięty: pigułka z czasem #}
+  <div x-show="p.zwiniety" class="flex items-center gap-1 rounded-full border border-ink-200 bg-white/95 p-1 pr-1.5 shadow-float backdrop-blur dark:border-ink-700 dark:bg-ink-900/95">
+    <button type="button" class="flex items-center gap-2 rounded-full py-1 pl-1.5 pr-2 text-sm font-semibold tabular-nums text-ink-900 hover:bg-ink-100 dark:text-white dark:hover:bg-ink-800"
+            @click="p.zwin(false)" :aria-label="`Rozwiń minutnik: ${p.nazwaFazy}, ${p.zegar}`">
+      <svg class="h-6 w-6 -rotate-90" viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="9" fill="none" stroke-width="3" class="stroke-ink-200 dark:stroke-ink-700"/>
+        <circle cx="12" cy="12" r="9" fill="none" stroke-width="3" stroke-linecap="round" :class="kolor.obrys"
+                :stroke-dasharray="56.55" :stroke-dashoffset="56.55 * (1 - p.postep)"/>
+      </svg>
+      <span x-text="p.stan.status === 'finished' ? '✓' : p.zegar"></span>
+    </button>
+    <button type="button" class="grid h-8 w-8 place-items-center rounded-full text-ink-500 hover:bg-ink-100 hover:text-ink-900 dark:text-ink-400 dark:hover:bg-ink-800 dark:hover:text-white"
+            x-show="['running', 'paused', 'ready'].includes(p.stan.status)" @click="p.przelacz()"
+            :aria-label="p.stan.status === 'running' ? 'Pauza' : 'Start'">
+      <svg x-show="p.stan.status === 'running'" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+      <svg x-show="p.stan.status !== 'running'" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z"/></svg>
+    </button>
+  </div>
+
+  {# Rozwinięty: karta z czasem, postępem i sterowaniem #}
+  <div x-show="!p.zwiniety" class="w-72 overflow-hidden rounded-2xl border border-ink-200 bg-white/95 shadow-float backdrop-blur dark:border-ink-700 dark:bg-ink-900/95">
+    <div class="h-1 bg-ink-100 dark:bg-ink-800">
+      <div class="h-full transition-[width] duration-500 ease-linear" :class="kolor.tlo" :style="`width: ${p.postep * 100}%`"></div>
+    </div>
+    <div class="p-4">
+      <div class="flex items-center justify-between gap-2">
+        <a href="/pomodoro" class="flex min-w-0 items-center gap-2 text-xs font-semibold uppercase tracking-wide hover:underline" :class="kolor.tekst">
+          <span class="h-2 w-2 shrink-0 rounded-full" :class="[kolor.tlo, p.stan.status === 'running' && 'animate-pulse']"></span>
+          <span class="truncate" x-text="p.stan.status === 'paused' ? `${p.nazwaFazy} · pauza` : p.nazwaFazy"></span>
+        </a>
+        <div class="flex shrink-0 items-center gap-0.5">
+          <span class="mr-1 text-xs tabular-nums text-ink-500 dark:text-ink-400" x-show="p.stan.status !== 'finished'" x-text="`${p.runda}/${p.rundy}`"></span>
+          <button type="button" class="grid h-7 w-7 place-items-center rounded-lg text-ink-400 hover:bg-ink-100 hover:text-ink-800 dark:hover:bg-ink-800 dark:hover:text-ink-100"
+                  @click="p.zwin(true)" aria-label="Zwiń minutnik">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <template x-if="p.stan.status !== 'finished'">
+        <div>
+          <p class="mt-1 text-4xl font-semibold tracking-tight text-ink-900 dark:text-white" style="font-variant-numeric: tabular-nums" x-text="p.zegar"></p>
+          <p class="mt-0.5 truncate text-xs text-ink-500 dark:text-ink-400" x-show="p.stan.label" x-text="p.stan.label"></p>
+          <p class="mt-0.5 text-xs text-ink-500 dark:text-ink-400" x-show="p.stan.status === 'ready'">Faza czeka na Twój start.</p>
+        </div>
+      </template>
+      <template x-if="p.stan.status === 'finished'">
+        <div class="mt-2">
+          <p class="text-lg font-semibold text-ink-900 dark:text-white">Seria ukończona 🎉</p>
+          <p class="text-xs text-ink-500 dark:text-ink-400" x-text="`${p.rundy} × skupienie zapisane w statystykach.`"></p>
+        </div>
+      </template>
+
+      <div class="mt-3 flex items-center gap-1.5">
+        <template x-if="p.stan.status !== 'finished'">
+          <button type="button" class="btn-primary btn-sm flex-1" @click="p.przelacz()"
+                  x-text="p.stan.status === 'running' ? 'Pauza' : p.stan.status === 'paused' ? 'Wznów' : 'Zacznij'"></button>
+        </template>
+        <template x-if="p.stan.status === 'finished'">
+          <a href="/pomodoro" class="btn-primary btn-sm flex-1">Statystyki</a>
+        </template>
+        <button type="button" class="btn-secondary btn-sm !px-2.5" x-show="p.stan.status !== 'finished'" @click="p.wydluz(5)" title="Dodaj 5 minut do tej fazy">+5</button>
+        <button type="button" class="btn-secondary btn-sm !px-2.5" x-show="p.stan.status !== 'finished'" @click="p.pomin()" title="Pomiń tę fazę" aria-label="Pomiń fazę">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 6.2v11.6a1 1 0 0 0 1.55.83L15 13v4.8a1 1 0 0 0 2 0V6.2a1 1 0 0 0-2 0V11L6.55 5.37A1 1 0 0 0 5 6.2Z"/></svg>
+        </button>
+        <button type="button" class="btn-secondary btn-sm !px-2.5" @click="p.stan.status === 'finished' ? p.zamknij() : p.stop()"
+                :title="p.stan.status === 'finished' ? 'Zamknij' : 'Zakończ serię'" :aria-label="p.stan.status === 'finished' ? 'Zamknij' : 'Zakończ serię'">
+          <svg x-show="p.stan.status !== 'finished'" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+          <svg x-show="p.stan.status === 'finished'" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+
+      <template x-if="p.dzwieki.dostepne">
+        <button type="button" class="mt-2 flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-left text-xs transition-colors hover:bg-ink-100 dark:hover:bg-ink-800"
+                :class="p.dzwieki.czekaNaGest ? 'bg-amber-50 text-amber-900 dark:bg-amber-950/60 dark:text-amber-100' : 'text-ink-600 dark:text-ink-300'"
+                @click="p.dzwieki.przelacz()">
+          <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <path d="M4 9.5v5h3.5L12 18.5v-13L7.5 9.5Z" stroke-linejoin="round"/>
+            <path x-show="p.dzwieki.gra" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" stroke-linecap="round"/>
+            <path x-show="!p.dzwieki.gra" d="m16 10 4 4m0-4-4 4" stroke-linecap="round"/>
+          </svg>
+          <span class="min-w-0 flex-1 truncate" x-text="p.dzwieki.czekaNaGest ? 'Kliknij, aby wznowić dźwięk tła' : (p.dzwieki.gra ? p.dzwieki.opis : 'Dźwięki tła wyłączone')"></span>
+        </button>
+      </template>
+    </div>
+  </div>
+</div>

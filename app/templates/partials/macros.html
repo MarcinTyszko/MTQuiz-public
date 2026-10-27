@@ -71,3 +71,21 @@
   {% if action_href %}<a href="{{ action_href }}" class="btn-primary mt-2">{{ action_label }}</a>{% endif %}
 </div>
 {% endmacro %}
+
+
+{% macro activity_row(item, title, show_time=false) %}
+<a href="/zestawy/{{ item.set_id }}" class="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-3 text-sm transition-colors hover:bg-ink-50 dark:hover:bg-ink-800/60">
+  <span class="{{ 'badge-brand' if item.mode.value == 'quiz' else 'badge-neutral' }} shrink-0">{{ 'Quiz' if item.mode.value == 'quiz' else 'Fiszki' }}</span>
+  <span class="min-w-0 flex-1 truncate font-medium text-ink-800 dark:text-ink-100">{{ title or 'Zestaw usunięty' }}</span>
+  {% if item.total %}
+  <span class="tabular-nums {% if item.accuracy >= 75 %}text-emerald-600 dark:text-emerald-400{% elif item.accuracy >= 50 %}text-amber-600 dark:text-amber-400{% else %}text-rose-600 dark:text-rose-400{% endif %}">
+    {{ item.score }}/{{ item.total }} · {{ item.accuracy }}%
+  </span>
+  {% endif %}
+  {% if show_time %}
+  <span class="text-xs tabular-nums text-ink-500 dark:text-ink-400">{{ item.created_at | local_time }}{% if item.duration_seconds %} · {{ item.duration_seconds | duration }}{% endif %}</span>
+  {% else %}
+  <span class="text-xs text-ink-500 dark:text-ink-400">{{ item.created_at | relative }}</span>
+  {% endif %}
+</a>
+{% endmacro %}

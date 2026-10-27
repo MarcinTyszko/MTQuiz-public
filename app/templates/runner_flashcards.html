@@ -7,7 +7,7 @@
 {% block content %}
 <script type="application/json" id="dane-zestawu">{{ study_set | tojson_safe }}</script>
 
-<div x-data="flashcardRunner()" x-init="init()" x-cloak class="flex flex-1 flex-col">
+<div x-data="flashcardRunner()" x-cloak class="flex flex-1 flex-col">
 
   <!-- Nagłówek -->
   <div class="flex flex-wrap items-center justify-between gap-3">

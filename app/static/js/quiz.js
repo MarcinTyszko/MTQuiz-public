@@ -1,7 +1,8 @@
 /** Silnik quizu: tryb nauki i egzaminu, limit czasu, punktacja i omówienie. */
 (function () {
   "use strict";
-  const { toast, shuffle, formatDuration, readJsonScript, confirmDialog, createSessionTracker } = window.MTQuiz;
+  const { toast, shuffle, formatDuration, readJsonScript, confirmDialog, createSessionTracker, isTypingTarget } =
+    window.MTQuiz;
 
   function quizRunner() {
     return {
@@ -43,6 +44,34 @@
         document.addEventListener("visibilitychange", () => {
           if (document.visibilityState === "hidden") flush();
         });
+        document.addEventListener("keydown", (event) => this.onKeydown(event));
+      },
+
+      /** Skróty: 1–9 albo A–J wybiera wariant, Enter sprawdza i przechodzi dalej. */
+      onKeydown(event) {
+        if (this.stage !== "run" || event.defaultPrevented || event.repeat) return;
+        if (event.ctrlKey || event.metaKey || event.altKey) return;
+        if (isTypingTarget(event.target) || document.querySelector('[role="dialog"][aria-modal="true"]')) return;
+        const question = this.currentQuestion;
+        if (!question) return;
+
+        if (event.key === "Enter") {
+          // Enter na innym przycisku (np. „Zakończ teraz”) zachowuje swoje działanie.
+          const target = event.target;
+          if (target && target !== document.body && !target.closest("[data-quiz-option]")) return;
+          event.preventDefault();
+          if (this.canAdvance) this.advance();
+          return;
+        }
+
+        const key = event.key.toUpperCase();
+        let position = -1;
+        if (/^[1-9]$/.test(key)) position = Number(key) - 1;
+        else if (/^[A-J]$/.test(key)) position = key.charCodeAt(0) - 65;
+        const option = question.options[position];
+        if (!option) return;
+        event.preventDefault();
+        this.choose(option);
       },
 
       /** Liczba pytań, na które padła odpowiedź w bieżącym podejściu. */

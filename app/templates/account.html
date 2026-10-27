@@ -30,6 +30,31 @@
   </div>
 </section>
 
+{% set przelaczniki = [
+  ('pomodoro_enabled', 'Pomodoro', 'Zakładka Pomodoro w menu: minutnik serii, statystyki i odznaki.'),
+  ('pomodoro_widget', 'Pływający minutnik', 'Trwająca seria widoczna na każdej stronie — w lewym dolnym rogu na komputerze, w nagłówku na telefonie.'),
+  ('ambient_sounds', 'Dźwięki tła', 'Szum biały, różowy i brązowy oraz tony i rytmy binauralne o regulowanej częstotliwości — w Pomodoro i w pływającym minutniku.'),
+] %}
+<section class="mt-8" id="pomodoro">
+  <h2 class="section-title">Pomodoro i skupienie</h2>
+  <div class="card mt-3 divide-y divide-ink-100 dark:divide-ink-800" x-data="ustawieniaPomodoro({{ preferences | tojson_attr }})">
+    {% for klucz, nazwa, opis in przelaczniki %}
+    <div class="flex items-center justify-between gap-4 p-5" {% if klucz != 'pomodoro_enabled' %}x-show="prefs.pomodoro_enabled"{% endif %}>
+      <div>
+        <p class="font-medium text-ink-900 dark:text-white" id="opcja-{{ klucz }}">{{ nazwa }}</p>
+        <p class="text-sm text-ink-600 dark:text-ink-300">{{ opis }}</p>
+      </div>
+      <button type="button" role="switch" :aria-checked="prefs.{{ klucz }}" aria-labelledby="opcja-{{ klucz }}"
+              class="relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-ink-900"
+              :class="prefs.{{ klucz }} ? 'bg-brand-600' : 'bg-ink-300 dark:bg-ink-700'"
+              @click="przelacz('{{ klucz }}')" :disabled="zapisywanie">
+        <span class="inline-block h-5 w-5 rounded-full bg-white shadow transition-transform" :class="prefs.{{ klucz }} ? 'translate-x-6' : 'translate-x-1'"></span>
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
 <section class="mt-8">
   <h2 class="section-title">Wygląd</h2>
   <div class="card mt-3 flex items-center justify-between gap-4 p-5">

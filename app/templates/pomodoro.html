@@ -1,0 +1,518 @@
+{% extends "base.html" %}
+{% block title %}Pomodoro — {{ app_name }}{% endblock %}
+
+{% block content %}
+{% set ikony_odznak = {
+  'pierwszy': 'M12 4c-4 0-7 3-7 7.5S8.5 20 12 20s7-4 7-8.5S16 4 12 4Zm0 0c0-1 .5-2 2-2.5M9 4.5 12 6l3-1.5',
+  'rozgrzewka': 'M12 3c1 3 4 4.5 4 8.5a4 4 0 0 1-8 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 0-7.5Z',
+  'maraton': 'M5 20 9.5 7l3 6 2.5-4L19 20M3 20h18',
+  'cel': 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-4a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0-4a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z',
+  'cel-10': 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm-3-9 2 2 4-4',
+  'seria-3': 'M4 17l4-4 4 4 8-8M14 9h6v6',
+  'seria-7': 'M4 6h16M4 12h16M4 18h10',
+  'seria-30': 'M5 5h14v14H5zM5 9h14M9 5V3m6 2V3',
+  'glebia': 'M3 12c3-6 6-6 9 0s6 6 9 0M3 18c3-6 6-6 9 0s6 6 9 0',
+  'ranny': 'M12 4v2m6.4.6-1.4 1.4M20 12h-2M6 12H4m3-5L5.6 5.6M7 17a5 5 0 0 1 10 0M3 17h18',
+  'nocny': 'M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z',
+  '10h': 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Zm0-13v4l3 2',
+  'setka': 'M6 3h12v4a6 6 0 0 1-12 0V3Zm6 10v4m-4 4h8M6 5H3v1a3 3 0 0 0 3 3m12-4h3v1a3 3 0 0 1-3 3',
+  '100h': 'm12 3 2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.4l-5.2 2.7 1-5.8L3.5 9.2l5.9-.9Z'
+} %}
+
+<div x-data="pomodoroPage()" x-cloak>
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-ink-900 dark:text-white">Pomodoro</h1>
+      <p class="mt-1 text-sm text-ink-600 dark:text-ink-300">Bloki skupienia z przerwami. Minutnik działa dalej, gdy przejdziesz do fiszek czy quizu.</p>
+    </div>
+    <div class="flex flex-wrap gap-2 text-xs" x-show="podsumowanie">
+      <span class="badge-neutral" title="Dni z rzędu z co najmniej jednym ukończonym pomidorem">
+        🔥 <span class="tabular-nums" x-text="podsumowanie ? podsumowanie.streak.current : 0"></span> dni z rzędu
+      </span>
+      <span class="badge-brand" x-text="podsumowanie ? `Poziom ${podsumowanie.level.number} · ${podsumowanie.level.name}` : ''"></span>
+    </div>
+  </div>
+
+  <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
+
+    <!-- Minutnik ---------------------------------------------------------- -->
+    <section class="card overflow-hidden" aria-labelledby="minutnik-naglowek">
+      <h2 id="minutnik-naglowek" class="sr-only">Minutnik</h2>
+      <div class="flex justify-center gap-1 border-b border-ink-100 p-2 text-xs font-medium dark:border-ink-800" aria-hidden="true">
+        <template x-for="faza in [['focus', 'Skupienie'], ['short_break', 'Przerwa'], ['long_break', 'Długa przerwa']]" :key="faza[0]">
+          <span class="rounded-lg px-3 py-1.5 transition-colors"
+                :class="p.aktywny && p.stan.status !== 'finished' && p.typFazy === faza[0] ? [kolor.jasne, kolor.tekst] : 'text-ink-400 dark:text-ink-500'"
+                x-text="faza[1]"></span>
+        </template>
+      </div>
+
+      <div class="flex flex-col items-center px-5 pb-6 pt-6 sm:px-8 sm:pb-8">
+        <div class="relative h-64 w-64 sm:h-72 sm:w-72">
+          <svg class="h-full w-full -rotate-90" viewBox="0 0 100 100" aria-hidden="true">
+            <circle cx="50" cy="50" r="46" fill="none" stroke-width="3.5" class="stroke-ink-100 dark:stroke-ink-800"/>
+            <circle cx="50" cy="50" r="46" fill="none" stroke-width="3.5" stroke-linecap="round"
+                    class="transition-[stroke-dashoffset] duration-500 ease-linear" :class="kolor.obrys"
+                    :stroke-dasharray="obwod" :stroke-dashoffset="obwod * (1 - p.postep)"/>
+          </svg>
+          <div class="absolute inset-0 flex flex-col items-center justify-center text-center" role="timer" aria-live="off">
+            <p class="text-xs font-semibold uppercase tracking-wider" :class="kolor.tekst"
+               x-text="p.stan.status === 'paused' ? 'Pauza' : (p.aktywny ? p.nazwaFazy : 'Gotowy do startu')"></p>
+            <p class="mt-1 text-6xl font-semibold tracking-tight text-ink-900 sm:text-7xl dark:text-white" style="font-variant-numeric: tabular-nums"
+               x-text="p.stan.status === 'finished' ? '🎉' : p.zegar"></p>
+            <p class="mt-2 text-sm text-ink-500 dark:text-ink-400"
+               x-text="p.stan.status === 'finished' ? 'Seria ukończona' : (p.aktywny ? `Runda ${p.runda} z ${p.rundy}` : opisSerii.split(' · ')[0])"></p>
+          </div>
+        </div>
+
+        <div class="mt-4 flex items-center gap-2" aria-label="Postęp rund">
+          <template x-for="(kropka, numer) in p.kropki" :key="numer">
+            <span class="h-2.5 rounded-full transition-all duration-300"
+                  :class="kropka === 'done' ? ['w-2.5', kolor.tlo] : kropka === 'current' ? ['w-6', kolor.tlo] : 'w-2.5 bg-ink-200 dark:bg-ink-700'"
+                  :title="`Runda ${numer + 1}`"></span>
+          </template>
+        </div>
+
+        <div class="mt-5 w-full max-w-sm">
+          <label for="etykieta" class="sr-only">Nad czym pracujesz?</label>
+          <input id="etykieta" class="input text-center" maxlength="120" placeholder="Nad czym pracujesz? (opcjonalnie)"
+                 x-model="etykieta" x-show="!p.aktywny || p.stan.status === 'finished'" @keydown.enter.prevent="glowny()">
+          <p class="truncate text-center text-sm font-medium text-ink-700 dark:text-ink-200"
+             x-show="p.aktywny && p.stan.status !== 'finished' && p.stan.label" x-text="p.stan.label"></p>
+        </div>
+
+        <div class="mt-5 flex w-full max-w-md flex-wrap items-center justify-center gap-2">
+          <button type="button" class="btn-primary min-w-[10rem] flex-1 py-3 text-base sm:flex-none" @click="glowny()" x-text="etykietaGlownego"></button>
+          <template x-if="['running', 'paused', 'ready'].includes(p.stan.status)">
+            <div class="flex gap-2">
+              <button type="button" class="btn-secondary py-3" @click="p.wydluz(5)" title="Dodaj 5 minut do bieżącej fazy">+5 min</button>
+              <button type="button" class="btn-secondary py-3" @click="p.pomin()" title="Zakończ fazę i przejdź do następnej">Pomiń</button>
+              <button type="button" class="btn-ghost py-3 text-rose-600 dark:text-rose-400" @click="p.stop()" title="Przerwij serię">Stop</button>
+            </div>
+          </template>
+          <template x-if="p.stan.status === 'finished'">
+            <button type="button" class="btn-ghost py-3" @click="p.zamknij()">Zamknij</button>
+          </template>
+        </div>
+        <p class="mt-3 hidden text-xs text-ink-400 sm:block">Spacja — start, pauza i wznowienie</p>
+        <p class="mt-1 text-xs text-ink-400" x-show="p.nastepna && p.stan.status !== 'finished'"
+           x-text="p.nastepna ? `Dalej: ${p.nastepna.type === 'focus' ? 'skupienie' : p.nastepna.type === 'long_break' ? 'długa przerwa' : 'przerwa'} ${Math.round(p.nastepna.seconds / 60)} min` : ''"></p>
+      </div>
+    </section>
+
+    <!-- Panel boczny: ustawienia, powiadomienia, dźwięki --------------------- -->
+    <aside class="space-y-6 lg:row-span-5">
+      <section class="card p-5" aria-labelledby="ustawienia-naglowek">
+        <h2 id="ustawienia-naglowek" class="section-title">Seria</h2>
+        <p class="hint" x-text="opisSerii"></p>
+
+        <div class="mt-4 flex flex-wrap gap-1.5">
+          <template x-for="preset in presety" :key="preset.nazwa">
+            <button type="button" class="rounded-lg border px-2.5 py-1.5 text-left text-xs transition-colors"
+                    :class="presetAktywny(preset) ? 'border-brand-500 bg-brand-50 text-brand-800 dark:bg-brand-950/50 dark:text-brand-200' : 'border-ink-200 text-ink-700 hover:border-brand-300 hover:bg-ink-50 dark:border-ink-700 dark:text-ink-200 dark:hover:bg-ink-800'"
+                    @click="wybierzPreset(preset)">
+              <span class="block font-semibold" x-text="preset.nazwa"></span>
+              <span class="block tabular-nums text-ink-500 dark:text-ink-400" x-text="`${preset.focus_minutes}/${preset.short_break_minutes} × ${preset.rounds}`"></span>
+            </button>
+          </template>
+        </div>
+
+        <div class="mt-4 grid grid-cols-2 gap-3">
+          <div>
+            <label class="label" for="pom-skupienie">Skupienie (min)</label>
+            <input id="pom-skupienie" type="number" min="1" max="180" inputmode="numeric" class="input" x-model.number="ustawienia.focus_minutes" @change="zapiszUstawienia()">
+          </div>
+          <div>
+            <label class="label" for="pom-przerwa">Przerwa (min)</label>
+            <input id="pom-przerwa" type="number" min="1" max="60" inputmode="numeric" class="input" x-model.number="ustawienia.short_break_minutes" @change="zapiszUstawienia()">
+          </div>
+          <div>
+            <label class="label" for="pom-rundy">Rundy</label>
+            <input id="pom-rundy" type="number" min="1" max="12" inputmode="numeric" class="input" x-model.number="ustawienia.rounds" @change="zapiszUstawienia()">
+          </div>
+          <div>
+            <label class="label" for="pom-dluga">Długa przerwa</label>
+            <input id="pom-dluga" type="number" min="0" max="90" inputmode="numeric" class="input" x-model.number="ustawienia.long_break_minutes" @change="zapiszUstawienia()">
+          </div>
+        </div>
+        <p class="hint">Długa przerwa kończy serię; 0 — bez długiej przerwy.</p>
+
+        <div class="mt-4 space-y-2.5">
+          <label class="flex cursor-pointer items-start gap-2 text-sm text-ink-700 dark:text-ink-300">
+            <input type="checkbox" class="mt-0.5 h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500" x-model="ustawienia.auto_start_breaks" @change="zapiszUstawienia()">
+            <span>Przerwy startują same</span>
+          </label>
+          <label class="flex cursor-pointer items-start gap-2 text-sm text-ink-700 dark:text-ink-300">
+            <input type="checkbox" class="mt-0.5 h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500" x-model="ustawienia.auto_start_focus" @change="zapiszUstawienia()">
+            <span>Kolejne rundy startują same</span>
+          </label>
+          <label class="flex cursor-pointer items-start gap-2 text-sm text-ink-700 dark:text-ink-300">
+            <input type="checkbox" class="mt-0.5 h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500" x-model="ustawienia.sound" @change="zapiszUstawienia()">
+            <span>Sygnał dźwiękowy na koniec fazy</span>
+          </label>
+        </div>
+
+        <div class="mt-4">
+          <label class="label" for="pom-cel">Dzienny cel (pomidory)</label>
+          <input id="pom-cel" type="number" min="1" max="24" inputmode="numeric" class="input w-28" x-model.number="ustawienia.daily_goal" @change="zapiszUstawienia()">
+        </div>
+      </section>
+
+      <section class="card p-5" aria-labelledby="powiadomienia-naglowek">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h2 id="powiadomienia-naglowek" class="section-title">Powiadomienia</h2>
+            <p class="hint" x-show="p.powiadomienia.subskrypcja">Push włączony — dotrze też przy zamkniętej karcie i zablokowanym telefonie.</p>
+            <p class="hint" x-show="!p.powiadomienia.subskrypcja && p.powiadomienia.aktywne">Powiadomienia z otwartej karty.</p>
+            <p class="hint" x-show="!p.powiadomienia.aktywne && p.powiadomienia.zgoda !== 'denied' && ['push', 'lokalne'].includes(p.powiadomienia.wsparcie)">Daj znać o końcu skupienia i przerwy, nawet gdy pracujesz w innym oknie.</p>
+          </div>
+          <span class="mt-1 h-2.5 w-2.5 shrink-0 rounded-full" :class="p.powiadomienia.aktywne ? 'bg-emerald-500' : 'bg-ink-300 dark:bg-ink-600'" aria-hidden="true"></span>
+        </div>
+
+        <div class="mt-3 rounded-xl bg-amber-50 px-3 py-2.5 text-xs text-amber-900 dark:bg-amber-950/60 dark:text-amber-100" x-show="p.powiadomienia.wsparcie === 'ios-instalacja'">
+          <p class="font-semibold">iPhone: dodaj MTQuiz do ekranu początkowego</p>
+          <ol class="mt-1 list-decimal space-y-0.5 pl-4">
+            <li>W Safari stuknij <span class="font-medium">Udostępnij</span> (kwadrat ze strzałką).</li>
+            <li>Wybierz <span class="font-medium">Do ekranu początkowego</span>.</li>
+            <li>Otwórz MTQuiz z ikony i włącz tu powiadomienia.</li>
+          </ol>
+          <p class="mt-1">Tak działają powiadomienia stron w iOS 16.4 i nowszym.</p>
+        </div>
+        <p class="mt-3 rounded-xl bg-amber-50 px-3 py-2.5 text-xs text-amber-900 dark:bg-amber-950/60 dark:text-amber-100" x-show="p.powiadomienia.wsparcie === 'https'">
+          Powiadomienia wymagają połączenia HTTPS. Do tego czasu minutnik da znać dźwiękiem i komunikatem na stronie.
+        </p>
+        <p class="mt-3 rounded-xl bg-rose-50 px-3 py-2.5 text-xs text-rose-900 dark:bg-rose-950/60 dark:text-rose-100" x-show="p.powiadomienia.zgoda === 'denied'">
+          Powiadomienia są zablokowane w ustawieniach przeglądarki dla tej strony — odblokuj je przy pasku adresu.
+        </p>
+
+        <div class="mt-3 flex flex-wrap gap-2" x-show="['push', 'lokalne'].includes(p.powiadomienia.wsparcie) && p.powiadomienia.zgoda !== 'denied'">
+          <button type="button" class="btn-primary btn-sm" x-show="!p.powiadomienia.aktywne || (p.powiadomienia.wsparcie === 'push' && !p.powiadomienia.subskrypcja)"
+                  @click="p.powiadomienia.wlacz()" :disabled="p.powiadomienia.pracuje">Włącz powiadomienia</button>
+          <button type="button" class="btn-secondary btn-sm" x-show="p.powiadomienia.aktywne" @click="p.powiadomienia.testuj()">Wyślij próbne</button>
+          <button type="button" class="btn-ghost btn-sm" x-show="p.powiadomienia.subskrypcja" @click="p.powiadomienia.wylacz()" :disabled="p.powiadomienia.pracuje">Wyłącz na tym urządzeniu</button>
+        </div>
+      </section>
+
+      <template x-if="p.dzwieki.dostepne">
+        <section class="card p-5" aria-labelledby="dzwieki-naglowek" x-data="{ szczegoly: false }">
+          <div class="flex items-center justify-between gap-3">
+            <div class="min-w-0">
+              <h2 id="dzwieki-naglowek" class="section-title">Dźwięki tła</h2>
+              <p class="hint truncate" x-text="p.dzwieki.gra ? `Gra: ${p.dzwieki.opis}` : p.dzwieki.opis"></p>
+            </div>
+            <button type="button" class="grid h-11 w-11 shrink-0 place-items-center rounded-full transition-colors"
+                    :class="p.dzwieki.gra ? 'bg-brand-600 text-white hover:bg-brand-700' : 'bg-ink-100 text-ink-700 hover:bg-ink-200 dark:bg-ink-800 dark:text-ink-200 dark:hover:bg-ink-700'"
+                    @click="p.dzwieki.przelacz()" :aria-label="p.dzwieki.gra ? 'Zatrzymaj dźwięk' : 'Odtwórz dźwięk'">
+              <svg x-show="p.dzwieki.gra" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+              <svg x-show="!p.dzwieki.gra" class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z"/></svg>
+            </button>
+          </div>
+
+          <div class="mt-4 grid grid-cols-2 gap-1.5">
+            <template x-for="preset in presetyDzwiekow" :key="preset.nazwa">
+              <button type="button" class="rounded-lg border border-ink-200 px-2.5 py-1.5 text-left text-xs text-ink-700 transition-colors hover:border-brand-300 hover:bg-ink-50 dark:border-ink-700 dark:text-ink-200 dark:hover:bg-ink-800"
+                      @click="p.dzwieki.ustawPreset(preset.cfg)">
+                <span class="block font-semibold" x-text="preset.nazwa"></span>
+                <span class="block text-ink-500 dark:text-ink-400" x-text="preset.opis"></span>
+              </button>
+            </template>
+          </div>
+
+          <button type="button" class="mt-3 flex w-full items-center justify-between text-xs font-medium text-ink-600 hover:text-ink-900 dark:text-ink-300 dark:hover:text-white"
+                  @click="szczegoly = !szczegoly" :aria-expanded="szczegoly">
+            Ustawienia szczegółowe
+            <svg class="h-3.5 w-3.5 transition-transform" :class="szczegoly && 'rotate-180'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="m6 9 6 6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+
+          <div x-show="szczegoly" x-cloak class="mt-3 space-y-4 text-sm">
+            <div>
+              <label class="label" for="szum-rodzaj">Szum</label>
+              <select id="szum-rodzaj" class="input" x-model="p.dzwieki.cfg.szum" @change="p.dzwieki.zmien()">
+                <option value="brak">Bez szumu</option>
+                <option value="white">Biały — jasny, maskuje rozmowy</option>
+                <option value="pink">Różowy — łagodniejszy, jak wodospad</option>
+                <option value="brown">Brązowy — głęboki, jak deszcz</option>
+              </select>
+              <label class="mt-2 flex items-center gap-3 text-xs text-ink-500 dark:text-ink-400" x-show="p.dzwieki.cfg.szum !== 'brak'">
+                Głośność
+                <input type="range" min="0" max="1" step="0.05" class="flex-1 accent-brand-600" x-model.number="p.dzwieki.cfg.glosnoscSzumu" @change="p.dzwieki.zmien()">
+              </label>
+            </div>
+
+            <div>
+              <label class="label" for="ton-rodzaj">Częstotliwość</label>
+              <select id="ton-rodzaj" class="input" x-model="p.dzwieki.cfg.ton" @change="p.dzwieki.zmien()">
+                <option value="brak">Bez tonu</option>
+                <option value="ton">Czysty ton</option>
+                <option value="binauralny">Rytm binauralny (słuchawki)</option>
+                <option value="izochroniczny">Rytm izochroniczny (głośniki)</option>
+              </select>
+              <div class="mt-3 space-y-3" x-show="p.dzwieki.cfg.ton !== 'brak'">
+                <label class="block text-xs text-ink-500 dark:text-ink-400">
+                  <span class="flex justify-between"><span>Ton nośny</span><span class="font-semibold tabular-nums text-ink-800 dark:text-ink-100" x-text="`${p.dzwieki.cfg.czestotliwosc} Hz`"></span></span>
+                  <input type="range" min="40" max="1000" step="1" class="mt-1 w-full accent-brand-600" x-model.number="p.dzwieki.cfg.czestotliwosc" @change="p.dzwieki.zmien()">
+                </label>
+                <label class="block text-xs text-ink-500 dark:text-ink-400" x-show="p.dzwieki.cfg.ton !== 'ton'">
+                  <span class="flex justify-between"><span>Rytm (różnica)</span><span class="font-semibold tabular-nums text-ink-800 dark:text-ink-100" x-text="`${p.dzwieki.faktycznaRoznica} Hz`"></span></span>
+                  <input type="range" min="0.5" max="40" step="0.5" class="mt-1 w-full accent-brand-600" x-model.number="p.dzwieki.cfg.roznica" @change="p.dzwieki.zmien()">
+                  <span class="mt-1 flex justify-between text-[10px] uppercase tracking-wide text-ink-400"><span>δ sen</span><span>θ</span><span>α relaks</span><span>β skupienie</span><span>γ</span></span>
+                </label>
+                <label class="flex items-center gap-3 text-xs text-ink-500 dark:text-ink-400">
+                  Głośność
+                  <input type="range" min="0" max="1" step="0.05" class="flex-1 accent-brand-600" x-model.number="p.dzwieki.cfg.glosnoscTonu" @change="p.dzwieki.zmien()">
+                </label>
+              </div>
+            </div>
+
+            <label class="flex cursor-pointer items-start gap-2 text-sm text-ink-700 dark:text-ink-300">
+              <input type="checkbox" class="mt-0.5 h-4 w-4 rounded border-ink-300 text-brand-600 focus:ring-brand-500" x-model="p.dzwieki.cfg.autoSkupienie" @change="p.dzwieki.zapiszCfg()">
+              <span>Graj automatycznie w czasie skupienia, milknij w przerwach</span>
+            </label>
+            <p class="text-xs text-ink-500 dark:text-ink-400">
+              Dźwięk gra dalej po zablokowaniu telefonu. Po przejściu na inną stronę wznawia się sam albo po pierwszym kliknięciu —
+              przeglądarki nie pozwalają stronie zacząć grać bez Twojego gestu.
+            </p>
+          </div>
+        </section>
+      </template>
+      <template x-if="!p.dzwieki.dostepne">
+        <p class="px-1 text-xs text-ink-500 dark:text-ink-400">
+          Szum i częstotliwości do skupienia włączysz w <a href="/konto#pomodoro" class="link">Moje konto</a>.
+        </p>
+      </template>
+    </aside>
+
+    <!-- Dziś: cel, seria, poziom ------------------------------------------- -->
+    <section class="grid grid-cols-1 gap-4 sm:grid-cols-3" aria-label="Dzisiejszy postęp" x-show="podsumowanie">
+      <div class="card flex items-center gap-4 p-4">
+        <svg class="h-14 w-14 shrink-0 -rotate-90" viewBox="0 0 50 50" aria-hidden="true">
+          <circle cx="25" cy="25" r="22" fill="none" stroke-width="5" class="stroke-brand-100 dark:stroke-brand-950"/>
+          <circle cx="25" cy="25" r="22" fill="none" stroke-width="5" stroke-linecap="round"
+                  :class="podsumowanie && podsumowanie.today.goal_reached ? 'stroke-emerald-500' : 'stroke-brand-600 dark:stroke-brand-400'"
+                  class="transition-[stroke-dashoffset] duration-700" :stroke-dasharray="obwodCelu" :stroke-dashoffset="obwodCelu * (1 - celProcent)"/>
+        </svg>
+        <div class="min-w-0">
+          <p class="text-xs font-medium uppercase tracking-wide text-ink-500 dark:text-ink-400">Cel dnia</p>
+          <p class="text-2xl font-semibold text-ink-900 dark:text-white">
+            <span x-text="podsumowanie ? podsumowanie.today.pomodoros : 0"></span><span class="text-base font-normal text-ink-400"> / <span x-text="podsumowanie ? podsumowanie.today.goal : 0"></span></span>
+          </p>
+          <p class="truncate text-xs text-ink-500 dark:text-ink-400"
+             x-text="podsumowanie ? (podsumowanie.today.goal_reached ? 'Cel osiągnięty 🎯' : `${czas(podsumowanie.today.focus_seconds)} skupienia dziś`) : ''"></p>
+        </div>
+      </div>
+
+      <div class="card p-4">
+        <p class="text-xs font-medium uppercase tracking-wide text-ink-500 dark:text-ink-400">Seria dni</p>
+        <p class="text-2xl font-semibold text-ink-900 dark:text-white">
+          <span x-text="podsumowanie ? podsumowanie.streak.current : 0"></span>
+          <span class="text-base font-normal text-ink-400">🔥</span>
+        </p>
+        <p class="text-xs text-ink-500 dark:text-ink-400" x-text="podsumowanie ? `Rekord: ${podsumowanie.streak.longest} ${podsumowanie.streak.longest === 1 ? 'dzień' : 'dni'}` : ''"></p>
+      </div>
+
+      <div class="card p-4">
+        <p class="flex items-baseline justify-between gap-2 text-xs font-medium uppercase tracking-wide text-ink-500 dark:text-ink-400">
+          <span>Poziom</span>
+          <span class="normal-case tracking-normal" x-text="podsumowanie ? `${podsumowanie.level.number}/10` : ''"></span>
+        </p>
+        <p class="truncate text-lg font-semibold text-ink-900 dark:text-white" x-text="podsumowanie ? podsumowanie.level.name : ''"></p>
+        <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-brand-100 dark:bg-brand-950">
+          <div class="h-full rounded-full bg-brand-600 transition-all duration-700 dark:bg-brand-400" :style="`width: ${podsumowanie ? podsumowanie.level.progress : 0}%`"></div>
+        </div>
+        <p class="mt-1 truncate text-xs text-ink-500 dark:text-ink-400"
+           x-text="podsumowanie ? (podsumowanie.level.next_name ? `${czas((podsumowanie.level.next_minutes - podsumowanie.level.minutes) * 60)} do: ${podsumowanie.level.next_name}` : 'Najwyższy poziom!') : ''"></p>
+      </div>
+    </section>
+
+    <!-- Statystyki ---------------------------------------------------------- -->
+    <section class="card p-5" aria-labelledby="statystyki-naglowek">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <h2 id="statystyki-naglowek" class="section-title">Statystyki</h2>
+        <div class="inline-flex rounded-xl border border-ink-200 bg-white p-1 text-xs font-medium dark:border-ink-700 dark:bg-ink-900" role="tablist" aria-label="Okres">
+          <template x-for="pozycja in okresy" :key="pozycja.klucz">
+            <button type="button" role="tab" class="rounded-lg px-3 py-1.5 transition-colors" :aria-selected="okres === pozycja.klucz"
+                    :class="okres === pozycja.klucz ? 'bg-brand-600 text-white' : 'text-ink-600 hover:bg-ink-100 dark:text-ink-300 dark:hover:bg-ink-800'"
+                    @click="zmienOkres(pozycja.klucz)" x-text="pozycja.nazwa"></button>
+          </template>
+        </div>
+      </div>
+
+      <div class="mt-3 flex items-center gap-2">
+        <button type="button" class="btn-ghost btn-sm !px-2" @click="przesun(-1)" aria-label="Poprzedni okres">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="m15 6-6 6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <p class="min-w-0 flex-1 truncate text-center text-sm font-semibold text-ink-800 sm:flex-none dark:text-ink-100" x-text="statystyki ? statystyki.label : '…'"></p>
+        <button type="button" class="btn-ghost btn-sm !px-2" @click="przesun(1)" :disabled="przesuniecie >= 0" aria-label="Następny okres">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="m9 6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button type="button" class="btn-ghost btn-sm" x-show="przesuniecie < 0" @click="przesuniecie = 0; wczytajStatystyki()">Bieżący</button>
+      </div>
+
+      <div class="transition-opacity" :class="laduje && 'opacity-50'">
+        <template x-if="statystyki">
+          <div>
+            <dl class="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <div class="rounded-xl bg-ink-50 p-3 dark:bg-ink-950/60">
+                <dt class="text-xs text-ink-500 dark:text-ink-400">Czas skupienia</dt>
+                <dd class="mt-1 text-xl font-semibold text-ink-900 dark:text-white" x-text="czas(statystyki.totals.focus_seconds)"></dd>
+                <dd class="mt-1" x-show="delta('focus_seconds') !== null">
+                  <span class="rounded-md px-1.5 py-0.5 text-xs font-semibold tabular-nums" :class="klasaDelty(delta('focus_seconds'))" x-text="formatDelta(delta('focus_seconds'))"></span>
+                </dd>
+              </div>
+              <div class="rounded-xl bg-ink-50 p-3 dark:bg-ink-950/60">
+                <dt class="text-xs text-ink-500 dark:text-ink-400">Ukończone pomidory</dt>
+                <dd class="mt-1 text-xl font-semibold text-ink-900 dark:text-white" x-text="statystyki.totals.pomodoros"></dd>
+                <dd class="mt-1" x-show="delta('pomodoros') !== null">
+                  <span class="rounded-md px-1.5 py-0.5 text-xs font-semibold tabular-nums" :class="klasaDelty(delta('pomodoros'))" x-text="formatDelta(delta('pomodoros'))"></span>
+                </dd>
+              </div>
+              <div class="rounded-xl bg-ink-50 p-3 dark:bg-ink-950/60" x-show="statystyki.period !== 'day'">
+                <dt class="text-xs text-ink-500 dark:text-ink-400">Średnio na dzień nauki</dt>
+                <dd class="mt-1 text-xl font-semibold text-ink-900 dark:text-white" x-text="czas(statystyki.average_per_active_day)"></dd>
+                <dd class="mt-1 text-xs text-ink-500 dark:text-ink-400" x-text="`${statystyki.active_days} ${statystyki.active_days === 1 ? 'dzień' : 'dni'} z nauką`"></dd>
+              </div>
+              <div class="rounded-xl bg-ink-50 p-3 dark:bg-ink-950/60" x-show="statystyki.period === 'day'">
+                <dt class="text-xs text-ink-500 dark:text-ink-400">Najaktywniejsza godzina</dt>
+                <dd class="mt-1 text-xl font-semibold text-ink-900 dark:text-white" x-text="statystyki.peak_hour === null ? '—' : `${statystyki.peak_hour}:00`"></dd>
+              </div>
+              <div class="rounded-xl bg-ink-50 p-3 dark:bg-ink-950/60">
+                <dt class="text-xs text-ink-500 dark:text-ink-400">Dokończone bloki</dt>
+                <dd class="mt-1 text-xl font-semibold text-ink-900 dark:text-white" x-text="statystyki.totals.completion_rate === null ? '—' : `${statystyki.totals.completion_rate}%`"></dd>
+                <dd class="mt-1 text-xs text-ink-500 dark:text-ink-400" x-text="`z ${statystyki.totals.sessions} rozpoczętych`"></dd>
+              </div>
+            </dl>
+            <p class="mt-2 text-xs text-ink-500 dark:text-ink-400" x-show="delta('focus_seconds') !== null || delta('pomodoros') !== null"
+               x-text="`Zmiana ${statystyki.compare_note}.`"></p>
+
+            <!-- Wykres: czas skupienia w podziale okresu -->
+            <figure class="mt-5" x-data="{ podpowiedz: null }">
+              <figcaption class="mb-2 text-xs font-medium text-ink-600 dark:text-ink-300">
+                Czas skupienia — <span x-text="{ day: 'godziny dnia', week: 'dni tygodnia', month: 'dni miesiąca', year: 'miesiące' }[statystyki.period]"></span>
+              </figcaption>
+              <div class="relative">
+                <div class="pointer-events-none absolute inset-0 bottom-6 left-12 flex flex-col justify-between" aria-hidden="true">
+                  <template x-for="linia in podzialkaOsi" :key="linia.wartosc">
+                    <div class="relative border-t border-ink-100 dark:border-ink-800">
+                      <span class="absolute -left-12 -top-2 w-10 text-right text-[10px] tabular-nums text-ink-400" x-text="linia.etykieta"></span>
+                    </div>
+                  </template>
+                </div>
+                <div class="relative ml-12 flex h-48 items-end gap-[2px] pb-6" role="img"
+                     :aria-label="`Wykres czasu skupienia: ${statystyki.label}. Szczegóły w tabeli poniżej.`">
+                  <template x-for="(kubelek, index) in statystyki.buckets" :key="index">
+                    <div class="group relative flex h-full flex-1 cursor-default flex-col items-center justify-end outline-none"
+                         tabindex="0" @mouseenter="podpowiedz = index" @mouseleave="podpowiedz = null" @focus="podpowiedz = index" @blur="podpowiedz = null"
+                         :aria-label="opisKubelka(kubelek, index)">
+                      <div class="w-full max-w-[24px] rounded-t-[4px] transition-[height,background-color] duration-500"
+                           :class="index === statystyki.current_bucket ? 'bg-brand-600 dark:bg-brand-400' : (podpowiedz === index ? 'bg-brand-500 dark:bg-brand-500' : 'bg-brand-300 dark:bg-brand-700')"
+                           :style="`height: ${wysokosc(kubelek)}`"></div>
+                      <span class="absolute -bottom-5 whitespace-nowrap text-[10px] text-ink-400" x-text="podpis(index)"></span>
+                      <div x-show="podpowiedz === index" x-cloak
+                           class="pointer-events-none absolute bottom-full z-10 mb-1 whitespace-nowrap rounded-lg border border-ink-200 bg-white px-2.5 py-1.5 text-xs shadow-float dark:border-ink-700 dark:bg-ink-900"
+                           :class="index < statystyki.buckets.length / 3 ? 'left-0' : (index > statystyki.buckets.length * 2 / 3 ? 'right-0' : '')">
+                        <span class="block font-semibold tabular-nums text-ink-900 dark:text-white" x-text="kubelek.focus_seconds ? czas(kubelek.focus_seconds) : '—'"></span>
+                        <span class="block text-ink-500 dark:text-ink-400"
+                              x-text="`${statystyki.period === 'day' ? `${index}:00` : (statystyki.period === 'month' ? `${kubelek.label}.` : kubelek.label)}${kubelek.pomodoros ? ` · ${kubelek.pomodoros} 🍅` : ''}`"></span>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+              <table class="sr-only">
+                <caption x-text="`Czas skupienia: ${statystyki.label}`"></caption>
+                <thead><tr><th scope="col">Okres</th><th scope="col">Czas skupienia</th><th scope="col">Ukończone pomidory</th></tr></thead>
+                <tbody>
+                  <template x-for="(kubelek, index) in statystyki.buckets" :key="index">
+                    <tr><td x-text="statystyki.period === 'day' ? `${index}:00` : kubelek.label"></td><td x-text="czas(kubelek.focus_seconds)"></td><td x-text="kubelek.pomodoros"></td></tr>
+                  </template>
+                </tbody>
+              </table>
+            </figure>
+
+            <div class="mt-5 grid gap-4 border-t border-ink-100 pt-4 sm:grid-cols-2 dark:border-ink-800" x-show="statystyki.top_labels.length || statystyki.best_bucket !== null">
+              <div x-show="statystyki.top_labels.length">
+                <p class="text-xs font-medium uppercase tracking-wide text-ink-500 dark:text-ink-400">Najwięcej czasu skupienia</p>
+                <ul class="mt-2 space-y-2">
+                  <template x-for="pozycja in statystyki.top_labels" :key="pozycja.label">
+                    <li class="text-sm">
+                      <div class="flex justify-between gap-2"><span class="truncate text-ink-800 dark:text-ink-100" x-text="pozycja.label"></span><span class="shrink-0 tabular-nums text-ink-500 dark:text-ink-400" x-text="czas(pozycja.focus_seconds)"></span></div>
+                      <div class="mt-1 h-1 rounded-full bg-ink-100 dark:bg-ink-800"><div class="h-full rounded-full bg-brand-400" :style="`width: ${(pozycja.focus_seconds / statystyki.top_labels[0].focus_seconds) * 100}%`"></div></div>
+                    </li>
+                  </template>
+                </ul>
+              </div>
+              <div class="space-y-2 text-sm text-ink-700 dark:text-ink-200">
+                <p x-show="statystyki.best_bucket !== null">
+                  <span class="text-ink-500 dark:text-ink-400">Najlepszy fragment:</span>
+                  <span class="font-semibold" x-text="statystyki.best_bucket !== null ? opisKubelka(statystyki.buckets[statystyki.best_bucket], statystyki.best_bucket) : ''"></span>
+                </p>
+                <p x-show="statystyki.peak_hour !== null && statystyki.period !== 'day'">
+                  <span class="text-ink-500 dark:text-ink-400">Zwykle zaczynasz skupienie około:</span>
+                  <span class="font-semibold" x-text="`${statystyki.peak_hour}:00`"></span>
+                </p>
+                <p x-show="statystyki.totals.break_seconds">
+                  <span class="text-ink-500 dark:text-ink-400">Przerwy:</span>
+                  <span class="font-semibold" x-text="czas(statystyki.totals.break_seconds)"></span>
+                </p>
+              </div>
+            </div>
+
+            <p class="mt-4 rounded-xl bg-ink-50 px-4 py-6 text-center text-sm text-ink-500 dark:bg-ink-950/60 dark:text-ink-400" x-show="!statystyki.totals.sessions">
+              W tym okresie nie ma jeszcze bloków skupienia. Pierwszy pomidor pojawi się tu od razu po zakończeniu.
+            </p>
+          </div>
+        </template>
+      </div>
+    </section>
+
+    <!-- Odznaki ------------------------------------------------------------ -->
+    <section class="card p-5" aria-labelledby="odznaki-naglowek" x-show="podsumowanie">
+      <div class="flex items-baseline justify-between gap-3">
+        <h2 id="odznaki-naglowek" class="section-title">Odznaki</h2>
+        <span class="text-xs text-ink-500 dark:text-ink-400" x-text="podsumowanie ? `${podsumowanie.unlocked} z ${podsumowanie.achievements.length}` : ''"></span>
+      </div>
+      <ul class="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
+        <template x-for="odznaka in (podsumowanie ? podsumowanie.achievements : [])" :key="odznaka.key">
+          <li class="flex items-start gap-3 rounded-xl border p-3 transition-colors"
+              :class="odznaka.unlocked ? 'border-brand-200 bg-brand-50/60 dark:border-brand-900 dark:bg-brand-950/30' : 'border-ink-100 dark:border-ink-800'"
+              :title="odznaka.description">
+            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl"
+                  :class="odznaka.unlocked ? 'bg-brand-600 text-white dark:bg-brand-500' : 'bg-ink-100 text-ink-400 dark:bg-ink-800 dark:text-ink-500'">
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path :d="({{ ikony_odznak | tojson_attr }})[odznaka.key] || 'M12 4v16M4 12h16'"/>
+              </svg>
+            </span>
+            <span class="min-w-0">
+              <span class="block truncate text-sm font-semibold" :class="odznaka.unlocked ? 'text-ink-900 dark:text-white' : 'text-ink-500 dark:text-ink-400'" x-text="odznaka.name"></span>
+              <span class="block text-xs text-ink-500 dark:text-ink-400" x-text="odznaka.unlocked ? odznaka.description : `${odznaka.value} / ${odznaka.target}`"></span>
+            </span>
+          </li>
+        </template>
+      </ul>
+      <dl class="mt-4 grid grid-cols-3 gap-3 border-t border-ink-100 pt-4 text-sm dark:border-ink-800" x-show="podsumowanie && podsumowanie.totals.pomodoros">
+        <div><dt class="text-xs text-ink-500 dark:text-ink-400">Łącznie</dt><dd class="font-semibold text-ink-900 dark:text-white" x-text="podsumowanie ? czas(podsumowanie.totals.focus_seconds) : ''"></dd></div>
+        <div><dt class="text-xs text-ink-500 dark:text-ink-400">Najlepszy dzień</dt><dd class="font-semibold text-ink-900 dark:text-white" x-text="podsumowanie && podsumowanie.records.best_day ? czas(podsumowanie.records.best_day.focus_seconds) : '—'"></dd></div>
+        <div><dt class="text-xs text-ink-500 dark:text-ink-400">Najdłuższy blok</dt><dd class="font-semibold text-ink-900 dark:text-white" x-text="podsumowanie ? czas(podsumowanie.records.longest_focus_seconds) : ''"></dd></div>
+      </dl>
+    </section>
+
+    <!-- Ostatnie bloki ------------------------------------------------------ -->
+    <section class="card overflow-hidden" aria-labelledby="ostatnie-naglowek" x-show="wpisy.length">
+      <h2 id="ostatnie-naglowek" class="section-title px-5 pt-5">Ostatnie bloki skupienia</h2>
+      <ul class="mt-3 divide-y divide-ink-100 dark:divide-ink-800">
+        <template x-for="wpis in wpisy" :key="wpis.id">
+          <li class="group flex items-center gap-3 px-5 py-2.5 text-sm">
+            <span class="h-2 w-2 shrink-0 rounded-full" :class="wpis.completed ? 'bg-brand-600 dark:bg-brand-400' : 'bg-ink-300 dark:bg-ink-600'" :title="wpis.completed ? 'Dokończony' : 'Przerwany'"></span>
+            <span class="min-w-0 flex-1 truncate text-ink-800 dark:text-ink-100" x-text="wpis.label || (wpis.completed ? 'Blok skupienia' : 'Blok przerwany')"></span>
+            <span class="shrink-0 tabular-nums text-ink-600 dark:text-ink-300" x-text="czas(wpis.actual_seconds)"></span>
+            <span class="w-24 shrink-0 text-right text-xs text-ink-500 dark:text-ink-400" x-text="`${dzien(wpis.ended_at)}, ${godzina(wpis.ended_at)}`"></span>
+            <button type="button" class="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-ink-300 opacity-100 hover:bg-rose-50 hover:text-rose-600 sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100 dark:text-ink-600 dark:hover:bg-rose-950/40"
+                    @click="usunWpis(wpis)" aria-label="Usuń wpis ze statystyk">
+              <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke-linecap="round"/></svg>
+            </button>
+          </li>
+        </template>
+      </ul>
+    </section>
+  </div>
+</div>
+{% endblock %}

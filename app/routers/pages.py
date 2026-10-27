@@ -1,13 +1,15 @@
 """Widoki HTML renderowane po stronie serwera."""
 from __future__ import annotations
 
+from datetime import timedelta, timezone
+
 from fastapi import APIRouter, HTTPException, Query, Request, status
 from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy import func, select
 
 from ..config import settings
 from ..deps import DbSession, OptionalUser
-from ..models import Favorite, StudySession, StudySet, Transcription, Visibility
+from ..models import Favorite, StudyMode, StudySession, StudySet, Transcription, Visibility
 from ..services import (
     can_edit,
     can_view,
@@ -19,9 +21,10 @@ from ..services import (
     to_summary,
 )
 from .. import transkrypcje
-from ..activity import build_heatmap
+from ..activity import build_heatmap, format_day, local_today, local_zone
 from ..leaderboard import Period, build_leaderboard
 from ..permissions import role_choices
+from ..preferences import load_preferences
 from ..prompts import available_modes, can_use_mode, get_mode
 from ..templating import templates
 
@@ -151,6 +154,84 @@ def dashboard(request: Request, user: OptionalUser, db: DbSession):
             "recent_titles": titles,
             "heatmap": build_heatmap(db, user),
             "weekly": build_leaderboard(db, Period.WEEK, user, limit=3),
+        },
+    )
+
+
+HISTORY_PAGE_SIZE = 30
+
+
+@router.get("/historia", response_class=HTMLResponse)
+def history_page(
+    request: Request,
+    user: OptionalUser,
+    db: DbSession,
+    strona: int = Query(default=1, ge=1, le=100000),
+    tryb: str = Query(default="", max_length=20),
+):
+    """Pełna historia sesji nauki, pogrupowana według dni, z filtrem trybu."""
+    guard = _require_user(user, request)
+    if guard is not None:
+        return guard
+    assert user is not None
+
+    mode = next((m for m in StudyMode if m.value == tryb), None)
+    conditions = [StudySession.user_id == user.id]
+    if mode is not None:
+        conditions.append(StudySession.mode == mode)
+
+    total_count, total_items, total_seconds = db.execute(
+        select(
+            func.count(StudySession.id),
+            func.coalesce(func.sum(StudySession.total), 0),
+            func.coalesce(func.sum(StudySession.duration_seconds), 0),
+        ).where(*conditions)
+    ).one()
+    pages = max(1, -(-total_count // HISTORY_PAGE_SIZE))
+    page = min(strona, pages)
+
+    rows = list(
+        db.scalars(
+            select(StudySession)
+            .where(*conditions)
+            .order_by(StudySession.created_at.desc(), StudySession.id.desc())
+            .offset((page - 1) * HISTORY_PAGE_SIZE)
+            .limit(HISTORY_PAGE_SIZE)
+        )
+    )
+    titles = {}
+    if rows:
+        titles = dict(
+            db.execute(select(StudySet.id, StudySet.title).where(StudySet.id.in_({r.set_id for r in rows}))).all()
+        )
+
+    zone = local_zone()
+    today = local_today()
+    days: list[dict] = []
+    for row in rows:
+        created = row.created_at if row.created_at.tzinfo else row.created_at.replace(tzinfo=timezone.utc)
+        day = created.astimezone(zone).date()
+        if not days or days[-1]["day"] != day:
+            if day == today:
+                label = "Dziś"
+            elif day == today - timedelta(days=1):
+                label = "Wczoraj"
+            else:
+                label = format_day(day)
+            days.append({"day": day, "label": label, "items": []})
+        days[-1]["items"].append(row)
+
+    return _render(
+        request,
+        "history.html",
+        {
+            "user": user,
+            "days": days,
+            "titles": titles,
+            "mode": mode.value if mode else "",
+            "page": page,
+            "pages": pages,
+            "summary": {"sessions": total_count, "elements": int(total_items), "seconds": int(total_seconds)},
         },
     )
 
@@ -405,4 +486,17 @@ def account_page(request: Request, user: OptionalUser, db: DbSession):
     if guard is not None:
         return guard
     assert user is not None
-    return _render(request, "account.html", {"user": user, "stats": dashboard_stats(db, user)})
+    return _render(
+        request,
+        "account.html",
+        {"user": user, "stats": dashboard_stats(db, user), "preferences": load_preferences(db, user).model_dump()},
+    )
+
+
+@router.get("/pomodoro", response_class=HTMLResponse)
+def pomodoro_page(request: Request, user: OptionalUser):
+    """Minutnik Pomodoro ze statystykami, odznakami i (opcjonalnie) dźwiękami tła."""
+    guard = _require_user(user, request)
+    if guard is not None:
+        return guard
+    return _render(request, "pomodoro.html", {"user": user})

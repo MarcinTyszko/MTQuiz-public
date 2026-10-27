@@ -6,7 +6,7 @@
 {% block content %}
 <script type="application/json" id="dane-transkrypcji">{{ transcription_json | tojson_safe }}</script>
 
-<div x-data="szczegolyTranskrypcji()" x-init="init()" x-cloak>
+<div x-data="szczegolyTranskrypcji()" x-cloak>
   <a href="/transkrypcje" class="text-xs text-ink-500 hover:underline dark:text-ink-400">← Wróć do listy transkrypcji</a>
 
   <!-- Nagłówek -------------------------------------------------------- -->
@@ -64,7 +64,7 @@
       <section class="card mt-6 p-5">
         <h2 class="section-title">Co dalej z tekstem</h2>
 
-        <div class="mt-4 grid gap-3 sm:grid-cols-2">
+        <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <button type="button" class="btn-primary w-full justify-start py-3 text-left" @click="doGeneratora()">
             <span class="block">
               <span class="block text-sm font-semibold">Zrób z tego fiszki</span>

@@ -11,13 +11,14 @@
 
     {% if user %}
     {% set tryby_dziedzinowe = prompt_modes_for(user) %}
+    {% set pomodoro_nav = pomodoro_bootstrap(user) %}
     {% set ikony_trybow = {
       'lek': 'M6 3v5a4 4 0 0 0 8 0V3m-4 9v2a5 5 0 0 0 10 0v-1m0 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM5 3h2m6 0h2',
       'anatomia': 'M12 3a3 3 0 1 1 0 6 3 3 0 0 1 0-6Zm0 6v12m-6-9 6-2 6 2M8 21l4-6 4 6',
       'synteza': 'M12 3 3 8l9 5 9-5-9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5',
       'domyslna': 'M12 5v14M5 12h14'
     } %}
-    <div class="ml-2 hidden items-center gap-1 md:flex">
+    <div class="ml-2 hidden items-center gap-1 whitespace-nowrap lg:flex">
       <a href="/pulpit" class="btn-ghost btn-sm">Moje zestawy</a>
       <a href="/baza-publiczna" class="btn-ghost btn-sm">Baza publiczna</a>
       <a href="/transkrypcje" class="btn-ghost btn-sm">Transkrypcja AI</a>
@@ -96,16 +97,26 @@
         </div>
       </div>
 
+      {% if pomodoro_nav and pomodoro_nav.enabled %}<a href="/pomodoro" class="btn-ghost btn-sm">Pomodoro</a>{% endif %}
       <a href="/ranking" class="btn-ghost btn-sm">Ranking</a>
       {% if user.is_admin %}<a href="/panel" class="btn-ghost btn-sm">Panel</a>{% endif %}
     </div>
     {% else %}
-    <div class="ml-2 hidden items-center gap-1 md:flex">
+    <div class="ml-2 hidden items-center gap-1 whitespace-nowrap lg:flex">
       <a href="/baza-publiczna" class="btn-ghost btn-sm">Baza publiczna</a>
     </div>
     {% endif %}
 
     <div class="ml-auto flex items-center gap-2">
+      {% if user and pomodoro_nav and pomodoro_nav.enabled %}
+      {# Telefon: trwająca seria Pomodoro jako pigułka w nagłówku — nie zasłania treści ani dolnych pasków. #}
+      <a href="/pomodoro" x-data="pomodoroWidget()" x-cloak x-show="widoczny"
+         class="flex items-center gap-1.5 rounded-full border border-ink-200 bg-white px-2.5 py-1 text-xs font-semibold tabular-nums text-ink-900 lg:hidden dark:border-ink-700 dark:bg-ink-900 dark:text-white"
+         :aria-label="`Pomodoro: ${p.nazwaFazy}, ${p.zegar}`">
+        <span class="h-2 w-2 rounded-full" :class="[kolor.tlo, p.stan.status === 'running' && 'animate-pulse']"></span>
+        <span x-text="p.stan.status === 'finished' ? 'Gotowe' : p.zegar"></span>
+      </a>
+      {% endif %}
       <button
         type="button"
         class="btn-ghost btn-sm !px-2.5"
@@ -123,7 +134,7 @@
       </button>
 
       {% if user %}
-      <div class="relative hidden md:block" x-data="{ menu: false }" @keydown.escape.window="menu = false">
+      <div class="relative hidden lg:block" x-data="{ menu: false }" @keydown.escape.window="menu = false">
         <button type="button" class="btn-secondary btn-sm" @click="menu = !menu" :aria-expanded="menu">
           <span class="grid h-6 w-6 place-items-center rounded-full bg-brand-600 text-[11px] font-bold text-white">
             {{ user.label[:1] | upper }}
@@ -156,7 +167,7 @@
 
       <button
         type="button"
-        class="btn-ghost btn-sm !px-2.5 md:hidden"
+        class="btn-ghost btn-sm !px-2.5 lg:hidden"
         @click="open = !open"
         :aria-expanded="open"
         aria-label="Menu"
@@ -168,7 +179,7 @@
     </div>
   </nav>
 
-  <div x-show="open" x-cloak x-transition class="border-t border-ink-200 bg-white px-4 py-3 md:hidden dark:border-ink-800 dark:bg-ink-950">
+  <div x-show="open" x-cloak x-transition class="border-t border-ink-200 bg-white px-4 py-3 lg:hidden dark:border-ink-800 dark:bg-ink-950">
     <div class="flex flex-col gap-1">
       {% if user %}
       <a href="/pulpit" class="btn-ghost justify-start">Moje zestawy</a>
@@ -185,6 +196,8 @@
       {% endfor %}
 
       <p class="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-ink-400">Nauka</p>
+      {% if pomodoro_nav and pomodoro_nav.enabled %}<a href="/pomodoro" class="btn-ghost justify-start">Pomodoro</a>{% endif %}
+      <a href="/historia" class="btn-ghost justify-start">Historia nauki</a>
       <a href="/ranking" class="btn-ghost justify-start">Ranking</a>
 
       <p class="px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-ink-400">Konto</p>

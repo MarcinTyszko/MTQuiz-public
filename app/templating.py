@@ -7,8 +7,13 @@ from datetime import datetime, timezone
 from fastapi.templating import Jinja2Templates
 from markupsafe import Markup, escape
 
+from . import push
+from .activity import local_zone
 from .config import STATIC_DIR, TEMPLATES_DIR, settings
+from .database import session_scope
+from .models import PomodoroTimer
 from .permissions import has_permission, role_label
+from .preferences import load_preferences
 from .prompts import available_modes
 
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
@@ -47,6 +52,27 @@ def relative_time(value: datetime | None) -> str:
     if months < 12:
         return f"{months} mies. temu"
     return format_datetime(value, "%d.%m.%Y")
+
+
+def local_time(value: datetime | None, pattern: str = "%H:%M") -> str:
+    """Godzina w strefie instancji (``QUIZAPP_TIMEZONE``), a nie w UTC zapisanym w bazie."""
+    if value is None:
+        return "—"
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+    return value.astimezone(local_zone()).strftime(pattern)
+
+
+def format_duration(seconds: int | float | None) -> str:
+    """Czas trwania po polsku: „45 s”, „12 min”, „1 godz. 5 min”."""
+    total = max(0, int(seconds or 0))
+    if total < 60:
+        return f"{total} s"
+    minutes = round(total / 60)
+    if minutes < 60:
+        return f"{minutes} min"
+    hours, rest = divmod(minutes, 60)
+    return f"{hours} godz. {rest} min" if rest else f"{hours} godz."
 
 
 def format_bytes(value: int | None) -> str:
@@ -97,6 +123,44 @@ def format_number(value: int | float | None) -> str:
     return f"{value or 0:,}".replace(",", " ")
 
 
+def pomodoro_bootstrap(user) -> dict | None:
+    """Stan minutnika i ustawienia Pomodoro osadzane w każdej stronie konta.
+
+    Minutnik pojawia się od razu po przejściu na inną stronę, bez dodatkowego
+    zapytania i bez mignięcia. Wynik jest zapamiętywany na obiekcie konta na czas
+    jednego żądania (szablon pyta o niego kilka razy).
+    """
+    if user is None or getattr(user, "must_change_password", False):
+        return None
+    cached = getattr(user, "_pomodoro_bootstrap", None)
+    if cached is not None:
+        return cached
+
+    with session_scope() as db:
+        prefs = load_preferences(db, user)
+        timer = db.get(PomodoroTimer, user.id)
+        try:
+            state = json.loads(timer.state) if timer is not None else {}
+        except json.JSONDecodeError:
+            state = {}
+        revision = timer.revision if timer is not None else 0
+
+    data = {
+        "enabled": prefs.pomodoro_enabled,
+        "widget": prefs.pomodoro_widget,
+        "ambient": prefs.ambient_sounds,
+        "config": prefs.pomodoro.model_dump(),
+        "timer": {"revision": revision, "state": state},
+        "vapidKey": push.vapid_keys().public_key,
+        "serverNow": datetime.now(timezone.utc).isoformat(),
+    }
+    try:
+        user._pomodoro_bootstrap = data
+    except AttributeError:  # pragma: no cover - obiekt bez możliwości dopisania atrybutu
+        pass
+    return data
+
+
 _static_versions: dict[str, str] = {}
 
 
@@ -122,6 +186,8 @@ def static_url(path: str) -> str:
 templates.env.filters["dt"] = format_datetime
 templates.env.filters["relative"] = relative_time
 templates.env.filters["bytes"] = format_bytes
+templates.env.filters["local_time"] = local_time
+templates.env.filters["duration"] = format_duration
 templates.env.filters["num"] = format_number
 templates.env.filters["tojson_safe"] = to_json
 templates.env.filters["tojson_attr"] = to_json_attr
@@ -135,3 +201,4 @@ templates.env.globals["allow_registration"] = settings.allow_registration
 templates.env.globals["can"] = has_permission
 templates.env.globals["role_label"] = role_label
 templates.env.globals["prompt_modes_for"] = available_modes
+templates.env.globals["pomodoro_bootstrap"] = pomodoro_bootstrap

@@ -10,3 +10,4 @@ PyJWT==2.10.1
 email-validator==2.2.0
 fpdf2==2.8.8
 tzdata==2025.2
+cryptography==44.0.2

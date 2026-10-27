@@ -7,6 +7,15 @@
   <meta name="description" content="{{ app_tagline }}">
   <title>{% block title %}{{ app_name }}{% endblock %}</title>
   <link rel="icon" href="{{ static_url('favicon.svg') }}" type="image/svg+xml">
+  {# Instalacja na ekranie telefonu — na iPhonie warunek powiadomień push (iOS 16.4+). #}
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="{{ static_url('icons/apple-touch-icon.png') }}">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="{{ app_name }}">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0e1119" media="(prefers-color-scheme: dark)">
   <link rel="stylesheet" href="{{ static_url('css/app.css') }}">
   <script>
     // Ustawienie motywu przed pierwszym renderowaniem — eliminuje mignięcie jasnego tła.
@@ -23,6 +32,8 @@
     })();
   </script>
   <script defer src="{{ static_url('js/app.js') }}"></script>
+  {% set pomodoro = pomodoro_bootstrap(user) if user is defined else none %}
+  {% if pomodoro %}<script defer src="{{ static_url('js/pomodoro.js') }}"></script>{% endif %}
   {% block head_scripts %}{% endblock %}
   <script defer src="{{ static_url('vendor/alpine.min.js') }}"></script>
 </head>
@@ -66,6 +77,10 @@
   </footer>
   {% endblock %}
 
+  {% if pomodoro %}
+  <script type="application/json" id="pomodoro-bootstrap">{{ pomodoro | tojson_safe }}</script>
+  {% if pomodoro.enabled %}{% include "partials/pomodoro_widget.html" %}{% endif %}
+  {% endif %}
   {% include "partials/toasts.html" %}
   {% block scripts %}{% endblock %}
 </body>
